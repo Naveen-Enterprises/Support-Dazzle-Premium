@@ -74,6 +74,9 @@ with st.container():
             st.session_state.raw_text = raw_text
 
             name_match = re.search(r"Customer\n(.*?)\n", raw_text)
+            if not name_match:
+                name_match = re.search(r"Shipping address\n(.*?)\n", raw_text)
+
             email_match = re.search(r"[\w\.-]+@[\w\.-]+", raw_text)
             phone_match = re.search(r"\+1\s?[\d\-() ]{10,20}", raw_text)
             order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
@@ -88,7 +91,7 @@ with st.container():
             i = 0
             while i < len(lines):
                 line = lines[i]
-                if re.search(r" - [A-Z0-9]+$", line):
+                if re.search(r" - [A-Z0-9]{3,}$", line):
                     product_line = line
                     product_name, style_code = product_line.rsplit(" - ", 1)
                     product_name = product_name.strip()
@@ -97,7 +100,7 @@ with st.container():
                     size = ""
                     j = i + 1
                     while j < len(lines):
-                        if "/" in lines[j] and not lines[j].startswith("$") and not lines[j].startswith("SKU"):
+                        if re.match(r"^(\d{1,2}/\d{1,2}|[XSML]{1,2}\b)", lines[j]) and not lines[j].startswith("$") and not lines[j].startswith("SKU"):
                             size = lines[j].split("/")[0].strip()
                             break
                         j += 1
