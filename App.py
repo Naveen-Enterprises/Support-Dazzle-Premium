@@ -52,7 +52,7 @@ if "reset_clicked" not in st.session_state:
 
 # --- Handle Reset Safely ---
 if st.session_state.reset_clicked:
-    for key in ["customer_name", "raw_text"]:
+    for key in ["raw_text"]:
         if key in st.session_state:
             del st.session_state[key]
     st.session_state.reset_clicked = False
@@ -74,10 +74,12 @@ with st.container():
             st.session_state.raw_text = raw_text
 
             name_match = re.search(r"Customer\n(.*?)\n", raw_text)
+            email_match = re.search(r"[\w\.-]+@[\w\.-]+", raw_text)
             phone_match = re.search(r"\+1\s[\d\-() ]{10,20}", raw_text)
             order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
 
             customer_name = name_match.group(1).strip() if name_match else "Customer"
+            email_address = email_match.group(0).strip() if email_match else "[Email Not Found]"
             phone_number = phone_match.group(0).strip() if phone_match else "[Phone Not Found]"
             order_number = order_number_match.group(1).strip() if order_number_match else "[Order # Not Found]"
 
@@ -126,7 +128,7 @@ If you have any questions our US-based team is here Monday–Saturday, 10 AM–6
 Thank you for choosing DAZZLE PREMIUM!"""
 
             st.success("✅ Message ready to copy and send")
-            st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>Not provided</div>", unsafe_allow_html=True)
+            st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
             st.code(message, language="text")
             st.markdown(f"<h4>📱 Phone Number:</h4><div class='subject-box'>{phone_number}</div>", unsafe_allow_html=True)
