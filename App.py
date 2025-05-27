@@ -1,4 +1,5 @@
 import streamlit as st
+import re
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Order Email Generator", layout="centered")
@@ -18,24 +19,37 @@ if st.session_state.step == 1:
         st.session_state.order_number = order_number
         st.session_state.step = 2
 
-# --- Screen 2: Ask number of items ---
+# --- Screen 2: Paste Raw Item Info ---
 elif st.session_state.step == 2:
-    st.subheader("Step 2: Number of Items")
-    num_items = st.number_input("How many items in the order?", min_value=1, step=1)
-    if st.button("Next"):
-        st.session_state.num_items = int(num_items)
+    st.subheader("Step 2: Paste Raw Item Info")
+    raw_text = st.text_area("Paste the order details below exactly as received")
+    if st.button("Next") and raw_text:
+        st.session_state.raw_text = raw_text
         st.session_state.step = 3
 
-# --- Screen 3: Enter details and generate message ---
+# --- Screen 3: Parse and Generate Message ---
 elif st.session_state.step == 3:
-    st.subheader("Step 3: Enter Item Details")
+    st.subheader("Step 3: Generated Order Message")
+
+    raw_text = st.session_state.raw_text
+    # Basic parsing logic to extract products
+    lines = [line.strip() for line in raw_text.split('\n') if line.strip() != ""]
     items = []
-    for i in range(st.session_state.num_items):
-        st.markdown(f"**Item {i+1}**")
-        product = st.text_input(f"Product Name {i+1}", key=f"product_{i}")
-        style = st.text_input(f"Style Code {i+1}", key=f"style_{i}")
-        size = st.text_input(f"Size {i+1}", value="XL", key=f"size_{i}")
-        items.append((product, style, size))
+    i = 0
+    while i < len(lines):
+        if '-' in lines[i] and not lines[i].startswith("SKU"):
+            product_line = lines[i]
+            size_line = lines[i+1] if i+1 < len(lines) else ""
+            sku_line = lines[i+2] if i+2 < len(lines) and lines[i+2].startswith("SKU") else ""
+
+            product_name = product_line.split('-')[0].strip()
+            style_code = product_line.split('-')[-1].strip()
+            size = size_line.split('/')[0].strip() if '/' in size_line else size_line.strip()
+
+            items.append((product_name, style_code, size))
+            i += 4  # Skip to next item block
+        else:
+            i += 1
 
     if st.button("Generate Message"):
         order_details = "\n".join([f"• Product: {p}\n• Style Code: {s}\n• Size: {z}" for p, s, z in items])
