@@ -1,5 +1,4 @@
 import streamlit as st
-import pyperclip
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Order Email Generator", layout="centered")
@@ -16,8 +15,8 @@ with st.form("order_form"):
     submitted = st.form_submit_button("Generate Email")
 
 if submitted:
-    # --- HTML Email Template ---
-    html_email = f"""
+    # --- Message Template ---
+    final_message = f"""
 Hello {customer_name},
 
 This is DAZZLE PREMIUM Support confirming Order #{order_number}
@@ -41,14 +40,6 @@ Thank you for choosing DAZZLE PREMIUM!
 
     st.success("✅ Email is ready to send!")
 
-    st.subheader("📤 One-Click Copy")
-    st.text_area("✉️ Copy & Paste This Message into Gmail or SMS", html_email, height=300)
-
-    if st.button("📋 Copy to Clipboard"):
-        try:
-            pyperclip.copy(html_email)
-            st.success("Copied to clipboard!")
-        except:
-            st.warning("Clipboard copy not supported in this browser. Please copy manually.")
-
-    st.info("✅ Just paste this message directly into Gmail or SMS. No formatting tricks needed.")
+    st.subheader("📋 Copy & Paste Message")
+    st.code(final_message, language="text")
+    st.info("Right-click the box above and select 'Copy' or press Ctrl+C (Cmd+C on Mac). Then paste into Gmail or SMS.")
