@@ -85,6 +85,9 @@ Thank you for choosing DAZZLE PREMIUM!"""
     st.code(message, language="text")
     st.info("Copy the subject and message above and paste them directly into Gmail, WhatsApp, or SMS. No edits needed.")
 
+    if st.button("🔁 Start New Order"):
+        st.session_state.step = 1
+
     # Sidebar recent orders
     st.sidebar.markdown("### 📝 Last 5 Orders")
     for entry in st.session_state.order_log:
