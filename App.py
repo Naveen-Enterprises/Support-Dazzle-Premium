@@ -52,7 +52,7 @@ if "reset_clicked" not in st.session_state:
 
 # --- Handle Reset Safely ---
 if st.session_state.reset_clicked:
-    for key in ["customer_name", "order_number", "raw_text"]:
+    for key in ["customer_name", "raw_text"]:
         if key in st.session_state:
             del st.session_state[key]
     st.session_state.reset_clicked = False
@@ -65,17 +65,21 @@ with st.container():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Enter Customer Info")
-        customer_name = st.text_input("Customer Name", value=st.session_state.get("customer_name", ""))
-        order_number = st.text_input("Order Number", value=st.session_state.get("order_number", ""))
-        raw_text = st.text_area("Paste Order Details", height=300, value=st.session_state.get("raw_text", ""))
-        generate = st.button("🎯 Generate Message")
+        st.subheader("Paste Shopify Order Export")
+        raw_text = st.text_area("Full Order Export Text", height=500, value=st.session_state.get("raw_text", ""))
+        generate = st.button("🎯 Generate Email")
 
     with col2:
-        if generate and customer_name and order_number and raw_text:
-            st.session_state.customer_name = customer_name
-            st.session_state.order_number = order_number
+        if generate and raw_text:
             st.session_state.raw_text = raw_text
+
+            name_match = re.search(r"Customer\n(.*?)\n", raw_text)
+            phone_match = re.search(r"\+1\s[\d\-() ]{10,20}", raw_text)
+            order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
+
+            customer_name = name_match.group(1).strip() if name_match else "Customer"
+            phone_number = phone_match.group(0).strip() if phone_match else "[Phone Not Found]"
+            order_number = order_number_match.group(1).strip() if order_number_match else "[Order # Not Found]"
 
             lines = [line.strip() for line in raw_text.split('\n') if line.strip() != ""]
             items = []
@@ -122,11 +126,13 @@ If you have any questions our US-based team is here Monday–Saturday, 10 AM–6
 Thank you for choosing DAZZLE PREMIUM!"""
 
             st.success("✅ Message ready to copy and send")
+            st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>Not provided</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
             st.code(message, language="text")
+            st.markdown(f"<h4>📱 Phone Number:</h4><div class='subject-box'>{phone_number}</div>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
-    if not customer_name or not order_number or not raw_text:
-        st.warning("Please fill out all fields before generating the message.")
+    if not raw_text:
+        st.warning("Please paste the order export before generating the message.")
 
 st.markdown("""</div>""", unsafe_allow_html=True)
