@@ -5,9 +5,7 @@ import re
 st.set_page_config(page_title="Order Email Generator", layout="centered")
 st.title("📦 DAZZLE PREMIUM Order Email Generator")
 
-# --- Manage Order Log and Reset ---
-if "order_log" not in st.session_state:
-    st.session_state.order_log = []
+# --- Manage Reset ---
 if "reset_clicked" not in st.session_state:
     st.session_state.reset_clicked = False
 
@@ -78,10 +76,6 @@ Note: Any order confirmed after 3:00 pm will be scheduled for the next business 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
 
-    # Log recent orders
-    st.session_state.order_log.insert(0, f"#{order_number} - {customer_name}")
-    st.session_state.order_log = st.session_state.order_log[:5]  # Keep only last 5
-
     st.success("✅ Message ready to copy and send")
     st.markdown(f"**Subject:** {subject}")
     st.code(message, language="text")
@@ -90,8 +84,3 @@ Thank you for choosing DAZZLE PREMIUM!"""
 # --- Button to Reset Fields Safely ---
 if st.button("🔁 Start New Order"):
     st.session_state.reset_clicked = True
-
-# Sidebar recent orders
-st.sidebar.markdown("### 📝 Last 5 Orders")
-for entry in st.session_state.order_log:
-    st.sidebar.markdown(f"- {entry}")
