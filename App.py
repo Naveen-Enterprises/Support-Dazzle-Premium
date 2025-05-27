@@ -5,33 +5,21 @@ import re
 st.set_page_config(page_title="Order Email Generator", layout="centered")
 st.title("📦 DAZZLE PREMIUM Order Email Generator")
 
-# --- Manage Navigation State ---
-if "step" not in st.session_state:
-    st.session_state.step = 1
+# --- Manage Order Log ---
 if "order_log" not in st.session_state:
     st.session_state.order_log = []
 
-# --- Screen 1: Ask for order number and name ---
-if st.session_state.step == 1:
-    st.subheader("Step 1: Enter Customer Info")
-    customer_name = st.text_input("Customer Name")
-    order_number = st.text_input("Order Number")
-    raw_text = st.text_area("Paste the order details below exactly as received")
+# --- UI Input ---
+st.subheader("Step 1: Enter Customer Info")
+customer_name = st.text_input("Customer Name")
+order_number = st.text_input("Order Number")
+raw_text = st.text_area("Paste the order details below exactly as received")
 
-    if not customer_name or not order_number or not raw_text:
-        st.warning("Please fill out all fields before generating the message.")
+if not customer_name or not order_number or not raw_text:
+    st.warning("Please fill out all fields before generating the message.")
 
-    if st.button("Generate Message") and customer_name and order_number and raw_text:
-        st.session_state.customer_name = customer_name
-        st.session_state.order_number = order_number
-        st.session_state.raw_text = raw_text
-        st.session_state.step = 2
-
-# --- Step 2: Generate and display message immediately ---
-elif st.session_state.step == 2:
-    st.subheader("Generated Order Message")
-
-    raw_text = st.session_state.raw_text
+# --- Process and Display Message ---
+if st.button("Generate Message") and customer_name and order_number and raw_text:
     lines = [line.strip() for line in raw_text.split('\n') if line.strip() != ""]
     items = []
     i = 0
@@ -59,10 +47,10 @@ elif st.session_state.step == 2:
         for idx, (p, s, z) in enumerate(items)
     ])
 
-    subject = f"Final Order Confirmation of dazzlepremium#{st.session_state.order_number}"
-    message = f"""Hello {st.session_state.customer_name},
+    subject = f"Final Order Confirmation of dazzlepremium#{order_number}"
+    message = f"""Hello {customer_name},
 
-This is DAZZLE PREMIUM Support confirming Order {st.session_state.order_number}
+This is DAZZLE PREMIUM Support confirming Order {order_number}
 
 - Please reply YES to confirm just this order only.
 
@@ -77,7 +65,7 @@ If you have any questions our US-based team is here Monday–Saturday, 10 AM–6
 Thank you for choosing DAZZLE PREMIUM!"""
 
     # Log recent orders
-    st.session_state.order_log.insert(0, f"#{st.session_state.order_number} - {st.session_state.customer_name}")
+    st.session_state.order_log.insert(0, f"#{order_number} - {customer_name}")
     st.session_state.order_log = st.session_state.order_log[:5]  # Keep only last 5
 
     st.success("✅ Message ready to copy and send")
@@ -85,10 +73,11 @@ Thank you for choosing DAZZLE PREMIUM!"""
     st.code(message, language="text")
     st.info("Copy the subject and message above and paste them directly into Gmail, WhatsApp, or SMS. No edits needed.")
 
-    if st.button("🔁 Start New Order"):
-        st.session_state.step = 1
+# --- Button to Reset Fields ---
+if st.button("🔁 Start New Order"):
+    st.experimental_rerun()
 
-    # Sidebar recent orders
-    st.sidebar.markdown("### 📝 Last 5 Orders")
-    for entry in st.session_state.order_log:
-        st.sidebar.markdown(f"- {entry}")
+# Sidebar recent orders
+st.sidebar.markdown("### 📝 Last 5 Orders")
+for entry in st.session_state.order_log:
+    st.sidebar.markdown(f"- {entry}")
