@@ -1,5 +1,7 @@
-
 import streamlit as st
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Order Email Generator", layout="centered")
@@ -13,6 +15,11 @@ with st.form("order_form"):
     product_name = st.text_input("Product Name", value="Reverse Terry Half Zip (Yellow)")
     style_code = st.text_input("Style Code", value="300408")
     size = st.text_input("Size", value="XL")
+    receiver_email = st.text_input("Customer Email", value="customer@example.com")
+    smtp_server = st.text_input("SMTP Server", value="smtp.gmail.com")
+    smtp_port = st.number_input("SMTP Port", value=465)
+    sender_email = st.text_input("Your Email", value="your_email@example.com")
+    sender_password = st.text_input("Your Email Password or App Password", type="password")
     submitted = st.form_submit_button("Generate Email")
 
 if submitted:
@@ -74,3 +81,22 @@ Thank you for choosing DAZZLE PREMIUM!
 
     st.subheader("✅ Generated Plain Text Message")
     st.code(plain_text, language="text")
+
+    send_now = st.button("Send Email Now")
+
+    if send_now:
+        try:
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = f"Order Confirmation - DAZZLE PREMIUM #{order_number}"
+            msg["From"] = sender_email
+            msg["To"] = receiver_email
+
+            msg.attach(MIMEText(html_email, "html"))
+
+            with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, receiver_email, msg.as_string())
+
+            st.success(f"Email successfully sent to {receiver_email}!")
+        except Exception as e:
+            st.error(f"Failed to send email: {e}")
