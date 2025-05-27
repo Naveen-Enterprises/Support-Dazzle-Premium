@@ -32,7 +32,6 @@ elif st.session_state.step == 3:
     st.subheader("Step 3: Generated Order Message")
 
     raw_text = st.session_state.raw_text
-    # Basic parsing logic to extract products
     lines = [line.strip() for line in raw_text.split('\n') if line.strip() != ""]
     items = []
     i = 0
@@ -46,13 +45,15 @@ elif st.session_state.step == 3:
             style_code = product_line.split('-')[-1].strip()
             size = size_line.split('/')[0].strip() if '/' in size_line else size_line.strip()
 
-            items.append((product_name, style_code, size))
-            i += 4  # Skip to next item block
+            # Avoid discount or unrelated lines
+            if "Discount" not in product_name:
+                items.append((product_name, style_code, size))
+            i += 4
         else:
             i += 1
 
     if st.button("Generate Message"):
-        order_details = "\n".join([f"• Product: {p}\n• Style Code: {s}\n• Size: {z}" for p, s, z in items])
+        order_details = "\n\n".join([f"- Item {idx+1}:\n•\u2060  \u2060Product: {p}\n•\u2060  \u2060Style Code: {s}\n•\u2060  \u2060Size: {z}" for idx, (p, s, z) in enumerate(items)])
         message = f"""Hello {st.session_state.customer_name},
 
 This is DAZZLE PREMIUM Support confirming Order {st.session_state.order_number}
