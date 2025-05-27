@@ -119,11 +119,12 @@ with st.container():
 This is DAZZLE PREMIUM Support confirming Order {order_number}
 
 - Please reply YES to confirm just this order only.
+- Kindly also reply YES to the SMS sent automatically to your inbox.
 
 Order Details:
 {order_details}
 
-For your security, we use two-factor authentication. If this order wasn’t placed by you, text us immediately at 301-942-0000 to cancel.
+For your security, we use two-factor authentication. If this order wasn’t placed by you, text us immediately at 410-381-0000 to cancel.
 
 Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.
 
