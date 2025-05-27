@@ -8,6 +8,8 @@ st.title("📦 DAZZLE PREMIUM Order Email Generator")
 # --- Manage Navigation State ---
 if "step" not in st.session_state:
     st.session_state.step = 1
+if "order_log" not in st.session_state:
+    st.session_state.order_log = []
 
 # --- Screen 1: Ask for order number and name ---
 if st.session_state.step == 1:
@@ -15,6 +17,9 @@ if st.session_state.step == 1:
     customer_name = st.text_input("Customer Name")
     order_number = st.text_input("Order Number")
     raw_text = st.text_area("Paste the order details below exactly as received")
+
+    if not customer_name or not order_number or not raw_text:
+        st.warning("Please fill out all fields before generating the message.")
 
     if st.button("Generate Message") and customer_name and order_number and raw_text:
         st.session_state.customer_name = customer_name
@@ -71,7 +76,16 @@ Note: Any order confirmed after 3:00 pm will be scheduled for the next business 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
 
+    # Log recent orders
+    st.session_state.order_log.insert(0, f"#{st.session_state.order_number} - {st.session_state.customer_name}")
+    st.session_state.order_log = st.session_state.order_log[:5]  # Keep only last 5
+
     st.success("✅ Message ready to copy and send")
     st.markdown(f"**Subject:** {subject}")
     st.code(message, language="text")
     st.info("Copy the subject and message above and paste them directly into Gmail, WhatsApp, or SMS. No edits needed.")
+
+    # Sidebar recent orders
+    st.sidebar.markdown("### 📝 Last 5 Orders")
+    for entry in st.session_state.order_log:
+        st.sidebar.markdown(f"- {entry}")
