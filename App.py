@@ -4,27 +4,29 @@ import streamlit as st
 st.set_page_config(page_title="Order Email Generator", layout="centered")
 st.title("📦 DAZZLE PREMIUM Order Email Generator")
 
-# --- Step 1: Ask for customer name and order number ---
-st.subheader("Step 1: Enter Customer Info")
+# --- Manage Navigation State ---
 if "step" not in st.session_state:
     st.session_state.step = 1
 
+# --- Screen 1: Ask for order number and name ---
 if st.session_state.step == 1:
+    st.subheader("Step 1: Enter Customer Info")
     customer_name = st.text_input("Customer Name")
     order_number = st.text_input("Order Number")
-    if st.button("Next: Number of Items") and customer_name and order_number:
+    if st.button("Next") and customer_name and order_number:
         st.session_state.customer_name = customer_name
         st.session_state.order_number = order_number
         st.session_state.step = 2
 
-# --- Step 2: Ask how many items in the order ---
+# --- Screen 2: Ask number of items ---
 elif st.session_state.step == 2:
-    num_items = st.number_input("Step 2: How many items in the order?", min_value=1, step=1)
-    if st.button("Next: Enter Item Details"):
+    st.subheader("Step 2: Number of Items")
+    num_items = st.number_input("How many items in the order?", min_value=1, step=1)
+    if st.button("Next"):
         st.session_state.num_items = num_items
         st.session_state.step = 3
 
-# --- Step 3: Enter item details and generate message ---
+# --- Screen 3: Enter details and generate message ---
 elif st.session_state.step == 3:
     st.subheader("Step 3: Enter Item Details")
     items = []
@@ -34,8 +36,9 @@ elif st.session_state.step == 3:
         style_code = st.text_input(f"Style Code {i+1}", key=f"style_{i}")
         size = st.text_input(f"Size {i+1}", value="XL", key=f"size_{i}")
         items.append((product_name, style_code, size))
+
     if st.button("Generate Message"):
-        order_details = "\n".join([f"• Product: {p}\n• Style Code: {s}\n• Size: {z}\n" for p, s, z in items])
+        order_details = "\n".join([f"• Product: {p}\n• Style Code: {s}\n• Size: {z}" for p, s, z in items])
         message = f"""Hello {st.session_state.customer_name},
 
 This is DAZZLE PREMIUM Support confirming Order {st.session_state.order_number}
@@ -44,6 +47,7 @@ This is DAZZLE PREMIUM Support confirming Order {st.session_state.order_number}
 
 Order Details:
 {order_details}
+
 For your security, we use two-factor authentication. If this order wasn’t placed by you, text us immediately at 301-942-0000 to cancel.
 
 Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.
