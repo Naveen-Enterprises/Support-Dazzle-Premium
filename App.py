@@ -13,20 +13,27 @@ if "reset_clicked" not in st.session_state:
 
 # --- Handle Reset Safely ---
 if st.session_state.reset_clicked:
+    for key in ["customer_name", "order_number", "raw_text"]:
+        if key in st.session_state:
+            del st.session_state[key]
     st.session_state.reset_clicked = False
     st.experimental_rerun()
 
 # --- UI Input ---
 st.subheader("Step 1: Enter Customer Info")
-customer_name = st.text_input("Customer Name")
-order_number = st.text_input("Order Number")
-raw_text = st.text_area("Paste the order details below exactly as received")
+customer_name = st.text_input("Customer Name", value=st.session_state.get("customer_name", ""))
+order_number = st.text_input("Order Number", value=st.session_state.get("order_number", ""))
+raw_text = st.text_area("Paste the order details below exactly as received", value=st.session_state.get("raw_text", ""))
 
 if not customer_name or not order_number or not raw_text:
     st.warning("Please fill out all fields before generating the message.")
 
 # --- Process and Display Message ---
 if st.button("Generate Message") and customer_name and order_number and raw_text:
+    st.session_state.customer_name = customer_name
+    st.session_state.order_number = order_number
+    st.session_state.raw_text = raw_text
+
     lines = [line.strip() for line in raw_text.split('\n') if line.strip() != ""]
     items = []
     i = 0
