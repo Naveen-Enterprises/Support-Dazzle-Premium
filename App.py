@@ -75,7 +75,7 @@ with st.container():
 
             name_match = re.search(r"Customer\n(.*?)\n", raw_text)
             email_match = re.search(r"[\w\.-]+@[\w\.-]+", raw_text)
-            phone_match = re.search(r"\+1\s[\d\-() ]{10,20}", raw_text)
+            phone_match = re.search(r"\+1\s?[\d\-() ]{10,20}", raw_text)
             order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
 
             customer_name = name_match.group(1).strip() if name_match else "Customer"
@@ -88,22 +88,22 @@ with st.container():
             i = 0
             while i < len(lines):
                 line = lines[i]
-                if '-' in line and not line.startswith("SKU") and not "Discount" in line:
+                if re.search(r" - [A-Z0-9]+$", line):
                     product_line = line
-                    next_lines = lines[i+1:i+4] if i+4 <= len(lines) else lines[i+1:]
+                    product_name, style_code = product_line.rsplit(" - ", 1)
+                    product_name = product_name.strip()
+                    style_code = style_code.strip()
 
-                    product_name = product_line.split('-')[0].strip()
-                    style_code = product_line.split('-')[-1].strip()
                     size = ""
-                    for l in next_lines:
-                        if '/' in l and not l.startswith("$"):
-                            size = l.split('/')[0].strip()
+                    j = i + 1
+                    while j < len(lines):
+                        if "/" in lines[j] and not lines[j].startswith("$") and not lines[j].startswith("SKU"):
+                            size = lines[j].split("/")[0].strip()
                             break
+                        j += 1
 
                     items.append((product_name, style_code, size))
-                    i += len(next_lines) + 1
-                else:
-                    i += 1
+                i += 1
 
             order_details = "\n\n".join([
                 f"- Item {idx+1}:\n•\u2060  \u2060Product: {p}\n•\u2060  \u2060Style Code: {s}\n•\u2060  \u2060Size: {z}" 
