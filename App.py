@@ -65,14 +65,14 @@ with st.container():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Step 1: Enter Customer Info")
+        st.subheader("Enter Customer Info")
         customer_name = st.text_input("Customer Name", value=st.session_state.get("customer_name", ""))
         order_number = st.text_input("Order Number", value=st.session_state.get("order_number", ""))
         raw_text = st.text_area("Paste Order Details", height=300, value=st.session_state.get("raw_text", ""))
+        generate = st.button("🎯 Generate Message")
 
     with col2:
-        st.subheader("Step 2: Generate Order Email")
-        if st.button("🎯 Generate Message") and customer_name and order_number and raw_text:
+        if generate and customer_name and order_number and raw_text:
             st.session_state.customer_name = customer_name
             st.session_state.order_number = order_number
             st.session_state.raw_text = raw_text
