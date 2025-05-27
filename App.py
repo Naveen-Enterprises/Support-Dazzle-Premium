@@ -14,22 +14,17 @@ if st.session_state.step == 1:
     st.subheader("Step 1: Enter Customer Info")
     customer_name = st.text_input("Customer Name")
     order_number = st.text_input("Order Number")
-    if st.button("Next") and customer_name and order_number:
+    raw_text = st.text_area("Paste the order details below exactly as received")
+
+    if st.button("Generate Message") and customer_name and order_number and raw_text:
         st.session_state.customer_name = customer_name
         st.session_state.order_number = order_number
+        st.session_state.raw_text = raw_text
         st.session_state.step = 2
 
-# --- Screen 2: Paste Raw Item Info ---
+# --- Step 2: Generate and display message immediately ---
 elif st.session_state.step == 2:
-    st.subheader("Step 2: Paste Raw Item Info")
-    raw_text = st.text_area("Paste the order details below exactly as received")
-    if st.button("Next") and raw_text:
-        st.session_state.raw_text = raw_text
-        st.session_state.step = 3
-
-# --- Screen 3: Parse and Generate Message ---
-elif st.session_state.step == 3:
-    st.subheader("Step 3: Generated Order Message")
+    st.subheader("Generated Order Message")
 
     raw_text = st.session_state.raw_text
     lines = [line.strip() for line in raw_text.split('\n') if line.strip() != ""]
@@ -54,13 +49,13 @@ elif st.session_state.step == 3:
         else:
             i += 1
 
-    if st.button("Generate Message"):
-        order_details = "\n\n".join([
-            f"- Item {idx+1}:\n•\u2060  \u2060Product: {p}\n•\u2060  \u2060Style Code: {s}\n•\u2060  \u2060Size: {z}" 
-            for idx, (p, s, z) in enumerate(items)
-        ])
+    order_details = "\n\n".join([
+        f"- Item {idx+1}:\n•\u2060  \u2060Product: {p}\n•\u2060  \u2060Style Code: {s}\n•\u2060  \u2060Size: {z}" 
+        for idx, (p, s, z) in enumerate(items)
+    ])
 
-        message = f"""Hello {st.session_state.customer_name},
+    subject = f"Final Order Confirmation of dazzlepremium#{st.session_state.order_number}"
+    message = f"""Hello {st.session_state.customer_name},
 
 This is DAZZLE PREMIUM Support confirming Order {st.session_state.order_number}
 
@@ -76,6 +71,7 @@ Note: Any order confirmed after 3:00 pm will be scheduled for the next business 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
 
-        st.success("✅ Message ready to copy and send")
-        st.code(message, language="text")
-        st.info("Copy the message above and paste it directly into Gmail, WhatsApp, or SMS. No edits needed.")
+    st.success("✅ Message ready to copy and send")
+    st.markdown(f"**Subject:** {subject}")
+    st.code(message, language="text")
+    st.info("Copy the subject and message above and paste them directly into Gmail, WhatsApp, or SMS. No edits needed.")
