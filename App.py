@@ -38,7 +38,7 @@ if st.session_state.reset_clicked:
     st.rerun()
 
 # --- Layout Columns ---
-col1, col2 = st.columns([1, 1])
+col1, col2 = st.columns([1, 1], gap="large")
 
 with col1:
     st.markdown("### Step 1: Enter Customer Info")
@@ -46,6 +46,7 @@ with col1:
     order_number = st.text_input("Order Number", value=st.session_state.get("order_number", ""))
     raw_text = st.text_area("Paste the order details below exactly as received", height=250, value=st.session_state.get("raw_text", ""))
 
+with col2:
     if st.button("🎯 Generate Message") and customer_name and order_number and raw_text:
         st.session_state.customer_name = customer_name
         st.session_state.order_number = order_number
@@ -95,11 +96,10 @@ Note: Any order confirmed after 3:00 pm will be scheduled for the next business 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
 
-        with col2:
-            st.success("✅ Message ready to copy and send")
-            st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
-            st.code(message, language="text")
-            st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
+        st.success("✅ Message ready to copy and send")
+        st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
+        st.code(message, language="text")
+        st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
 # --- Validation ---
 if not customer_name or not order_number or not raw_text:
