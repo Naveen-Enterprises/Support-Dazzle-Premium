@@ -6,8 +6,8 @@ from email.mime.text import MIMEText
 # --- Hardcoded Email Credentials ---
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 465
-SENDER_EMAIL = "support@dazzlepremium.com"  # Replace with your actual email
-SENDER_PASSWORD = "8Ah(rOs!0B'0BUj9"   # Replace with your actual password (or app password)
+SENDER_EMAIL = "support@dazzlepremium.com"
+SENDER_PASSWORD = "8Ah(rOs!0B'0BUj9"
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Order Email Generator", layout="centered")
@@ -103,3 +103,5 @@ Thank you for choosing DAZZLE PREMIUM!
             st.success(f"✅ Email successfully sent to {receiver_email}!")
         except Exception as e:
             st.error(f"❌ Failed to send email: {e}")
+            st.write("### Debug Info:")
+            st.code(str(e))
