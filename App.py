@@ -3,6 +3,12 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+# --- Hardcoded Email Settings ---
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 465
+SENDER_EMAIL = "your_email@example.com"  # Replace with your real email
+SENDER_PASSWORD = "your_app_password"     # Replace with your real app password (use .env for security in production)
+
 # --- Page Configuration ---
 st.set_page_config(page_title="Order Email Generator", layout="centered")
 st.title("📦 DAZZLE PREMIUM Order Email Generator")
@@ -16,10 +22,6 @@ with st.form("order_form"):
     style_code = st.text_input("Style Code", value="300408")
     size = st.text_input("Size", value="XL")
     receiver_email = st.text_input("Customer Email", value="customer@example.com")
-    smtp_server = st.text_input("SMTP Server", value="smtp.gmail.com")
-    smtp_port = st.number_input("SMTP Port", value=465)
-    sender_email = st.text_input("Your Email", value="your_email@example.com")
-    sender_password = st.text_input("Your Email Password or App Password", type="password")
     submitted = st.form_submit_button("Generate Email")
 
 if submitted:
@@ -76,27 +78,28 @@ Our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!
     """
 
-    st.subheader("✅ Generated HTML Email")
-    st.code(html_email, language="html")
+    send_now = st.button("📤 Send Email Now")
+    show_preview = st.checkbox("Preview HTML Email", value=False)
 
-    st.subheader("✅ Generated Plain Text Message")
-    st.code(plain_text, language="text")
-
-    send_now = st.button("Send Email Now")
+    if show_preview:
+        st.subheader("✅ Generated HTML Email")
+        st.code(html_email, language="html")
+        st.subheader("✅ Generated Plain Text Message")
+        st.code(plain_text, language="text")
 
     if send_now:
         try:
             msg = MIMEMultipart("alternative")
             msg["Subject"] = f"Order Confirmation - DAZZLE PREMIUM #{order_number}"
-            msg["From"] = sender_email
+            msg["From"] = SENDER_EMAIL
             msg["To"] = receiver_email
 
             msg.attach(MIMEText(html_email, "html"))
 
-            with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
-                server.login(sender_email, sender_password)
-                server.sendmail(sender_email, receiver_email, msg.as_string())
+            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
+                server.login(SENDER_EMAIL, SENDER_PASSWORD)
+                server.sendmail(SENDER_EMAIL, receiver_email, msg.as_string())
 
-            st.success(f"Email successfully sent to {receiver_email}!")
+            st.success(f"✅ Email successfully sent to {receiver_email}!")
         except Exception as e:
-            st.error(f"Failed to send email: {e}")
+            st.error(f"❌ Failed to send email: {e}")
