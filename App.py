@@ -12,6 +12,14 @@ st.markdown("""
     .stButton button:hover {background-color: #1366d6;}
     .stCode {background-color: #f0f2f6; border-radius: 8px;}
     .stAlert {border-radius: 8px;}
+    .subject-box {
+        background-color: #eef2f8;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        color: #000000;
+        font-weight: bold;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -89,7 +97,7 @@ Thank you for choosing DAZZLE PREMIUM!"""
 
         with col2:
             st.success("✅ Message ready to copy and send")
-            st.markdown(f"<h4>📨 Subject:</h4><div style='background:#eef2f8;padding:10px;border-radius:8px;margin-bottom:10px'><b>{subject}</b></div>", unsafe_allow_html=True)
+            st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
             st.code(message, language="text")
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
