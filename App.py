@@ -7,6 +7,8 @@ st.title("📦 DAZZLE PREMIUM Order Email Generator")
 # --- Manage Navigation State ---
 if "step" not in st.session_state:
     st.session_state.step = 1
+if "items" not in st.session_state:
+    st.session_state.items = {}
 
 # --- Screen 1: Ask for order number and name ---
 if st.session_state.step == 1:
@@ -29,15 +31,21 @@ elif st.session_state.step == 2:
 # --- Screen 3: Enter details and generate message ---
 elif st.session_state.step == 3:
     st.subheader("Step 3: Enter Item Details")
-    items = []
     for i in range(int(st.session_state.num_items)):
         st.markdown(f"**Item {i+1}**")
-        product_name = st.text_input(f"Product Name {i+1}", key=f"product_{i}")
-        style_code = st.text_input(f"Style Code {i+1}", key=f"style_{i}")
-        size = st.text_input(f"Size {i+1}", value="XL", key=f"size_{i}")
-        items.append((product_name, style_code, size))
+        if f"product_{i}" not in st.session_state:
+            st.session_state[f"product_{i}"] = ""
+        if f"style_{i}" not in st.session_state:
+            st.session_state[f"style_{i}"] = ""
+        if f"size_{i}" not in st.session_state:
+            st.session_state[f"size_{i}"] = "XL"
+
+        st.session_state[f"product_{i}"] = st.text_input(f"Product Name {i+1}", value=st.session_state[f"product_{i}"], key=f"product_{i}")
+        st.session_state[f"style_{i}"] = st.text_input(f"Style Code {i+1}", value=st.session_state[f"style_{i}"], key=f"style_{i}")
+        st.session_state[f"size_{i}"] = st.text_input(f"Size {i+1}", value=st.session_state[f"size_{i}"], key=f"size_{i}")
 
     if st.button("Generate Message"):
+        items = [(st.session_state[f"product_{i}"], st.session_state[f"style_{i}"], st.session_state[f"size_{i}"]) for i in range(int(st.session_state.num_items))]
         order_details = "\n".join([f"• Product: {p}\n• Style Code: {s}\n• Size: {z}" for p, s, z in items])
         message = f"""Hello {st.session_state.customer_name},
 
