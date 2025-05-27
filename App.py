@@ -36,24 +36,30 @@ elif st.session_state.step == 3:
     items = []
     i = 0
     while i < len(lines):
-        if '-' in lines[i] and not lines[i].startswith("SKU"):
-            product_line = lines[i]
-            size_line = lines[i+1] if i+1 < len(lines) else ""
-            sku_line = lines[i+2] if i+2 < len(lines) and lines[i+2].startswith("SKU") else ""
+        line = lines[i]
+        if '-' in line and not line.startswith("SKU") and not "Discount" in line:
+            product_line = line
+            next_lines = lines[i+1:i+4] if i+4 <= len(lines) else lines[i+1:]
 
             product_name = product_line.split('-')[0].strip()
             style_code = product_line.split('-')[-1].strip()
-            size = size_line.split('/')[0].strip() if '/' in size_line else size_line.strip()
+            size = ""
+            for l in next_lines:
+                if '/' in l and not l.startswith("$"):
+                    size = l.split('/')[0].strip()
+                    break
 
-            # Avoid discount or unrelated lines
-            if "Discount" not in product_name:
-                items.append((product_name, style_code, size))
-            i += 4
+            items.append((product_name, style_code, size))
+            i += len(next_lines) + 1
         else:
             i += 1
 
     if st.button("Generate Message"):
-        order_details = "\n\n".join([f"- Item {idx+1}:\n•\u2060  \u2060Product: {p}\n•\u2060  \u2060Style Code: {s}\n•\u2060  \u2060Size: {z}" for idx, (p, s, z) in enumerate(items)])
+        order_details = "\n\n".join([
+            f"- Item {idx+1}:\n•\u2060  \u2060Product: {p}\n•\u2060  \u2060Style Code: {s}\n•\u2060  \u2060Size: {z}" 
+            for idx, (p, s, z) in enumerate(items)
+        ])
+
         message = f"""Hello {st.session_state.customer_name},
 
 This is DAZZLE PREMIUM Support confirming Order {st.session_state.order_number}
