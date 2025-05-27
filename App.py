@@ -3,11 +3,11 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-# --- Hardcoded Email Settings ---
+# --- Hardcoded Email Credentials ---
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 465
-SENDER_EMAIL = "your_email@example.com"  # Replace with your real email
-SENDER_PASSWORD = "your_app_password"     # Replace with your real app password (use .env for security in production)
+SENDER_EMAIL = "support@dazzlepremium.com"  # Replace with your actual email
+SENDER_PASSWORD = "8Ah(rOs!0B'0BUj9"   # Replace with your actual password (or app password)
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Order Email Generator", layout="centered")
