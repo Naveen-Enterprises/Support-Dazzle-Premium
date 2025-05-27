@@ -4,16 +4,23 @@ import streamlit as st
 st.set_page_config(page_title="Order Email Generator", layout="centered")
 st.title("📦 DAZZLE PREMIUM Order Email Generator")
 
-# --- Simple 4-Field Form ---
+# --- Simple Multi-Item Form ---
 st.subheader("🔤 Fill in Order Details")
 with st.form("order_form"):
     customer_name = st.text_input("Customer Name")
     order_number = st.text_input("Order Number")
-    product_name = st.text_input("Product Name")
-    size = st.text_input("Size", value="XL")
+    num_items = st.number_input("How many items in the order?", min_value=1, step=1)
+    items = []
+    for i in range(int(num_items)):
+        st.markdown(f"**Item {i+1}**")
+        product_name = st.text_input(f"Product Name {i+1}", key=f"product_{i}")
+        style_code = st.text_input(f"Style Code {i+1}", key=f"style_{i}")
+        size = st.text_input(f"Size {i+1}", value="XL", key=f"size_{i}")
+        items.append((product_name, style_code, size))
     submitted = st.form_submit_button("Generate Message")
 
 if submitted:
+    order_details = "\n".join([f"• Product: {p}\n• Style Code: {s}\n• Size: {z}\n" for p, s, z in items])
     message = f"""Hello {customer_name},
 
 This is DAZZLE PREMIUM Support confirming Order {order_number}
@@ -21,10 +28,7 @@ This is DAZZLE PREMIUM Support confirming Order {order_number}
 - Please reply YES to confirm just this order only.
 
 Order Details:
-• Product: {product_name}
-• Style Code:  
-• Size: {size}
-
+{order_details}
 For your security, we use two-factor authentication. If this order wasn’t placed by you, text us immediately at 301-942-0000 to cancel.
 
 Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.
