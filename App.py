@@ -91,16 +91,18 @@ with st.container():
             i = 0
             while i < len(lines):
                 line = lines[i]
-                if " - " in line and re.search(r" - [A-Z0-9\-]{3,}$", line):
-                    product_name, style_code = line.rsplit(" - ", 1)
+                # Match lines with the format: <Product Name> - <Style Code>
+                if re.search(r" - [A-Z0-9\-]+$", line) and not any(skip in line for skip in ["SKU", "Discount"]):
+                    product_line = line
                     size = ""
                     j = i + 1
                     while j < len(lines):
                         size_line = lines[j]
-                        if re.search(r"^\d{1,2}/\d{1,2}|^[XSML]{1,2}\b", size_line):
+                        if re.match(r"^(\d{1,2}/\d{1,2}|\d{1,2}|[XSML]{1,2})(\s?/\s?\w+)?$", size_line):
                             size = size_line.split("/")[0].strip()
                             break
                         j += 1
+                    product_name, style_code = product_line.rsplit(" - ", 1)
                     items.append((product_name.strip(), style_code.strip(), size))
                 i += 1
 
