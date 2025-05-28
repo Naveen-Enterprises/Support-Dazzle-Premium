@@ -104,8 +104,9 @@ with st.container():
                     for offset in range(1, 5):
                         if i + offset < len(lines):
                             size_line = lines[i + offset]
-                            if re.search(r"\d{1,2}\s*/\s*\w+|\b(?:XS|S|M|L|XL|2XL|3XL|\d{2,3})\b", size_line):
-                                size = size_line.strip()
+                            if re.match(r"^(\d{1,2}[\s/]?[A-Z]{2,3}|[XSML]{1,2})", size_line) and not size_line.startswith("$") and not size_line.startswith("SKU"):
+                                size_parts = re.split(r"[ /]", size_line.strip())
+                                size = size_parts[0].strip()
                                 break
 
                     items.append((product_name.strip(), style_code.strip(), size))
