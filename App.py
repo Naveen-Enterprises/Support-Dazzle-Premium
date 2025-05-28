@@ -40,8 +40,15 @@ st.markdown("""
         font-weight: 500;
         font-size: 1rem;
     }
+    .warning-box {
+        background-color: #ffcccc;
+        padding: 1rem;
+        border-radius: 10px;
+        color: #900;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
     h1, h2, h4 { color: #2f80ed; font-weight: 700; }
-    .missing { color: red; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -71,7 +78,6 @@ with st.container():
         if generate and raw_text:
             st.session_state.raw_text = raw_text
 
-            # Extract basic fields
             name_match = re.search(r"Customer\n(.*?)\n", raw_text)
             if not name_match:
                 name_match = re.search(r"Shipping address\n(.*?)\n", raw_text)
@@ -80,21 +86,20 @@ with st.container():
             phone_match = re.search(r"\+1[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-()]*\d{4}", raw_text)
             order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
 
-            customer_name = name_match.group(1).strip() if name_match else "<span class='missing'>[Customer Name Not Found]</span>"
-            email_address = email_match.group(0).strip() if email_match else "<span class='missing'>[Email Not Found]</span>"
-            phone_number = phone_match.group(0).strip() if phone_match else "<span class='missing'>[Phone Not Found]</span>"
-            order_number = order_number_match.group(1).strip() if order_number_match else "<span class='missing'>[Order # Not Found]</span>"
+            customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
+            email_address = email_match.group(0).strip() if email_match else "[Email Not Found]"
+            phone_number = phone_match.group(0).strip() if phone_match else "[Phone Not Found]"
+            order_number = order_number_match.group(1).strip() if order_number_match else "[Order # Not Found]"
 
             lines = [line.strip() for line in raw_text.split('\n') if line.strip() != ""]
             items = []
             i = 0
             while i < len(lines):
                 line = lines[i]
-
                 if re.search(r" - [A-Z0-9\-]+$", line) and not any(skip in line for skip in ["SKU", "Discount"]):
                     product_line = line
                     product_name, style_code = product_line.rsplit(" - ", 1)
-                    size = "<span class='missing'>[Size Not Found]</span>"
+                    size = "[Size Not Found]"
 
                     for offset in range(1, 5):
                         if i + offset < len(lines):
@@ -129,7 +134,24 @@ Note: Any order confirmed after 3:00 pm will be scheduled for the next business 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
 
-            st.success("✅ Message ready to copy and send")
+            # Check for missing info
+            missing_info = []
+            if "[Customer Name Not Found]" in customer_name:
+                missing_info.append("Customer Name")
+            if "[Email Not Found]" in email_address:
+                missing_info.append("Email Address")
+            if "[Phone Not Found]" in phone_number:
+                missing_info.append("Phone Number")
+            if "[Order # Not Found]" in order_number:
+                missing_info.append("Order Number")
+            if any("[Size Not Found]" in item[2] for item in items):
+                missing_info.append("Item Sizes")
+
+            if missing_info:
+                st.markdown(f"<div class='warning-box'>⚠️ Please double-check the following fields: {', '.join(missing_info)}</div>", unsafe_allow_html=True)
+            else:
+                st.success("✅ All information looks good. Ready to copy and send.")
+
             st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
             st.code(message, language="text")
