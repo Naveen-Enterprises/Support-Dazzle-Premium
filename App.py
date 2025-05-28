@@ -104,7 +104,7 @@ with st.container():
                     for offset in range(1, 5):
                         if i + offset < len(lines):
                             size_line = lines[i + offset]
-                            if re.match(r"^(\d{1,2} / \w+|[XSML]{1,2}( / \w+)?|\d{2,3})$", size_line):
+                            if re.search(r"\d{1,2}\s*/\s*\w+|\b(?:XS|S|M|L|XL|2XL|3XL|\d{2,3})\b", size_line):
                                 size = size_line.strip()
                                 break
 
@@ -150,7 +150,7 @@ Thank you for choosing DAZZLE PREMIUM!"""
             if missing_info:
                 st.markdown(f"<div class='warning-box'>⚠️ Please double-check the following fields: {', '.join(missing_info)}</div>", unsafe_allow_html=True)
             else:
-                st.success("✅ All information looks good. Ready to copy and send.")
+                st.markdown("<div style='background-color:#d4edda;padding:1rem;border-radius:10px;color:#155724;font-weight:bold;margin-bottom:1rem;'>✅ All information looks good. Ready to copy and send.</div>", unsafe_allow_html=True)
 
             st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
