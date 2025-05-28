@@ -91,7 +91,7 @@ with st.container():
             i = 0
             while i < len(lines):
                 line = lines[i]
-                if " - " in line and re.search(r" - [A-Z0-9]{3,}$", line):
+                if " - " in line and re.search(r" - [A-Z0-9\-]{3,}$", line):
                     product_name, style_code = line.rsplit(" - ", 1)
                     size = ""
                     j = i + 1
