@@ -91,21 +91,17 @@ with st.container():
             i = 0
             while i < len(lines):
                 line = lines[i]
-                if re.search(r" - [A-Z0-9]{3,}$", line):
-                    product_line = line
-                    product_name, style_code = product_line.rsplit(" - ", 1)
-                    product_name = product_name.strip()
-                    style_code = style_code.strip()
-
+                if " - " in line and re.search(r" - [A-Z0-9]{3,}$", line):
+                    product_name, style_code = line.rsplit(" - ", 1)
                     size = ""
                     j = i + 1
                     while j < len(lines):
-                        if re.match(r"^(\d{1,2}/\d{1,2}|[XSML]{1,2}\b)", lines[j]) and not lines[j].startswith("$") and not lines[j].startswith("SKU"):
-                            size = lines[j].split("/")[0].strip()
+                        size_line = lines[j]
+                        if re.search(r"^\d{1,2}/\d{1,2}|^[XSML]{1,2}\b", size_line):
+                            size = size_line.split("/")[0].strip()
                             break
                         j += 1
-
-                    items.append((product_name, style_code, size))
+                    items.append((product_name.strip(), style_code.strip(), size))
                 i += 1
 
             order_details = "\n\n".join([
