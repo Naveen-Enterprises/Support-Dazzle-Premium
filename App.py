@@ -78,15 +78,24 @@ with st.container():
         if generate and raw_text:
             st.session_state.raw_text = raw_text
 
-            name_match = re.search(r"Customer\n(.*?)\n", raw_text)
-            if not name_match:
-                name_match = re.search(r"Shipping address\n(.*?)\n", raw_text)
+            lines = raw_text.splitlines()
+
+            # Customer Name Detection
+            customer_name = "[Customer Name Not Found]"
+            for idx, line in enumerate(lines):
+                if line.strip() == "Customer":
+                    for j in range(1, 4):
+                        if idx + j < len(lines):
+                            candidate = lines[idx + j].strip()
+                            if candidate and not any(x in candidate.lower() for x in ["order", "contact", "@", "phone"]):
+                                customer_name = candidate
+                                break
+                    break
 
             email_match = re.search(r"[\w\.-]+@[\w\.-]+", raw_text)
             phone_match = re.search(r"\+1[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-()]*\d{4}", raw_text)
             order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
 
-            customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
             email_address = email_match.group(0).strip() if email_match else "[Email Not Found]"
             phone_number = phone_match.group(0).strip() if phone_match else "[Phone Not Found]"
             order_number = order_number_match.group(1).strip() if order_number_match else "[Order # Not Found]"
@@ -135,7 +144,6 @@ Note: Any order confirmed after 3:00 pm will be scheduled for the next business 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
 
-            # Check for missing info
             missing_info = []
             if "[Customer Name Not Found]" in customer_name:
                 missing_info.append("Customer Name")
