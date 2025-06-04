@@ -79,13 +79,13 @@ with st.container():
         if generate and raw_text:
             st.session_state.raw_text = raw_text
 
-            name_match = re.search(r"Customer\\n(.*?)\\n", raw_text)
+            name_match = re.search(r"Customer\n(.*?)\n", raw_text)
             if not name_match:
-                name_match = re.search(r"Shipping address\\n(.*?)\\n", raw_text)
+                name_match = re.search(r"Shipping address\n(.*?)\n", raw_text)
 
             email_match = re.search(r"[\w\.-]+@[\w\.-]+", raw_text)
-            phone_match = re.search(r"\\+1[\\s\-()]*\\d{3}[\\s\-()]*\\d{3}[\\s\-()]*\\d{4}", raw_text)
-            order_number_match = re.search(r"dazzlepremium#(\\d+)", raw_text)
+            phone_match = re.search(r"\+1[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-()]*\d{4}", raw_text)
+            order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
 
             customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
             email_address = email_match.group(0).strip() if email_match else "[Email Not Found]"
@@ -105,7 +105,7 @@ with st.container():
                     for offset in range(1, 5):
                         if i + offset < len(lines):
                             size_line = lines[i + offset]
-                            if re.match(r"^(\\d{1,2}[\\s/]?[A-Z]{2,3}|[XSML]{1,2})", size_line) and not size_line.startswith("$") and not size_line.startswith("SKU"):
+                            if re.match(r"^(\d{1,2}[\s/]?[A-Z]{2,3}|[XSML]{1,2})", size_line) and not size_line.startswith("$") and not size_line.startswith("SKU"):
                                 size_parts = re.split(r"[ /]", size_line.strip())
                                 size = size_parts[0].strip()
                                 break
@@ -160,9 +160,9 @@ Thank you for choosing DAZZLE PREMIUM!"""
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
         elif high_risk and raw_text:
-            name_match = re.search(r"Customer\\n(.*?)\\n", raw_text)
+            name_match = re.search(r"Customer\n(.*?)\n", raw_text)
             if not name_match:
-                name_match = re.search(r"Shipping address\\n(.*?)\\n", raw_text)
+                name_match = re.search(r"Shipping address\n(.*?)\n", raw_text)
             customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
 
             high_risk_msg = f"""Hello {customer_name},
