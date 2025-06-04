@@ -73,29 +73,21 @@ with st.container():
         st.subheader("Paste Shopify Order Export")
         raw_text = st.text_area("Full Order Export Text", height=500, value=st.session_state.get("raw_text", ""))
         generate = st.button("🎯 Generate Email")
+        high_risk = st.button("🚨 High-Risk Order Email")
 
     with col2:
         if generate and raw_text:
             st.session_state.raw_text = raw_text
 
-            lines = raw_text.splitlines()
-
-            # Customer Name Detection
-            customer_name = "[Customer Name Not Found]"
-            for idx, line in enumerate(lines):
-                if line.strip() == "Customer":
-                    for j in range(1, 4):
-                        if idx + j < len(lines):
-                            candidate = lines[idx + j].strip()
-                            if candidate and not any(x in candidate.lower() for x in ["order", "contact", "@", "phone"]):
-                                customer_name = candidate
-                                break
-                    break
+            name_match = re.search(r"Customer\\n(.*?)\\n", raw_text)
+            if not name_match:
+                name_match = re.search(r"Shipping address\\n(.*?)\\n", raw_text)
 
             email_match = re.search(r"[\w\.-]+@[\w\.-]+", raw_text)
-            phone_match = re.search(r"\+1[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-()]*\d{4}", raw_text)
-            order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
+            phone_match = re.search(r"\\+1[\\s\-()]*\\d{3}[\\s\-()]*\\d{3}[\\s\-()]*\\d{4}", raw_text)
+            order_number_match = re.search(r"dazzlepremium#(\\d+)", raw_text)
 
+            customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
             email_address = email_match.group(0).strip() if email_match else "[Email Not Found]"
             phone_number = phone_match.group(0).strip() if phone_match else "[Phone Not Found]"
             order_number = order_number_match.group(1).strip() if order_number_match else "[Order # Not Found]"
@@ -113,7 +105,7 @@ with st.container():
                     for offset in range(1, 5):
                         if i + offset < len(lines):
                             size_line = lines[i + offset]
-                            if re.match(r"^(\d{1,2}[\s/]?[A-Z]{2,3}|[XSML]{1,2})", size_line) and not size_line.startswith("$") and not size_line.startswith("SKU"):
+                            if re.match(r"^(\\d{1,2}[\\s/]?[A-Z]{2,3}|[XSML]{1,2})", size_line) and not size_line.startswith("$") and not size_line.startswith("SKU"):
                                 size_parts = re.split(r"[ /]", size_line.strip())
                                 size = size_parts[0].strip()
                                 break
@@ -166,6 +158,27 @@ Thank you for choosing DAZZLE PREMIUM!"""
             st.code(message, language="text")
             st.markdown(f"<h4>📱 Phone Number:</h4><div class='subject-box'>{phone_number}</div>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
+
+        elif high_risk and raw_text:
+            name_match = re.search(r"Customer\\n(.*?)\\n", raw_text)
+            if not name_match:
+                name_match = re.search(r"Shipping address\\n(.*?)\\n", raw_text)
+            customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
+
+            high_risk_msg = f"""Hello {customer_name},
+
+We hope this message finds you well.
+
+We regret to inform you that your recent order has been automatically cancelled as it was flagged as a high-risk transaction by our system. This is a standard security measure to help prevent unauthorized or fraudulent activity.
+
+If you would still like to proceed with your order, we’d be happy to assist you in placing it manually. To do so, we kindly ask that you transfer the payment via Cash App.
+
+Once the payment is received, we will immediately process your order and provide confirmation along with tracking details.
+
+If you have any questions or need assistance, feel free to reply to this email."""
+
+            st.markdown("<div style='background-color:#fff3cd;padding:1rem;border-radius:10px;color:#856404;font-weight:bold;margin-bottom:1rem;'>⚠️ High-Risk Order Notice</div>", unsafe_allow_html=True)
+            st.code(high_risk_msg, language="text")
 
     if not raw_text:
         st.warning("Please paste the order export before generating the message.")
