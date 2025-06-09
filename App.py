@@ -140,7 +140,12 @@ with st.container():
             if not st.session_state.raw_text.strip():
                 st.warning("Please paste the order export before generating the message.")
             else:
-                st.session_state.generated_email_data = parse_and_generate_email(st.session_state.raw_text)
+                try: # Add a try-except block here to catch errors during parsing
+                    st.session_state.generated_email_data = parse_and_generate_email(st.session_state.raw_text)
+                except Exception as e:
+                    st.error(f"An unexpected error occurred during email generation: {e}")
+                    st.warning("Please check your input data for any unusual formatting. Refer to the logs for more details.")
+                    print(f"Error in parse_and_generate_email: {e}") # This will go to Streamlit logs
 
         if high_risk_button:
             st.session_state.generated_email_data = None # Clear previous confirmation output
@@ -149,8 +154,14 @@ with st.container():
             if not st.session_state.raw_text.strip():
                 st.warning("Please paste the order export before generating the message.")
             else:
-                customer_name = extract_customer_name(st.session_state.raw_text)
-                st.session_state.generated_email_data = {"customer_name": customer_name} # Store for display
+                try: # Add a try-except block here as well
+                    customer_name = extract_customer_name(st.session_state.raw_text)
+                    st.session_state.generated_email_data = {"customer_name": customer_name} # Store for display
+                except Exception as e:
+                    st.error(f"An unexpected error occurred during high-risk email generation: {e}")
+                    st.warning("Please check your input data for any unusual formatting. Refer to the logs for more details.")
+                    print(f"Error in high_risk_button logic: {e}") # This will go to Streamlit logs
+
 
     with col2:
         if st.session_state.generated_email_data and not st.session_state.high_risk_generated:
@@ -173,53 +184,66 @@ def extract_customer_name(text):
     for pattern in name_patterns:
         match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
         if match:
-            # Clean up potential extra lines/spaces
-            name = match.group(1).split('\n')[0].strip().title()
-            # Remove email addresses if accidentally captured
-            name = re.sub(r'\s*[\w\.-]+@[\w\.-]+\.\w+', '', name).strip()
-            # Handle cases where it captures "No phone number" etc.
-            if "No phone number" in name or "View map" in name or "Email" in name:
-                continue
-            return name
+            try: # Added try-except around group access and cleaning
+                name = match.group(1).split('\n')[0].strip().title()
+                name = re.sub(r'\s*[\w\.-]+@[\w\.-]+\.\w+', '', name).strip()
+                if "No phone number" in name or "View map" in name or "Email" in name:
+                    print(f"DEBUG: Customer name pattern matched garbage, trying next: {name}") # Log this
+                    continue
+                print(f"DEBUG: Found customer name: {name}") # Log successful extraction
+                return name
+            except IndexError: # group(1) didn't exist (shouldn't happen with .*? but good to be safe)
+                print(f"DEBUG: IndexError on match.group(1) for pattern: {pattern}")
+                continue # Try next pattern
+            except Exception as e: # Catch any other unexpected errors
+                print(f"DEBUG: Unexpected error processing customer name match for pattern {pattern}: {e}")
+                continue # Try next pattern
+    print("DEBUG: Customer Name Not Found after all patterns.") # Log failure
     return "[Customer Name Not Found]"
 
 def extract_email_address(text):
     """Extracts email address."""
     email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", text)
-    # ADDED CHECK: Ensure email_match is not None before calling .group()
-    return email_match.group(0).strip() if email_match else "[Email Not Found]"
+    email = email_match.group(0).strip() if email_match else "[Email Not Found]"
+    print(f"DEBUG: Extracted email: {email}") # Log result
+    return email
 
 def extract_phone_number(text):
     """Extracts phone number, handling various formats."""
-    # Prioritize phone number listed with shipping/billing address
     phone_patterns = [
-        r"(?:Shipping|Billing) address\s*\n(?:.*\n){0,4}\s*(\+?\d[\d\s\-.()]{7,}\d)", # up to 4 lines after address header
+        r"(?:Shipping|Billing) address\s*\n(?:.*\n){0,4}\s*(\+?\d[\d\s\-.()]{7,}\d)",
         r"Contact information\s*\n(?:.*\n){0,2}\s*(\+?\d[\d\s-.()]{7,}\d)",
-        r"phone number\s*\n\s*(\+?\d[\d\s-.()]{7,}\d)" # General catch-all
+        r"phone number\s*\n\s*(\+?\d[\d\s-.()]{7,}\d)"
     ]
     for pattern in phone_patterns:
         match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
         if match:
-            phone = match.group(1).strip()
-            # Basic cleanup: remove extra spaces and hyphens if they are just separators
-            phone = re.sub(r'[\s\-()]+', '', phone)
-            # Reformat to common US format if it seems like a US number
-            if len(phone) == 10 and phone.isdigit():
-                phone = f"({phone[0:3]}) {phone[3:6]}-{phone[6:10]}"
-            elif len(phone) == 11 and phone.startswith('1') and phone[1:].isdigit():
-                phone = f"+1 ({phone[1:4]}) {phone[4:7]}-{phone[7:11]}"
-            return phone
+            try: # Added try-except around group access and cleaning
+                phone = match.group(1).strip()
+                phone = re.sub(r'[\s\-()]+', '', phone)
+                if len(phone) == 10 and phone.isdigit():
+                    phone = f"({phone[0:3]}) {phone[3:6]}-{phone[6:10]}"
+                elif len(phone) == 11 and phone.startswith('1') and phone[1:].isdigit():
+                    phone = f"+1 ({phone[1:4]}) {phone[4:7]}-{phone[7:11]}"
+                print(f"DEBUG: Found phone number: {phone}") # Log successful extraction
+                return phone
+            except IndexError: # group(1) didn't exist
+                print(f"DEBUG: IndexError on match.group(1) for pattern: {pattern}")
+                continue # Try next pattern
+            except Exception as e:
+                print(f"DEBUG: Unexpected error processing phone number match for pattern {pattern}: {e}")
+                continue
+    print("DEBUG: Phone Number Not Found after all patterns.") # Log failure
     return "[Phone Not Found]"
-
 
 def extract_order_number(text):
     """Extracts order number."""
     order_number_match = re.search(r"dazzlepremium[#-]?(\d+)", text, re.IGNORECASE)
     if not order_number_match:
-        # Fallback to general order number pattern if specific one fails
         order_number_match = re.search(r"Order #(\d+)", text, re.IGNORECASE)
-    # ADDED CHECK: Ensure order_number_match is not None before calling .group()
-    return order_number_match.group(1).strip() if order_number_match else "[Order # Not Found]"
+    order_num = order_number_match.group(1).strip() if order_number_match else "[Order # Not Found]"
+    print(f"DEBUG: Extracted order number: {order_num}") # Log result
+    return order_num
 
 def extract_items(text):
     """Extracts product details (name, style code, size) more robustly."""
@@ -228,44 +252,66 @@ def extract_items(text):
     i = 0
     while i < len(lines):
         line = lines[i].strip()
+        
+        # Ensure we're within a reasonable line length before attempting regex, for robustness
+        if len(line) > 500: # Arbitrary large number to prevent processing excessively long "lines"
+             i += 1
+             continue
 
         item_match = re.search(r"^(.*?)\s*-\s*([A-Z0-9\/]+)\s*$", line)
 
         if item_match:
-            product_name = item_match.group(1).strip()
-            style_code = item_match.group(2).strip()
-            size = "[Size Not Found]"
+            try: # Added try-except around group access and cleaning for items
+                product_name = item_match.group(1).strip()
+                style_code = item_match.group(2).strip()
+                size = "[Size Not Found]"
 
-            for offset in range(1, min(5, len(lines) - i)): # Check up to 5 lines after product name
-                potential_size_line = lines[i + offset].strip()
+                # Search for size in the next few lines.
+                for offset in range(1, min(6, len(lines) - i)): # Check up to 5 lines after product name (index i+1 to i+5)
+                    potential_size_line = lines[i + offset].strip()
+                    
+                    # Prevent searching in very long lines that are unlikely to be sizes
+                    if len(potential_size_line) > 100:
+                        continue
 
-                size_patterns = [
-                    r"(?:Size[:\s]*)?\b(XS|S|M|L|XL|XXL|XXXL)\b", # Specific clothing sizes
-                    r"(\b\d{1,2}\b(?:/\s*\w+)?)" # Numerical sizes like "6" or "6 / WHT"
-                ]
+                    size_patterns = [
+                        r"(?:Size[:\s]*)?\b(XS|S|M|L|XL|XXL|XXXL)\b",
+                        r"(\b\d{1,2}\b(?:/\s*\w+)?)"
+                    ]
 
-                for pattern in size_patterns:
-                    size_match = re.search(pattern, potential_size_line, re.IGNORECASE)
-                    if size_match:
-                        extracted_size = size_match.group(1).upper().replace('SIZE:', '').strip()
-                        if '/' in extracted_size and re.match(r'^\d+\s*/', extracted_size):
-                            extracted_size = extracted_size.split('/')[0].strip()
-                        size = extracted_size
-                        break
-                if size != "[Size Not Found]":
-                    break
+                    found_size_in_offset = False
+                    for pattern in size_patterns:
+                        size_match = re.search(pattern, potential_size_line, re.IGNORECASE)
+                        if size_match:
+                            extracted_size_candidate = size_match.group(1).upper().replace('SIZE:', '').strip()
+                            # Refine size extraction: if it's like "6 / WHT", just take "6"
+                            if '/' in extracted_size_candidate and re.match(r'^\d+\s*/', extracted_size_candidate):
+                                extracted_size_candidate = extracted_size_candidate.split('/')[0].strip()
+                            size = extracted_size_candidate
+                            found_size_in_offset = True
+                            print(f"DEBUG: Found size '{size}' for '{product_name}' from line: '{potential_size_line}'")
+                            break # Found size for this item in this offset, no need to check other size patterns
+                    if found_size_in_offset:
+                        break # Found size for this item, break from offset loop
 
-            items.append((product_name, style_code, size))
+                items.append((product_name, style_code, size))
+                print(f"DEBUG: Added item: Product='{product_name}', Style='{style_code}', Size='{size}'")
+            except IndexError:
+                print(f"DEBUG: IndexError processing item_match for line: {line}")
+            except Exception as e:
+                print(f"DEBUG: Unexpected error processing item for line '{line}': {e}")
         i += 1
+    print(f"DEBUG: Finished item extraction. Total items found: {len(items)}") # Log final count
     return items
 
 def parse_and_generate_email(raw_text):
     """Parses raw text and generates email components."""
+    print("DEBUG: Starting parse_and_generate_email...")
     customer_name = extract_customer_name(raw_text)
     email_address = extract_email_address(raw_text)
     phone_number = extract_phone_number(raw_text)
     order_number = extract_order_number(raw_text)
-    items = extract_items(raw_text)
+    items = extract_items(raw_text) # This is the most complex one.
 
     order_details = "\n\n".join([
         f"- Item {idx+1}:\n  • Product: {p}\n  • Style Code: {s}\n  • Size: {z}"
@@ -304,6 +350,7 @@ Thank you for choosing DAZZLE PREMIUM!"""
     elif any("[Size Not Found]" in item[2] for item in items):
         missing_info.append("Some Item Sizes")
 
+    print(f"DEBUG: Finished parse_and_generate_email. Missing info: {missing_info}")
     return {
         "customer_name": customer_name,
         "email_address": email_address,
