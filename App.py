@@ -79,15 +79,18 @@ with st.container():
         if generate and raw_text:
             st.session_state.raw_text = raw_text
 
-            name_match = re.search(r"Customer\n(.*?)\n", raw_text)
+            name_match = re.search(r"Customer\s*\n(.*)", raw_text)
             if not name_match:
-                name_match = re.search(r"Shipping address\n(.*?)\n", raw_text)
+                name_match = re.search(r"Shipping address\s*\n(.*)", raw_text)
+            if not name_match:
+                name_match = re.search(r"Billing address\s*\n(.*)", raw_text)
+
+            customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
 
             email_match = re.search(r"[\w\.-]+@[\w\.-]+", raw_text)
             phone_match = re.search(r"\+1[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-()]*\d{4}", raw_text)
             order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
 
-            customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
             email_address = email_match.group(0).strip() if email_match else "[Email Not Found]"
             phone_number = phone_match.group(0).strip() if phone_match else "[Phone Not Found]"
             order_number = order_number_match.group(1).strip() if order_number_match else "[Order # Not Found]"
@@ -160,9 +163,11 @@ Thank you for choosing DAZZLE PREMIUM!"""
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
         elif high_risk and raw_text:
-            name_match = re.search(r"Customer\n(.*?)\n", raw_text)
+            name_match = re.search(r"Customer\s*\n(.*)", raw_text)
             if not name_match:
-                name_match = re.search(r"Shipping address\n(.*?)\n", raw_text)
+                name_match = re.search(r"Shipping address\s*\n(.*)", raw_text)
+            if not name_match:
+                name_match = re.search(r"Billing address\s*\n(.*)", raw_text)
             customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
 
             high_risk_msg = f"""Hello {customer_name},
