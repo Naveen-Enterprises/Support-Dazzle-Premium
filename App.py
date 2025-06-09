@@ -85,7 +85,7 @@ with st.container():
             if not name_match:
                 name_match = re.search(r"Billing address\s*\n(.*)", raw_text)
 
-            customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
+            customer_name = name_match.group(1).strip().title() if name_match else "[Customer Name Not Found]"
 
             email_match = re.search(r"[\w\.-]+@[\w\.-]+", raw_text)
             phone_match = re.search(r"\+1[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-()]*\d{4}", raw_text)
@@ -100,17 +100,16 @@ with st.container():
             i = 0
             while i < len(lines):
                 line = lines[i]
-                if re.search(r" - [A-Z0-9\-]+$", line) and not any(skip in line for skip in ["SKU", "Discount"]):
-                    product_line = line
-                    product_name, style_code = product_line.rsplit(" - ", 1)
+                if re.search(r" - [A-Z0-9\/]+$", line):
+                    product_name, style_code = line.rsplit(" - ", 1)
                     size = "[Size Not Found]"
 
                     for offset in range(1, 5):
                         if i + offset < len(lines):
                             size_line = lines[i + offset]
-                            if re.match(r"^(\d{1,2}[\s/]?[A-Z]{2,3}|[XSML]{1,2})", size_line) and not size_line.startswith("$") and not size_line.startswith("SKU"):
-                                size_parts = re.split(r"[ /]", size_line.strip())
-                                size = size_parts[0].strip()
+                            size_match = re.search(r"^(Size[:]?\s*)?(\d{1,2})(\s*/\s*[A-Z]{2,3})?", size_line)
+                            if size_match:
+                                size = size_match.group(2)
                                 break
 
                     items.append((product_name.strip(), style_code.strip(), size))
@@ -148,7 +147,9 @@ Thank you for choosing DAZZLE PREMIUM!"""
                 missing_info.append("Phone Number")
             if "[Order # Not Found]" in order_number:
                 missing_info.append("Order Number")
-            if any("[Size Not Found]" in item[2] for item in items):
+            if not items:
+                missing_info.append("Product Information")
+            elif any("[Size Not Found]" in item[2] for item in items):
                 missing_info.append("Item Sizes")
 
             if missing_info:
@@ -168,7 +169,7 @@ Thank you for choosing DAZZLE PREMIUM!"""
                 name_match = re.search(r"Shipping address\s*\n(.*)", raw_text)
             if not name_match:
                 name_match = re.search(r"Billing address\s*\n(.*)", raw_text)
-            customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
+            customer_name = name_match.group(1).strip().title() if name_match else "[Customer Name Not Found]"
 
             high_risk_msg = f"""Hello {customer_name},
 
