@@ -106,10 +106,10 @@ with st.container():
 
                     for offset in range(1, 5):
                         if i + offset < len(lines):
-                            size_line = lines[i + offset]
-                            size_match = re.search(r"^(Size[:]?\s*)?(\d{1,2})(\s*/\s*[A-Z]{2,3})?", size_line)
+                            size_line = lines[i + offset].strip()
+                            size_match = re.search(r"(?:Size[:\s]*)?(XS|S|M|L|XL|XXL|XXXL|\d{1,2})", size_line, re.IGNORECASE)
                             if size_match:
-                                size = size_match.group(2)
+                                size = size_match.group(1).upper()
                                 break
 
                     items.append((product_name.strip(), style_code.strip(), size))
