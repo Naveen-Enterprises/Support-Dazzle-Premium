@@ -160,7 +160,7 @@ Thank you for choosing DAZZLE PREMIUM!"""
             st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
             st.code(message, language="text")
-            st.markdown(f"<h4>📱 Phone Number:</h4><div class='subject-box'>{phone_number}</div>", unsafe_allow_html=True)
+            st.markdown(f"<h4>📱 Phone Number & Order ID:</h4><div class='subject-box'>{phone_number} | Order #{order_number}</div>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
         elif high_risk and raw_text:
