@@ -1,37 +1,137 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mail - DAZZLE PREMIUM</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+import streamlit as st
+from datetime import datetime
+import re
 
+# --- Helper Functions (Python equivalents of your JavaScript logic) ---
+
+def parse_shopify_data(raw_text):
+    """
+    Parses raw Shopify order data to extract customer information and order details.
+    """
+    data = {
+        "customer_name": "[Customer Name Not Found]",
+        "email_address": "[Email Not Found]",
+        "phone_number": "[Phone Not Found]",
+        "order_number": "[Order # Not Found]",
+        "items": [],
+        "missing_info": []
+    }
+
+    if not raw_text.strip():
+        return data
+
+    lines = [line.strip() for line in raw_text.split('\n') if line.strip()]
+
+    # Extract customer name
+    email_sent_match = re.search(r"Order confirmation email was sent to (.*?) \([\w\.-]+@[\w\.-]+\.[\w\.-]+\)", raw_text, re.IGNORECASE)
+    if email_sent_match:
+        data["customer_name"] = email_sent_match.group(1).strip()
+    else:
+        data["missing_info"].append("Customer Name")
+
+    # Extract email
+    email_match = re.search(r"[\w\.-]+@[\w\.-]+\.[\w\.-]+", raw_text)
+    if email_match:
+        data["email_address"] = email_match.group(0).strip()
+    else:
+        data["missing_info"].append("Email Address")
+
+    # Extract phone
+    phone_match = re.search(r"(\+1[\s\-()]?\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4}|\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4})", raw_text)
+    if phone_match:
+        data["phone_number"] = phone_match.group(0).strip()
+    else:
+        data["missing_info"].append("Phone Number")
+
+    # Extract order number
+    order_match = re.search(r"dazzlepremium#(\d+)", raw_text, re.IGNORECASE)
+    if order_match:
+        data["order_number"] = order_match.group(1).strip()
+    else:
+        data["missing_info"].append("Order Number")
+
+    # Extract items (simplified)
+    for line in lines:
+        if ' - ' in line and 'discount' not in line.lower() and 'total' not in line.lower():
+            parts = line.split(' - ')
+            if len(parts) >= 2:
+                data["items"].append({
+                    "product_name": parts[0].strip(),
+                    "style_code": parts[1].strip(),
+                    "size": "One Size",  # Default as per JS
+                    "quantity": 1        # Default as per JS
+                })
+
+    if not data["items"]:
+        data["missing_info"].append("Order Items")
+
+    return data
+
+def get_order_details_string(items):
+    """Formats the order items into a readable string."""
+    if len(items) > 1:
+        details = []
+        for idx, item in enumerate(items):
+            item_detail = f"- Item {idx + 1}:\n"
+            item_detail += f"•  Product: {item['product_name']}\n"
+            item_detail += f"•  Style Code: {item['style_code']}\n"
+            item_detail += f"•  Size: {item['size']}"
+            if item['quantity'] > 1:
+                item_detail += f"\n•  Quantity: {item['quantity']}"
+            details.append(item_detail)
+        return "\n\n".join(details)
+    elif len(items) == 1:
+        item = items[0]
+        details = f"•  Product: {item['product_name']}\n•  Style Code: {item['style_code']}\n•  Size: {item['size']}"
+        if item['quantity'] > 1:
+            details += f"\n•  Quantity: {item['quantity']}"
+        return details
+    else:
+        return "No items found."
+
+# --- Streamlit UI ---
+
+st.set_page_config(layout="wide", page_title="Mail - DAZZLE PREMIUM")
+
+# Custom CSS for styling (adapted from your HTML/CSS)
+st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
-         
-            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
             color: #1d1d1f;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
+            background: linear-gradient(135deg, #e0eafc, #cfdef3); /* Light blue gradient background */
         }
-
-        .app-container {
-            display: flex;
-            min-height: 100vh;
+        
+        .stApp {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
             gap: 20px;
+            display: flex; /* For responsive layout in columns */
+            flex-direction: column; /* Default for small screens */
             align-items: stretch;
+            min-height: 100vh;
         }
 
-        .sidebar {
+        .stApp > header {
+            display: none; /* Hide Streamlit's default header */
+        }
+
+        .stApp > div:first-child {
+            padding-top: 0px;
+        }
+
+        .stApp > div:nth-child(2) { /* This targets the main content area */
+            display: flex;
+            flex-direction: column; /* Default to column for smaller screens */
+            gap: 20px;
+        }
+
+        .sidebar-panel {
             flex: 1;
             max-width: 320px;
             background: rgba(255, 255, 255, 0.95);
@@ -42,11 +142,10 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             flex-direction: column;
-            height: fit-content;
-            min-height: calc(100vh - 40px);
+            min-height: calc(100vh - 40px); /* Adjust for padding */
         }
 
-        .main-panel {
+        .main-content-panel {
             flex: 2;
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
@@ -56,12 +155,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             flex-direction: column;
-            min-height: calc(100vh - 40px);
-        }
-
-        .app-header {
-            text-align: center;
-            margin-bottom: 40px;
+            min-height: calc(100vh - 40px); /* Adjust for padding */
         }
 
         .app-title {
@@ -71,12 +165,15 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
+            text-align: center;
         }
 
         .app-subtitle {
             color: #86868b;
             font-size: 1.1rem;
             font-weight: 500;
+            text-align: center;
+            margin-bottom: 40px;
         }
 
         .section-title {
@@ -140,6 +237,8 @@
 
         .missing-list {
             list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
         .missing-list li {
@@ -156,12 +255,6 @@
             font-weight: bold;
             position: absolute;
             left: 0;
-        }
-
-        .mail-compose {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
         }
 
         .compose-header {
@@ -184,7 +277,7 @@
             margin-bottom: 8px;
         }
 
-        .form-input {
+        .stTextInput > div > div > input, .stTextArea > div > div > textarea {
             width: 100%;
             padding: 15px 18px;
             border: 2px solid #e5e5e7;
@@ -194,52 +287,21 @@
             background: white;
             transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            line-height: 1.6; /* For textarea */
         }
-
-        .form-input:focus {
+        
+        .stTextInput > div > div > input:focus, .stTextArea > div > div > textarea:focus {
             outline: none;
             border-color: #007AFF;
             box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
             transform: translateY(-1px);
         }
 
-        .form-input::placeholder {
-            color: #86868b;
+        .stTextInput > label, .stTextArea > label {
+            display: none; /* Hide default Streamlit labels, we use custom ones */
         }
 
-        .compose-body {
-            flex: 1;
-            margin-bottom: 25px;
-        }
-
-        .body-textarea {
-            width: 100%;
-            min-height: 400px;
-            padding: 20px;
-            border: 2px solid #e5e5e7;
-            border-radius: 16px;
-            font-size: 1rem;
-            font-family: inherit;
-            background: white;
-            resize: vertical;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            line-height: 1.6;
-        }
-
-        .body-textarea:focus {
-            outline: none;
-            border-color: #007AFF;
-            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .btn {
+        div.stButton > button {
             flex: 1;
             padding: 16px 24px;
             border: none;
@@ -252,9 +314,11 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
+            width: 100%; /* Make buttons full width */
+            margin-bottom: 15px; /* Spacing between buttons */
         }
 
-        .btn:before {
+        div.stButton > button:before {
             content: '';
             position: absolute;
             top: 0;
@@ -265,35 +329,34 @@
             transition: left 0.5s;
         }
 
-        .btn:hover:before {
+        div.stButton > button:hover:before {
             left: 100%;
         }
 
-        .btn:hover {
+        div.stButton > button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
         }
 
-        .btn:active {
+        div.stButton > button:active {
             transform: translateY(0);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-primary {
+        /* Button specific colors */
+        div.stButton > button:nth-of-type(1) { /* Standard button */
             background: linear-gradient(135deg, #007AFF, #5856D6);
             color: white;
         }
-
-        .btn-secondary {
+        div.stButton > button:nth-of-type(2) { /* High Risk button */
             background: linear-gradient(135deg, #FF6B35, #FF8E53);
             color: white;
         }
-
-        .btn-tertiary {
+        div.stButton > button:nth-of-type(3) { /* Return button */
             background: linear-gradient(135deg, #00D2FF, #3A7BD5);
             color: white;
         }
-
+        
         .paste-area {
             background: #f5f5f7;
             border: 2px dashed #d1d1d6;
@@ -304,34 +367,11 @@
             transition: all 0.3s ease;
         }
 
-        .paste-area:hover {
-            background: #ebebed;
-            border-color: #007AFF;
-        }
-
         .paste-instruction {
             color: #86868b;
             font-size: 1.1rem;
             font-weight: 500;
             margin-bottom: 15px;
-        }
-
-        .paste-textarea {
-            width: 100%;
-            min-height: 200px;
-            padding: 20px;
-            border: none;
-            border-radius: 12px;
-            background: white;
-            font-size: 0.95rem;
-            font-family: 'SF Mono', Monaco, monospace;
-            resize: vertical;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .paste-textarea:focus {
-            outline: none;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(0, 122, 255, 0.1);
         }
 
         .status-indicator {
@@ -361,373 +401,117 @@
             100% { opacity: 1; }
         }
 
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .floating-elements {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .floating-circle {
-            position: absolute;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(0, 122, 255, 0.1), rgba(88, 86, 214, 0.1));
-            animation: float 20s infinite ease-in-out;
-        }
-
-        .floating-circle:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .floating-circle:nth-child(2) {
-            width: 200px;
-            height: 200px;
-            top: 60%;
-            right: 10%;
-            animation-delay: -10s;
-        }
-
-        .floating-circle:nth-child(3) {
-            width: 150px;
-            height: 150px;
-            bottom: 20%;
-            left: 30%;
-            animation-delay: -5s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            25% { transform: translateY(-20px) rotate(5deg); }
-            50% { transform: translateY(10px) rotate(-5deg); }
-            75% { transform: translateY(-10px) rotate(3deg); }
-        }
-
-        @media (max-width: 1024px) {
-            .app-container {
-                flex-direction: column;
-                padding: 15px;
-                gap: 15px;
+        /* Responsive adjustments */
+        @media (min-width: 1024px) {
+            .stApp > div:nth-child(2) {
+                flex-direction: row; /* Row layout for larger screens */
             }
-            
-            .sidebar {
-                max-width: none;
-                min-height: auto;
-                order: 2;
+            .sidebar-panel {
+                min-height: calc(100vh - 40px);
             }
-            
-            .main-panel {
-                order: 1;
-                min-height: auto;
+            .main-content-panel {
+                min-height: calc(100vh - 40px);
             }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-        }
-
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-
-        .tooltip::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            margin-bottom: 8px;
-        }
-
-        .tooltip:hover::after {
-            opacity: 1;
         }
     </style>
-</head>
-<body>
-    <div class="floating-elements">
-        <div class="floating-circle"></div>
-        <div class="floating-circle"></div>
-        <div class="floating-circle"></div>
-    </div>
+""", unsafe_allow_html=True)
 
-    <div class="app-container">
-        <!-- Left Sidebar -->
-        <div class="sidebar">
-            <div class="app-header">
-                <h1 class="app-title">Mail</h1>
-                <p class="app-subtitle">DAZZLE PREMIUM</p>
-            </div>
+# --- Session State for managing data ---
+if 'parsed_data' not in st.session_state:
+    st.session_state.parsed_data = parse_shopify_data("")
+if 'recipient_email' not in st.session_state:
+    st.session_state.recipient_email = ""
+if 'email_subject' not in st.session_state:
+    st.session_state.email_subject = ""
+if 'email_body' not in st.session_state:
+    st.session_state.email_body = ""
+if 'show_status' not in st.session_state:
+    st.session_state.show_status = False
 
-            <div class="date-display">
-                <div class="current-date" id="currentDate"></div>
-                <div class="current-time" id="currentTime"></div>
-            </div>
+# --- Layout the application ---
+col1, col2 = st.columns([1, 2], gap="20px")
 
-            <div class="section-title">
-                <div class="section-icon">📧</div>
-                Mail Information
-            </div>
+with col1: # Left Sidebar
+    st.markdown('<div class="sidebar-panel">', unsafe_allow_html=True)
+    st.markdown('<h1 class="app-title">Mail</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="app-subtitle">DAZZLE PREMIUM</p>', unsafe_allow_html=True)
 
-            <div id="missingInfoSection" class="missing-info" style="display: none;">
-                <h3>⚠️ Missing Information</h3>
-                <ul id="missingInfoList" class="missing-list"></ul>
-            </div>
-
-            <div class="paste-area">
-                <div class="paste-instruction">📋 Paste Order Data</div>
-                <textarea 
-                    id="orderDataInput" 
-                    class="paste-textarea" 
-                    placeholder="Paste your Shopify order export here..."
-                ></textarea>
-            </div>
-
-            <div class="action-buttons">
-                <button class="btn btn-primary tooltip" onclick="generateStandardEmail()" data-tooltip="Generate standard confirmation email">
-                    ✨ Standard
-                </button>
-            </div>
-            <div class="action-buttons">
-                <button class="btn btn-secondary tooltip" onclick="generateHighRiskEmail()" data-tooltip="Generate high-risk cancellation email">
-                    🚨 High Risk
-                </button>
-            </div>
-            <div class="action-buttons">
-                <button class="btn btn-tertiary tooltip" onclick="generateReturnEmail()" data-tooltip="Generate return instructions email">
-                    ↩️ Return
-                </button>
-            </div>
+    # Date and Time Display
+    now = datetime.now()
+    current_date = now.strftime('%A, %B %d, %Y')
+    current_time = now.strftime('%I:%M:%S %p')
+    st.markdown(f"""
+        <div class="date-display">
+            <div class="current-date">{current_date}</div>
+            <div class="current-time">{current_time}</div>
         </div>
+    """, unsafe_allow_html=True)
 
-        <!-- Main Mail Panel -->
-        <div class="main-panel">
-            <div class="section-title">
-                <div class="section-icon">✉️</div>
-                Compose Email
-                <div id="statusIndicator" class="status-indicator" style="margin-left: auto; display: none;">
-                    <div class="status-dot"></div>
-                    Ready to Send
-                </div>
-            </div>
+    st.markdown('<div class="section-title"><div class="section-icon">📧</div> Mail Information</div>', unsafe_allow_html=True)
 
-            <div class="mail-compose">
-                <div class="compose-header">
-                    <div class="form-group">
-                        <label class="form-label" for="recipientEmail">To:</label>
-                        <input 
-                            type="email" 
-                            id="recipientEmail" 
-                            class="form-input" 
-                            placeholder="Recipient email address"
-                            readonly
-                        >
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="emailSubject">Subject:</label>
-                        <input 
-                            type="text" 
-                            id="emailSubject" 
-                            class="form-input" 
-                            placeholder="Email subject line"
-                            readonly
-                        >
-                    </div>
-                </div>
+    # Missing Information Section
+    if st.session_state.parsed_data["missing_info"]:
+        st.markdown('<div class="missing-info">', unsafe_allow_html=True)
+        st.markdown('<h3>⚠️ Missing Information</h3>', unsafe_allow_html=True)
+        st.markdown('<ul class="missing-list">', unsafe_allow_html=True)
+        for item in st.session_state.parsed_data["missing_info"]:
+            st.markdown(f'<li>{item}</li>', unsafe_allow_html=True)
+        st.markdown('</ul>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-                <div class="compose-body">
-                    <label class="form-label" for="emailBody">Message:</label>
-                    <textarea 
-                        id="emailBody" 
-                        class="body-textarea" 
-                        placeholder="Email message will appear here..."
-                        readonly
-                    ></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
+    st.markdown('<div class="paste-area">', unsafe_allow_html=True)
+    st.markdown('<div class="paste-instruction">📋 Paste Order Data</div>', unsafe_allow_html=True)
+    order_data_input = st.text_area(
+        label="Paste your Shopify order export here...",
+        value="",
+        height=200,
+        placeholder="Paste your Shopify order export here...",
+        key="order_data_input_key" # Assign a key to manage state
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    <script>
-        // Update date and time
-        function updateDateTime() {
-            const now = new Date();
-            const dateOptions = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            };
-            const timeOptions = { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            };
-            
-            document.getElementById('currentDate').textContent = 
-                now.toLocaleDateString('en-US', dateOptions);
-            document.getElementById('currentTime').textContent = 
-                now.toLocaleTimeString('en-US', timeOptions);
-        }
+    # Update parsed data whenever the input changes
+    if order_data_input != st.session_state.parsed_data.get('raw_text_input', ''): # Check if input actually changed
+        st.session_state.parsed_data = parse_shopify_data(order_data_input)
+        st.session_state.parsed_data['raw_text_input'] = order_data_input # Store current input for comparison
+        # Reset email fields if input changes, as they might be outdated
+        st.session_state.recipient_email = ""
+        st.session_state.email_subject = ""
+        st.session_state.email_body = ""
+        st.session_state.show_status = False
 
-        // Initialize and update every second
-        updateDateTime();
-        setInterval(updateDateTime, 1000);
 
-        // Parse Shopify order data
-        function parseShopifyData(rawText) {
-            const data = {
-                customer_name: "[Customer Name Not Found]",
-                email_address: "[Email Not Found]",
-                phone_number: "[Phone Not Found]",
-                order_number: "[Order # Not Found]",
-                items: [],
-                missing_info: []
-            };
+    # Action Buttons
+    if st.button("✨ Standard", help="Generate standard confirmation email"):
+        data = st.session_state.parsed_data
+        subject = f"Final Order Confirmation of dazzlepremium#{data['order_number']}"
+        order_details = get_order_details_string(data['items'])
+        message = f"""Hello {data['customer_name']},
 
-            if (!rawText.trim()) {
-                return data;
-            }
-
-            const lines = rawText.split('\n').map(line => line.trim()).filter(line => line);
-
-            // Extract customer name
-            const emailSentMatch = rawText.match(/Order confirmation email was sent to (.*?) \([\w\.-]+@[\w\.-]+\.[\w\.-]+\)/i);
-            if (emailSentMatch) {
-                data.customer_name = emailSentMatch[1].trim();
-            } else {
-                data.missing_info.push("Customer Name");
-            }
-
-            // Extract email
-            const emailMatch = rawText.match(/[\w\.-]+@[\w\.-]+\.[\w\.-]+/);
-            if (emailMatch) {
-                data.email_address = emailMatch[0].trim();
-            } else {
-                data.missing_info.push("Email Address");
-            }
-
-            // Extract phone
-            const phoneMatch = rawText.match(/(\+1[\s\-()]?\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4}|\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4})/);
-            if (phoneMatch) {
-                data.phone_number = phoneMatch[0].trim();
-            } else {
-                data.missing_info.push("Phone Number");
-            }
-
-            // Extract order number
-            const orderMatch = rawText.match(/dazzlepremium#(\d+)/i);
-            if (orderMatch) {
-                data.order_number = orderMatch[1].trim();
-            } else {
-                data.missing_info.push("Order Number");
-            }
-
-            // Extract items (simplified)
-            lines.forEach((line, index) => {
-                if (line.includes(' - ') && !line.toLowerCase().includes('discount') && !line.toLowerCase().includes('total')) {
-                    const parts = line.split(' - ');
-                    if (parts.length >= 2) {
-                        data.items.push({
-                            product_name: parts[0].trim(),
-                            style_code: parts[1].trim(),
-                            size: "One Size",
-                            quantity: 1
-                        });
-                    }
-                }
-            });
-
-            if (data.items.length === 0) {
-                data.missing_info.push("Order Items");
-            }
-
-            return data;
-        }
-
-        // Generate standard email
-        function generateStandardEmail() {
-            const rawText = document.getElementById('orderDataInput').value;
-            const parsedData = parseShopifyData(rawText);
-            
-            updateMissingInfo(parsedData.missing_info);
-            
-            const subject = `Final Order Confirmation of dazzlepremium#${parsedData.order_number}`;
-            
-            let orderDetails = '';
-            if (parsedData.items.length > 1) {
-                parsedData.items.forEach((item, idx) => {
-                    orderDetails += `- Item ${idx + 1}:\n`;
-                    orderDetails += `•  Product: ${item.product_name}\n`;
-                    orderDetails += `•  Style Code: ${item.style_code}\n`;
-                    orderDetails += `•  Size: ${item.size}`;
-                    if (item.quantity > 1) {
-                        orderDetails += `\n•  Quantity: ${item.quantity}`;
-                    }
-                    orderDetails += '\n\n';
-                });
-            } else if (parsedData.items.length === 1) {
-                const item = parsedData.items[0];
-                orderDetails = `•  Product: ${item.product_name}\n•  Style Code: ${item.style_code}\n•  Size: ${item.size}`;
-                if (item.quantity > 1) {
-                    orderDetails += `\n•  Quantity: ${item.quantity}`;
-                }
-            } else {
-                orderDetails = "No items found.";
-            }
-
-            const message = `Hello ${parsedData.customer_name},
-
-This is DAZZLE PREMIUM Support confirming Order ${parsedData.order_number}
+This is DAZZLE PREMIUM Support confirming Order {data['order_number']}
 
 - Please reply YES to confirm just this order only.
 - Kindly also reply YES to the SMS sent automatically to your inbox.
 
 Order Details:
-${orderDetails}
+{order_details}
 
 For your security, we use two-factor authentication. If this order wasn't placed by you, text us immediately at 410-381-0000 to cancel.
 
 Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.
 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
-Thank you for choosing DAZZLE PREMIUM!`;
+Thank you for choosing DAZZLE PREMIUM!"""
+        
+        st.session_state.recipient_email = data['email_address']
+        st.session_state.email_subject = subject
+        st.session_state.email_body = message
+        st.session_state.show_status = True
 
-            populateEmailFields(parsedData.email_address, subject, message);
-        }
-
-        // Generate high-risk email
-        function generateHighRiskEmail() {
-            const rawText = document.getElementById('orderDataInput').value;
-            const parsedData = parseShopifyData(rawText);
-            
-            updateMissingInfo(parsedData.missing_info);
-            
-            const subject = "Important: Your DAZZLE PREMIUM Order - Action Required";
-            const message = `Hello ${parsedData.customer_name},
+    if st.button("🚨 High Risk", help="Generate high-risk cancellation email"):
+        data = st.session_state.parsed_data
+        subject = "Important: Your DAZZLE PREMIUM Order - Action Required"
+        message = f"""Hello {data['customer_name']},
 
 We hope this message finds you well.
 
@@ -740,20 +524,17 @@ Once the payment is received, we will immediately process your order and provide
 If you have any questions or need assistance, feel free to reply to this email.
 
 Thank you,
-DAZZLE PREMIUM Support`;
+DAZZLE PREMIUM Support"""
+        
+        st.session_state.recipient_email = data['email_address']
+        st.session_state.email_subject = subject
+        st.session_state.email_body = message
+        st.session_state.show_status = True
 
-            populateEmailFields(parsedData.email_address, subject, message);
-        }
-
-        // Generate return email
-        function generateReturnEmail() {
-            const rawText = document.getElementById('orderDataInput').value;
-            const parsedData = parseShopifyData(rawText);
-            
-            updateMissingInfo(parsedData.missing_info);
-            
-            const subject = "DAZZLE PREMIUM: Your Return Request Instructions";
-            const message = `Dear ${parsedData.customer_name},
+    if st.button("↩️ Return", help="Generate return instructions email"):
+        data = st.session_state.parsed_data
+        subject = "DAZZLE PREMIUM: Your Return Request Instructions"
+        message = f"""Dear {data['customer_name']},
 
 Thank you for reaching out to us regarding your return request. To ensure a smooth and successful return process, please carefully follow the steps below:
 
@@ -774,57 +555,63 @@ Hyattsville, MD 20782
 
 Once we receive the returned item in its original condition with the tags intact and complete our inspection, we will process your refund.
 
-If you have any questions, feel free to reply to this email.`;
+If you have any questions, feel free to reply to this email."""
+        
+        st.session_state.recipient_email = data['email_address']
+        st.session_state.email_subject = subject
+        st.session_state.email_body = message
+        st.session_state.show_status = True
+    
+    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-panel div
 
-            populateEmailFields(parsedData.email_address, subject, message);
-        }
-
-        // Update missing info display
-        function updateMissingInfo(missingInfo) {
-            const section = document.getElementById('missingInfoSection');
-            const list = document.getElementById('missingInfoList');
-            
-            if (missingInfo.length > 0) {
-                list.innerHTML = '';
-                missingInfo.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    list.appendChild(li);
-                });
-                section.style.display = 'block';
-            } else {
-                section.style.display = 'none';
+with col2: # Main Mail Panel
+    st.markdown('<div class="main-content-panel">', unsafe_allow_html=True)
+    
+    st.markdown(f"""
+        <div class="section-title">
+            <div class="section-icon">✉️</div>
+            Compose Email
+            {
+                '<div class="status-indicator" style="margin-left: auto;"><div class="status-dot"></div> Ready to Send</div>' 
+                if st.session_state.show_status else ''
             }
-        }
+        </div>
+    """, unsafe_allow_html=True)
 
-        // Populate email fields
-        function populateEmailFields(email, subject, body) {
-            document.getElementById('recipientEmail').value = email;
-            document.getElementById('emailSubject').value = subject;
-            document.getElementById('emailBody').value = body;
-            document.getElementById('statusIndicator').style.display = 'flex';
-        }
+    st.markdown('<div class="mail-compose">', unsafe_allow_html=True)
+    st.markdown('<div class="compose-header">', unsafe_allow_html=True)
+    
+    # Recipient Email
+    st.markdown('<label class="form-label" for="recipientEmail">To:</label>', unsafe_allow_html=True)
+    st.text_input(
+        label="To:",
+        value=st.session_state.recipient_email,
+        key="recipient_email_input",
+        placeholder="Recipient email address",
+        disabled=True
+    )
+    
+    # Email Subject
+    st.markdown('<label class="form-label" for="emailSubject">Subject:</label>', unsafe_allow_html=True)
+    st.text_input(
+        label="Subject:",
+        value=st.session_state.email_subject,
+        key="email_subject_input",
+        placeholder="Email subject line",
+        disabled=True
+    )
+    st.markdown('</div>', unsafe_allow_html=True) # Close compose-header div
 
-        // Copy to clipboard functionality
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // Visual feedback could be added here
-                console.log('Copied to clipboard');
-            });
-        }
-
-        // Add double-click to copy functionality
-        document.getElementById('recipientEmail').addEventListener('dblclick', function() {
-            copyToClipboard(this.value);
-        });
-
-        document.getElementById('emailSubject').addEventListener('dblclick', function() {
-            copyToClipboard(this.value);
-        });
-
-        document.getElementById('emailBody').addEventListener('dblclick', function() {
-            copyToClipboard(this.value);
-        });
-    </script>
-</body>
-</html>
+    st.markdown('<div class="compose-body">', unsafe_allow_html=True)
+    st.markdown('<label class="form-label" for="emailBody">Message:</label>', unsafe_allow_html=True)
+    st.text_area(
+        label="Message:",
+        value=st.session_state.email_body,
+        height=400,
+        key="email_body_input",
+        placeholder="Email message will appear here...",
+        disabled=True
+    )
+    st.markdown('</div>', unsafe_allow_html=True) # Close compose-body div
+    st.markdown('</div>', unsafe_allow_html=True) # Close mail-compose div
+    st.markdown('</div>', unsafe_allow_html=True) # Close main-content-panel div
