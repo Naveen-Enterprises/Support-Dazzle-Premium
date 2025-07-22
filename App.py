@@ -632,7 +632,7 @@ with col_right:
                 </div>
             """, unsafe_allow_html=True)
 
-            st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
+            st.markdown("<h4> <h4>", unsafe_allow_html=True)
             st.markdown(f"""
                 <div class="data-display-box">
                     <span>{st.session_state.generated_subject}</span>
