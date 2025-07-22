@@ -13,28 +13,28 @@ st.markdown("""
 <style>
     /* CSS Variables for consistent theming */
     :root {
-        --primary-blue: #2F80ED;
-        --primary-blue-dark: #1366d6;
-        --light-blue-bg: #EEF2F8;
-        --text-dark: #1A1A1A;
-        --text-medium: #4A4A4A;
-        --text-light: #757575;
-        --border-color: #D1D5DB;
-        --bg-light: #F8F9FA; /* Slightly softer background */
+        --primary-blue: #007AFF; /* Apple-like blue */
+        --primary-blue-dark: #0056B3; /* Darker shade for hover */
+        --light-blue-bg: #F0F8FF; /* Very light blue for soft backgrounds */
+        --text-dark: #1C1C1E; /* Darker, more Apple-like text */
+        --text-medium: #636366;
+        --text-light: #AEAEB2;
+        --border-color: #E0E0E0; /* Lighter, subtle border */
+        --bg-light: #F2F2F7; /* Apple-like light gray background */
         --card-bg: #FFFFFF;
 
-        /* Feedback colors */
-        --success-bg: #D4EDDA;
-        --success-text: #155724;
-        --warning-bg: #FFF3CD;
-        --warning-text: #856404;
-        --error-bg: #FFCCCC;
-        --error-text: #900;
+        /* Feedback colors - slightly adjusted for consistency */
+        --success-bg: #E6F7EA; /* Lighter green */
+        --success-text: #28A745;
+        --warning-bg: #FFF8E6; /* Lighter yellow */
+        --warning-text: #FFC107;
+        --error-bg: #FFEBEB; /* Lighter red */
+        --error-text: #DC3545;
 
-        /* Shadows - refined for more depth on hover/active */
-        --shadow-sm: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
-        --shadow-md: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
-        --shadow-lg: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+        /* Shadows - refined for more depth on hover/active, very subtle */
+        --shadow-sm: rgba(0, 0, 0, 0.04) 0px 1px 2px;
+        --shadow-md: rgba(0, 0, 0, 0.08) 0px 4px 8px;
+        --shadow-lg: rgba(0, 0, 0, 0.12) 0px 8px 16px;
     }
 
     /* General Body and App Styling */
@@ -44,40 +44,40 @@ st.markdown("""
         background-color: var(--bg-light);
     }
     .main .block-container {
-        padding-top: 2.5rem; /* Increased padding */
-        padding-bottom: 2.5rem; /* Increased padding */
+        padding-top: 3rem; /* More generous padding */
+        padding-bottom: 3rem; /* More generous padding */
         max-width: 1200px; /* Max width for content */
         margin: 0 auto; /* Center content */
     }
 
     /* Headings */
     h1, h2, h3, h4 {
-        font-family: 'Montserrat', sans-serif;
-        color: var(--primary-blue);
+        font-family: 'Montserrat', sans-serif; /* Keep Montserrat for impact */
+        color: var(--text-dark); /* Darker headings for contrast */
         font-weight: 700;
-        margin-top: 2rem; /* Adjusted margin */
-        margin-bottom: 1.2rem; /* Adjusted margin */
+        margin-top: 2.5rem; /* Adjusted margin */
+        margin-bottom: 1rem; /* Adjusted margin */
     }
-    h1 { font-size: 2.8rem; text-align: center; margin-bottom: 2.5rem; } /* Larger, more impactful */
-    h2 { font-size: 2.2rem; }
-    h3 { font-size: 1.7rem; }
-    h4 { font-size: 1.3rem; }
+    h1 { font-size: 3rem; text-align: center; margin-bottom: 3rem; color: var(--primary-blue); } /* Larger, more impactful, primary blue */
+    h2 { font-size: 2.4rem; }
+    h3 { font-size: 1.8rem; }
+    h4 { font-size: 1.4rem; color: var(--text-medium); margin-top: 1.5rem; } /* Slightly softer color for sub-headings */
 
     /* Input Fields (Text, Text Area) */
     .stTextInput > div > div > input,
     .stTextArea > div > textarea {
         border: 1px solid var(--border-color);
-        border-radius: 12px; /* Consistent roundedness */
-        padding: 0.85rem 1.1rem; /* Slightly more padding */
-        font-size: 1rem;
-        box-shadow: none;
+        border-radius: 16px; /* Increased roundedness */
+        padding: 1rem 1.2rem; /* Slightly more padding */
+        font-size: 1.05rem;
+        box-shadow: var(--shadow-sm); /* Subtle initial shadow */
         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         background-color: var(--card-bg); /* White background for inputs */
     }
     .stTextInput > div > div > input:focus,
     .stTextArea > div > textarea:focus {
         border-color: var(--primary-blue);
-        box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.25); /* More prominent focus ring */
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2), var(--shadow-md); /* Softer, blue focus ring + deeper shadow */
         outline: none;
     }
 
@@ -86,62 +86,65 @@ st.markdown("""
         background-color: var(--primary-blue);
         color: white;
         font-weight: 600;
-        padding: 0.85rem 1.8rem; /* Increased padding for better touch target */
-        font-size: 1.05rem; /* Slightly larger font */
-        border-radius: 12px; /* Consistent roundedness */
+        padding: 0.9rem 2rem; /* Increased padding for better touch target */
+        font-size: 1.1rem; /* Slightly larger font */
+        border-radius: 16px; /* Consistent roundedness */
         border: none;
-        box-shadow: var(--shadow-sm);
+        box-shadow: var(--shadow-md); /* More pronounced initial shadow */
         transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
         cursor: pointer;
     }
     .stButton button:hover {
         background-color: var(--primary-blue-dark);
-        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
-        transform: translateY(-2px); /* Subtle lift */
+        box-shadow: var(--shadow-lg); /* Deeper shadow on hover */
+        transform: translateY(-1px); /* Subtle lift */
     }
     .stButton button:active {
         transform: translateY(0);
-        box-shadow: var(--shadow-sm);
+        box-shadow: var(--shadow-sm); /* Return to smaller shadow on active */
     }
 
     /* Custom Card Styles for Data Display */
     .info-card, .success-card, .warning-card, .error-card {
-        padding: 1.2rem 1.8rem; /* Increased padding */
-        border-radius: 14px; /* Slightly more rounded */
-        margin-bottom: 1.8rem; /* Increased margin */
+        padding: 1.5rem 2rem; /* Increased padding */
+        border-radius: 20px; /* Even more rounded for a softer look */
+        margin-bottom: 2rem; /* Increased margin */
         display: flex;
         align-items: center;
-        gap: 1.2rem; /* Increased gap */
+        gap: 1.5rem; /* Increased gap */
         font-weight: 500;
         box-shadow: var(--shadow-sm);
-        border: 1px solid rgba(0,0,0,0.05); /* Subtle border for definition */
-        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
+        border: 1px solid var(--border-color); /* More visible subtle border */
+        transition: all 0.2s ease-in-out;
+        background-color: var(--card-bg); /* Ensure white background for all cards */
     }
     .info-card:hover, .success-card:hover, .warning-card:hover, .error-card:hover {
         box-shadow: var(--shadow-md); /* Deeper shadow on hover */
-        transform: translateY(-1px); /* Subtle lift */
+        transform: translateY(-2px); /* More pronounced lift */
     }
-    .info-card { background-color: var(--light-blue-bg); color: var(--primary-blue); border-color: rgba(47, 128, 237, 0.2); }
-    .success-card { background-color: var(--success-bg); color: var(--success-text); border-color: rgba(212, 237, 218, 0.7); }
-    .warning-card { background-color: var(--warning-bg); color: var(--warning-text); border-color: rgba(255, 243, 205, 0.7); }
-    .error-card { background-color: var(--error-bg); color: var(--error-text); border-color: rgba(255, 204, 204, 0.7); } /* Fixed typo here */
+    /* Specific card colors for text and background, but keeping card-bg as white */
+    .info-card { color: var(--primary-blue); background-color: var(--light-blue-bg); border-color: rgba(0, 122, 255, 0.1); }
+    .success-card { color: var(--success-text); background-color: var(--success-bg); border-color: rgba(40, 167, 69, 0.1); }
+    .warning-card { color: var(--warning-text); background-color: var(--warning-bg); border-color: rgba(255, 193, 7, 0.1); }
+    .error-card { color: var(--error-text); background-color: var(--error-bg); border-color: rgba(220, 53, 69, 0.1); }
 
     /* Specific Data Display Boxes (Email, Subject, Phone) */
     .data-display-box {
-        background-color: var(--light-blue-bg);
-        padding: 1rem 1.5rem; /* Increased padding */
-        border-radius: 12px; /* Consistent roundedness */
-        margin-bottom: 1.2rem; /* Adjusted margin */
+        background-color: var(--light-blue-bg); /* Use the lighter blue background */
+        padding: 1.2rem 1.8rem; /* Increased padding */
+        border-radius: 16px; /* Consistent roundedness */
+        margin-bottom: 1.5rem; /* Adjusted margin */
         color: var(--text-dark);
         font-weight: 500;
-        font-size: 1rem;
+        font-size: 1.05rem;
         word-break: break-all;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px; /* Increased gap */
+        gap: 15px; /* Increased gap */
         box-shadow: var(--shadow-sm);
-        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
+        transition: all 0.2s ease-in-out;
+        border: 1px solid rgba(0,0,0,0.05); /* Subtle border */
     }
     .data-display-box:hover {
         box-shadow: var(--shadow-md); /* Deeper shadow on hover */
@@ -156,65 +159,75 @@ st.markdown("""
         background-color: var(--primary-blue);
         color: white;
         border: none;
-        border-radius: 10px; /* Slightly more rounded */
-        padding: 0.6rem 1rem; /* Adjusted padding */
-        font-size: 0.9rem; /* Slightly larger font */
+        border-radius: 12px; /* Slightly more rounded */
+        padding: 0.7rem 1.1rem; /* Adjusted padding */
+        font-size: 0.95rem; /* Slightly larger font */
         font-weight: 500;
         cursor: pointer;
-        transition: background-color 0.2s ease-in-out;
+        transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         white-space: nowrap; /* Prevent text wrapping */
+        box-shadow: var(--shadow-sm); /* Subtle shadow for copy buttons */
     }
     .copy-button:hover {
         background-color: var(--primary-blue-dark);
+        box-shadow: var(--shadow-md);
+    }
+    .copy-button:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-sm);
     }
 
-    /* Extracted Data Review Cards - (Keeping for future interactive feature) */
+    /* Extracted Data Review Cards */
     .extracted-data-card {
         background-color: var(--card-bg);
-        border-radius: 14px; /* Consistent roundedness */
-        padding: 1.8rem; /* Increased padding */
-        margin-bottom: 1.8rem; /* Increased margin */
-        box-shadow: var(--shadow-md);
-        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
+        border-radius: 20px; /* Consistent roundedness */
+        padding: 2rem; /* Increased padding */
+        margin-bottom: 2rem; /* Increased margin */
+        box-shadow: var(--shadow-md); /* More pronounced shadow */
+        transition: all 0.2s ease-in-out;
+        border: 1px solid var(--border-color);
     }
     .extracted-data-card:hover {
         box-shadow: var(--shadow-lg); /* Even deeper shadow on hover for cards */
-        transform: translateY(-2px); /* More pronounced lift */
+        transform: translateY(-3px); /* More pronounced lift */
     }
     .extracted-data-card h3 {
         margin-top: 0;
-        margin-bottom: 1.2rem;
+        margin-bottom: 1.5rem;
         color: var(--text-dark);
-        font-size: 1.4rem;
+        font-size: 1.6rem;
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        gap: 0.8rem;
     }
     .extracted-data-card .field-row {
         display: flex;
         align-items: center;
-        gap: 1.2rem;
-        margin-bottom: 0.8rem;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
     }
     .extracted-data-card .field-label {
         font-weight: 600;
         color: var(--text-medium);
-        min-width: 130px; /* Align labels better */
+        min-width: 150px; /* Align labels better */
+        font-size: 1.05rem;
     }
     .extracted-data-card .field-value-display {
         flex-grow: 1;
-        font-size: 1rem;
+        font-size: 1.05rem;
         color: var(--text-dark);
         background-color: var(--light-blue-bg);
-        padding: 0.7rem 1.1rem;
-        border-radius: 10px;
+        padding: 0.8rem 1.2rem;
+        border-radius: 12px;
         word-break: break-all;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); /* Subtle inner shadow */
     }
     .extracted-data-card .edit-icon {
         cursor: pointer;
         color: var(--primary-blue);
-        opacity: 0.7;
+        opacity: 0.8;
         transition: opacity 0.2s ease-in-out;
+        font-size: 1.2rem;
     }
     .extracted-data-card .edit-icon:hover {
         opacity: 1;
@@ -222,15 +235,16 @@ st.markdown("""
 
     /* Order Items List */
     .order-item {
-        background-color: var(--light-blue-bg);
-        border-radius: 12px; /* Consistent roundedness */
-        padding: 1.2rem; /* Increased padding */
-        margin-bottom: 0.8rem; /* Adjusted margin */
+        background-color: var(--card-bg); /* Changed to white for a cleaner look within the card */
+        border-radius: 16px; /* Consistent roundedness */
+        padding: 1.5rem; /* Increased padding */
+        margin-bottom: 1rem; /* Adjusted margin */
         display: flex;
         flex-direction: column;
-        gap: 0.6rem; /* Adjusted gap */
-        box-shadow: var(--shadow-sm);
-        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
+        gap: 0.8rem; /* Adjusted gap */
+        box-shadow: var(--shadow-sm); /* Subtle shadow */
+        transition: all 0.2s ease-in-out;
+        border: 1px solid var(--border-color); /* Subtle border */
     }
     .order-item:hover {
         box-shadow: var(--shadow-md); /* Deeper shadow on hover */
@@ -245,41 +259,47 @@ st.markdown("""
     .order-item .item-detail {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        gap: 0.8rem;
     }
     .order-item .item-detail .label {
         font-weight: 600;
         color: var(--text-medium);
-        min-width: 90px;
+        min-width: 100px; /* Adjusted min-width */
+        font-size: 0.95rem;
     }
     .order-item .item-detail .value {
         flex-grow: 1;
+        font-size: 0.95rem;
     }
 
-    /* Code Block Styling */
+    /* Code Block Styling (for email body) */
     .stCode {
-        background-color: #f0f2f5; /* Lighter background for code */
-        border-radius: 14px; /* Consistent roundedness */
-        padding: 1.8rem; /* Increased padding */
-        font-size: 0.98rem; /* Slightly larger font */
-        line-height: 1.7; /* Increased line height for readability */
+        background-color: var(--bg-light); /* Use a very light background, almost white */
+        border-radius: 16px; /* Consistent roundedness */
+        padding: 2rem; /* More padding */
+        font-size: 1rem; /* Slightly larger font */
+        line-height: 1.8; /* Increased line height for readability */
         white-space: pre-wrap; /* Ensure wrapping */
         word-break: break-all;
-        box-shadow: var(--shadow-sm);
+        box-shadow: var(--shadow-sm); /* Subtle shadow */
         border: 1px solid var(--border-color);
+        color: var(--text-dark);
     }
 
     /* Responsive Adjustments */
     @media (max-width: 768px) {
-        h1 { font-size: 2.2rem; margin-bottom: 2rem; }
-        h2 { font-size: 1.8rem; }
-        .main .block-container { padding: 1.5rem; }
+        h1 { font-size: 2.5rem; margin-bottom: 2.5rem; }
+        h2 { font-size: 2rem; }
+        .main .block-container { padding: 2rem 1rem; }
         .extracted-data-card .field-row { flex-direction: column; align-items: flex-start; }
-        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.25rem; }
+        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.4rem; }
         .data-display-box { flex-direction: column; align-items: flex-start; }
-        .copy-button { width: 100%; margin-top: 0.5rem; }
-        .info-card, .success-card, .warning-card, .error-card { padding: 1rem 1.2rem; }
-        .stButton button { padding: 0.7rem 1.2rem; font-size: 0.95rem; }
+        .copy-button { width: 100%; margin-top: 0.8rem; }
+        .info-card, .success-card, .warning-card, .error-card { padding: 1.2rem 1.5rem; }
+        .stButton button { padding: 0.8rem 1.5rem; font-size: 1rem; }
+        .extracted-data-card { padding: 1.5rem; }
+        .extracted-data-card h3 { font-size: 1.4rem; }
+        .order-item { padding: 1rem; }
     }
 </style>
 """, unsafe_allow_html=True)
