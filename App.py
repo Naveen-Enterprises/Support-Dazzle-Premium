@@ -113,7 +113,6 @@ with st.container():
                         if i + offset < len(lines):
                             size_line = lines[i + offset].strip()
                             # Attempt to match numerical/alphanumeric size (e.g., "32 / DK.BLU")
-                            # This regex captures the numerical part or the full string if it's alphanumeric like "DK.BLU"
                             size_match = re.match(r"^(?:(\d{1,2})\s*[/]?\s*)?([A-Za-z0-9.\s]+)?", size_line)
                             if size_match:
                                 num_part = size_match.group(1)
@@ -146,11 +145,12 @@ with st.container():
                 if len(items) > 1:
                     item_prefix = f"- Item {idx+1}:\n"
                 
-                item_detail = f"{item_prefix}• Product: {p}\n• Size: {z}"
+                # Re-added \u2060 for consistent bullet point spacing
+                item_detail = f"{item_prefix}•\u2060 Product: {p}\n•\u2060 Size: {z}"
                 
                 # Only include Style Code if there are multiple items
                 if len(items) > 1:
-                    item_detail += f"\n• Style Code: {s}"
+                    item_detail += f"\n•\u2060 Style Code: {s}"
                 order_details_list.append(item_detail)
 
             order_details = "\n\n".join(order_details_list)
@@ -158,12 +158,13 @@ with st.container():
             # Construct Email Subject and Message
             subject = f"Final Order Confirmation of dazzlepremium#{order_number}"
             # Using HTML <b> tags for bolding for better email client compatibility
+            # Added <br> for line breaks within bolded sections
             message = f"""Hello {customer_name},
 
 This is DAZZLE PREMIUM Support confirming Order {order_number}
 
-<b>- Please reply YES to confirm just this order only.</b>
-<b>- Kindly also reply YES to the SMS sent automatically to your inbox.</b>
+<b>- Please reply YES to confirm just this order only.<br>
+- Kindly also reply YES to the SMS sent automatically to your inbox.</b>
 
 Order Details:
 {order_details}
@@ -197,7 +198,11 @@ Thank you for choosing DAZZLE PREMIUM!"""
             st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
             
-            st.markdown("<h4>📋 Copy Email Body:</h4>", unsafe_allow_html=True)
+            st.markdown("<h4>📋 Formatted Email Preview:</h4>", unsafe_allow_html=True)
+            # Display the formatted email using st.markdown
+            st.markdown(message, unsafe_allow_html=True) 
+
+            st.markdown("<h4>📋 Copy Email Body (for pasting):</h4>", unsafe_allow_html=True)
             # Use st.text_area for the message to allow easy copying by the user
             st.text_area("Email Body", value=message, height=350, key="generated_email_body")
             st.markdown("<p style='font-size:0.9rem; color:#555;'>👆 Copy the text above and paste it into your email client.</p>", unsafe_allow_html=True)
@@ -227,6 +232,11 @@ Once the payment is received, we will immediately process your order and provide
 If you have any questions or need assistance, feel free to reply to this email."""
 
             st.markdown("<div style='background-color:#fff3cd;padding:1rem;border-radius:10px;color:#856404;font-weight:bold;margin-bottom:1rem;'>⚠️ High-Risk Order Notice</div>", unsafe_allow_html=True)
+            
+            st.markdown("<h4>📋 Formatted Email Preview:</h4>", unsafe_allow_html=True)
+            st.markdown(high_risk_msg, unsafe_allow_html=True)
+
+            st.markdown("<h4>📋 Copy Email Body (for pasting):</h4>", unsafe_allow_html=True)
             st.text_area("High-Risk Email Body", value=high_risk_msg, height=350, key="high_risk_email_body")
             st.markdown("<p style='font-size:0.9rem; color:#555;'>👆 Copy the text above and paste it into your email client.</p>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
