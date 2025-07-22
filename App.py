@@ -132,14 +132,14 @@ function copyTextToClipboard(text) {
     textarea.style.position = 'fixed'; // Prevent scrolling to bottom of page
     textarea.style.left = '-9999px'; // Move off-screen
     document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
+    textarea.focus(); // Focus the textarea
+    textarea.select(); // Select its content
     try {
-        document.execCommand('copy');
+        document.execCommand('copy'); // Execute copy command
     } catch (err) {
         console.error('Copy command failed:', err);
     } finally {
-        document.body.removeChild(textarea);
+        document.body.removeChild(textarea); // Remove textarea
     }
 }
 </script>
@@ -320,9 +320,9 @@ If you have any questions or need assistance, feel free to reply to this email."
             # Copy button: directly calls the JS function
             # The key ensures the button is re-rendered correctly if the text area changes
             if st.button("✨ Copy Email to Clipboard", key="copy_button"):
-                # Call the JS function defined globally
+                # Call the JS function defined globally, passing the message directly from session state
                 st.components.v1.html(
-                    f"<script>copyTextToClipboard(document.getElementById('display_email_body').value);</script>",
+                    f"<script>copyTextToClipboard(`{st.session_state.get('generated_email_body', '')}`);</script>",
                     height=0, width=0
                 )
                 st.success("Copied to clipboard!") # Instant feedback
