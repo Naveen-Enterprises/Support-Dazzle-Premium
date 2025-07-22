@@ -324,23 +324,34 @@ def parse_shopify_export(raw_text_input):
     lines = [line.strip() for line in raw_text_input.split('\n') if line.strip()]
 
     # --- Extract Customer Name ---
-    # Look for "Customer\n", "Shipping address\n", "Billing address\n" followed by a name line
     name_found = False
-    for i, line in enumerate(lines):
-        if re.search(r"Customer\s*$", line, re.IGNORECASE) and i + 1 < len(lines):
-            data["customer_name"] = lines[i+1].split('\n')[0].strip()
-            name_found = True
-            break
-        elif re.search(r"Shipping address\s*$", line, re.IGNORECASE) and i + 1 < len(lines):
-            data["customer_name"] = lines[i+1].split('\n')[0].strip()
-            name_found = True
-            break
-        elif re.search(r"Billing address\s*$", line, re.IGNORECASE) and i + 1 < len(lines):
-            data["customer_name"] = lines[i+1].split('\n')[0].strip()
-            name_found = True
-            break
+    
+    # Priority 1: Try to get name from "Order confirmation email was sent to [Name] ([email])"
+    email_sent_match = re.search(r"Order confirmation email was sent to (.*?) \([\w\.-]+@[\w\.-]+\.[\w\.-]+\)", raw_text_input)
+    if email_sent_match:
+        data["customer_name"] = email_sent_match.group(1).strip()
+        name_found = True
+
+    # Priority 2: Fallback to "Customer" label, then "Shipping address", then "Billing address"
     if not name_found:
+        for i, line in enumerate(lines):
+            if re.search(r"Customer\s*$", line, re.IGNORECASE) and i + 1 < len(lines):
+                potential_name = lines[i+1].split('\n')[0].strip()
+                if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
+                    data["customer_name"] = potential_name
+                    name_found = True
+                    break
+            elif (re.search(r"Shipping address\s*$", line, re.IGNORECASE) or \
+                  re.search(r"Billing address\s*$", line, re.IGNORECASE)) and i + 1 < len(lines):
+                potential_name = lines[i+1].split('\n')[0].strip()
+                if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
+                    data["customer_name"] = potential_name
+                    name_found = True
+                    break
+    
+    if not name_found or data["customer_name"] == "[Customer Name Not Found]":
         data["missing_info"].append("Customer Name")
+
 
     # --- Extract Email Address ---
     email_match = re.search(r"[\w\.-]+@[\w\.-]+\.[\w\.-]+", raw_text_input)
@@ -378,11 +389,12 @@ def parse_shopify_export(raw_text_input):
             product_lines_info.append({"line": line, "index": i})
 
     for prod_info in product_lines_info:
-        product_line = prod_info["line"]
+        product_name = prod_info["line"].rsplit(" - ", 1)[0].strip()
+        style_code = prod_info["line"].rsplit(" - ", 1)[1].strip()
         line_idx = prod_info["index"]
         
-        product_name, style_code = product_line.rsplit(" - ", 1)
-        size = "[Size Not Found]"
+        size = "N/A" # Default to N/A for cleaner output
+        size_found_explicitly = False
         
         # Look for size/quantity in the next few lines
         for offset in range(1, 5): # Check up to 4 lines after product line
@@ -395,15 +407,21 @@ def parse_shopify_export(raw_text_input):
                 if re.match(r"^((\d{1,2}(/\d{1,2})?[\s/]?[A-Z]{2,3})|[XSML]{1,3}|[0-9]{1,2}|US\s*\d{1,2}|EU\s*\d{1,2})\b", potential_size_line, re.IGNORECASE) and \
                    not potential_size_line.startswith("$") and not "SKU" in potential_size_line.upper():
                     size = potential_size_line.split('\n')[0].strip().split(' ')[0] # Take the first part of the size line
+                    size_found_explicitly = True
                     break
         
+        # Special handling for "Sock" products if no explicit size was found
+        if not size_found_explicitly and "sock" in product_name.lower():
+            size = "One Size"
+
         data["items"].append({
-            "product_name": product_name.strip(),
-            "style_code": style_code.strip(),
+            "product_name": product_name,
+            "style_code": style_code,
             "size": size
         })
         
-        if "[Size Not Found]" in size:
+        # If size is still N/A and it's not a sock, flag it
+        if size == "N/A" and "sock" not in product_name.lower():
             if "Item Sizes" not in data["missing_info"]:
                 data["missing_info"].append("Item Sizes")
 
@@ -584,6 +602,9 @@ with col_right:
     
     # Conditionally display content based on whether an email has been generated
     if st.session_state.generated_email_body:
+        # Debugging: Show extracted customer name
+        st.info(f"Extracted Customer Name: **{st.session_state.parsed_data.get('customer_name', 'N/A')}**")
+
         if st.session_state.current_step == "generate_standard":
             if st.session_state.missing_info_flags:
                 st.markdown(f"""
