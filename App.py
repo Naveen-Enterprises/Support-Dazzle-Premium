@@ -115,11 +115,16 @@ st.markdown("""
         font-weight: 500;
         box-shadow: var(--shadow-sm);
         border: 1px solid rgba(0,0,0,0.05); /* Subtle border for definition */
+        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
+    }
+    .info-card:hover, .success-card:hover, .warning-card:hover, .error-card:hover {
+        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
+        transform: translateY(-1px); /* Subtle lift */
     }
     .info-card { background-color: var(--light-blue-bg); color: var(--primary-blue); border-color: rgba(47, 128, 237, 0.2); }
     .success-card { background-color: var(--success-bg); color: var(--success-text); border-color: rgba(212, 237, 218, 0.7); }
     .warning-card { background-color: var(--warning-bg); color: var(--warning-text); border-color: rgba(255, 243, 205, 0.7); }
-    .error-card { background-color: var(--error-error); color: var(--error-text); border-color: rgba(255, 204, 204, 0.7); }
+    .error-card { background-color: var(--error-bg); color: var(--error-text); border-color: rgba(255, 204, 204, 0.7); } /* Fixed typo here */
 
     /* Specific Data Display Boxes (Email, Subject, Phone) */
     .data-display-box {
@@ -136,6 +141,11 @@ st.markdown("""
         justify-content: space-between;
         gap: 12px; /* Increased gap */
         box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
+    }
+    .data-display-box:hover {
+        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
+        transform: translateY(-1px); /* Subtle lift */
     }
     .data-display-box span {
         flex-grow: 1;
@@ -165,6 +175,11 @@ st.markdown("""
         padding: 1.8rem; /* Increased padding */
         margin-bottom: 1.8rem; /* Increased margin */
         box-shadow: var(--shadow-md);
+        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
+    }
+    .extracted-data-card:hover {
+        box-shadow: var(--shadow-lg); /* Even deeper shadow on hover for cards */
+        transform: translateY(-2px); /* More pronounced lift */
     }
     .extracted-data-card h3 {
         margin-top: 0;
@@ -215,6 +230,11 @@ st.markdown("""
         flex-direction: column;
         gap: 0.6rem; /* Adjusted gap */
         box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
+    }
+    .order-item:hover {
+        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
+        transform: translateY(-1px); /* Subtle lift */
     }
     .order-item strong {
         color: var(--primary-blue);
