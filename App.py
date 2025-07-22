@@ -113,17 +113,25 @@ with st.container():
                         if i + offset < len(lines):
                             size_line = lines[i + offset].strip()
                             # Attempt to match numerical/alphanumeric size (e.g., "32 / DK.BLU")
-                            size_match_num_alpha = re.match(r"^(\d{1,2})\s*[/]?\s*([A-Za-z0-9.\s]+)", size_line)
-                            if size_match_num_alpha:
-                                size = size_match_num_alpha.group(1).strip() # Capture only the numerical part
-                                break
+                            # This regex captures the numerical part or the full string if it's alphanumeric like "DK.BLU"
+                            size_match = re.match(r"^(?:(\d{1,2})\s*[/]?\s*)?([A-Za-z0-9.\s]+)?", size_line)
+                            if size_match:
+                                num_part = size_match.group(1)
+                                alpha_part = size_match.group(2)
+                                if num_part and alpha_part:
+                                    size = num_part # Only take the numerical part for size
+                                    break
+                                elif alpha_part and not size_line.startswith("$") and not size_line.startswith("SKU") and len(size_line) > 0 and len(size_line) < 10:
+                                    # This handles cases like "XS", "M", "DK.BLU" directly as size if no number
+                                    size = alpha_part.split(' ')[0].strip() # Take the first word for sizes like "DK.BLU"
+                                    break
                             # Attempt to match common letter sizes (e.g., "XS", "M")
                             size_match_letters = re.match(r"^[XSML]{1,2}[XS]?", size_line)
                             if size_match_letters:
                                 size = size_match_letters.group(0).strip()
                                 break
-                            # Fallback: if it's not price or SKU and looks like a simple size string
-                            if not size_line.startswith("$") and not size_line.startswith("SKU") and len(size_line) > 0 and len(size_line) < 10:
+                            # Fallback for simple single-word sizes not caught above, ensuring it's not a price/SKU
+                            if not size_line.startswith("$") and not size_line.startswith("SKU") and len(size_line.split()) == 1 and len(size_line) > 0 and len(size_line) < 10:
                                 size = size_line
                                 break
                 
@@ -138,30 +146,31 @@ with st.container():
                 if len(items) > 1:
                     item_prefix = f"- Item {idx+1}:\n"
                 
-                item_detail = f"{item_prefix}•\u2060  \u2060Product: {p}\n•\u2060  \u2060Size: {z}"
+                item_detail = f"{item_prefix}• Product: {p}\n• Size: {z}"
                 
                 # Only include Style Code if there are multiple items
                 if len(items) > 1:
-                    item_detail += f"\n•\u2060  \u2060Style Code: {s}"
+                    item_detail += f"\n• Style Code: {s}"
                 order_details_list.append(item_detail)
 
             order_details = "\n\n".join(order_details_list)
 
             # Construct Email Subject and Message
             subject = f"Final Order Confirmation of dazzlepremium#{order_number}"
+            # Using HTML <b> tags for bolding for better email client compatibility
             message = f"""Hello {customer_name},
 
 This is DAZZLE PREMIUM Support confirming Order {order_number}
 
-**- Please reply YES to confirm just this order only.**
-**- Kindly also reply YES to the SMS sent automatically to your inbox.**
+<b>- Please reply YES to confirm just this order only.</b>
+<b>- Kindly also reply YES to the SMS sent automatically to your inbox.</b>
 
 Order Details:
 {order_details}
 
 For your security, we use two-factor authentication. If this order wasn’t placed by you, text us immediately at 410-381-0000 to cancel.
 
-**Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.**
+<b>Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.</b>
 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
@@ -187,8 +196,12 @@ Thank you for choosing DAZZLE PREMIUM!"""
             # Display generated email components
             st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
-            # Changed st.code to st.markdown to render bold text
-            st.markdown(message) 
+            
+            st.markdown("<h4>📋 Copy Email Body:</h4>", unsafe_allow_html=True)
+            # Use st.text_area for the message to allow easy copying by the user
+            st.text_area("Email Body", value=message, height=350, key="generated_email_body")
+            st.markdown("<p style='font-size:0.9rem; color:#555;'>👆 Copy the text above and paste it into your email client.</p>", unsafe_allow_html=True)
+
             st.markdown(f"<h4>📱 Phone Number:</h4><div class='subject-box'>{phone_number}</div>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
@@ -214,7 +227,8 @@ Once the payment is received, we will immediately process your order and provide
 If you have any questions or need assistance, feel free to reply to this email."""
 
             st.markdown("<div style='background-color:#fff3cd;padding:1rem;border-radius:10px;color:#856404;font-weight:bold;margin-bottom:1rem;'>⚠️ High-Risk Order Notice</div>", unsafe_allow_html=True)
-            st.markdown(high_risk_msg) # Changed st.code to st.markdown
+            st.text_area("High-Risk Email Body", value=high_risk_msg, height=350, key="high_risk_email_body")
+            st.markdown("<p style='font-size:0.9rem; color:#555;'>👆 Copy the text above and paste it into your email client.</p>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
     # Display warning if raw_text is empty and generate/high_risk buttons are clicked
