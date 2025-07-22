@@ -803,31 +803,31 @@ with col_right:
         # Display info/warning/success cards (kept after email content for context)
         if st.session_state.missing_info_flags and st.session_state.current_step == "generate_standard":
             missing_text = ", ".join(st.session_state.missing_info_flags)
-            st.markdown(f("""
+            st.markdown(f"""
                 <div class="warning-card">
-                    <span style="font-size: 1.5rem;">⚠️</span>
+                    <span style="font-size: 1.2rem;">⚠️</span>
                     <strong>Missing Information:</strong> Could not automatically extract: {missing_text}.
                     Please verify the generated email and manually add/correct these details.
                 </div>
-            """), unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
         elif st.session_state.current_step == "generate_high_risk":
             st.markdown("""
                 <div class="warning-card">
-                    <span style="font-size: 1.5rem;">🚨</span>
+                    <span style="font-size: 1.2rem;">🚨</span>
                     This is the email for high-risk order cancellations. Please review carefully before sending.
                 </div>
             """, unsafe_allow_html=True)
         elif st.session_state.current_step == "generate_return":
             st.markdown("""
                 <div class="info-card">
-                    <span style="font-size: 1.5rem;">↩️</span>
+                    <span style="font-size: 1.2rem;">↩️</span>
                     This is the return mail template. Ensure the customer name is correct.
                 </div>
             """, unsafe_allow_html=True)
         else: # For standard with no missing info
             st.markdown("""
                 <div class="success-card">
-                    <span style="font-size: 1.5rem;">✅</span>
+                    <span style="font-size: 1.2rem;">✅</span>
                     Email generated successfully! Ready to copy and send.
                 </div>
             """, unsafe_allow_html=True)
@@ -836,7 +836,7 @@ with col_right:
         if st.session_state.current_step == "generate_standard":
             st.markdown(f"""
                 <div class="extracted-data-card">
-                    <h3><span style="font-size: 1.5rem;">🔍</span> Additional Order Details</h3>
+                    <h3><span style="font-size: 1.2rem;">🔍</span> Additional Order Details</h3>
                     <div class="field-row">
                         <span class="field-label">Customer Name:</span>
                         <span class="field-value-display">{st.session_state.parsed_data.get('customer_name', '[Not Found]')}</span>
