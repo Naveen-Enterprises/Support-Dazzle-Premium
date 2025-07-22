@@ -20,7 +20,7 @@ st.markdown("""
         --text-medium: #4A4A4A;
         --text-light: #757575;
         --border-color: #D1D5DB;
-        --bg-light: #F8F9FA;
+        --bg-light: #F8F9FA; /* Slightly softer background */
         --card-bg: #FFFFFF;
 
         /* Feedback colors */
@@ -31,9 +31,10 @@ st.markdown("""
         --error-bg: #FFCCCC;
         --error-text: #900;
 
-        /* Shadows */
+        /* Shadows - refined for more depth on hover/active */
         --shadow-sm: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
         --shadow-md: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+        --shadow-lg: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
     }
 
     /* General Body and App Styling */
@@ -43,8 +44,8 @@ st.markdown("""
         background-color: var(--bg-light);
     }
     .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+        padding-top: 2.5rem; /* Increased padding */
+        padding-bottom: 2.5rem; /* Increased padding */
         max-width: 1200px; /* Max width for content */
         margin: 0 auto; /* Center content */
     }
@@ -54,20 +55,20 @@ st.markdown("""
         font-family: 'Montserrat', sans-serif;
         color: var(--primary-blue);
         font-weight: 700;
-        margin-top: 1.5rem;
-        margin-bottom: 1rem;
+        margin-top: 2rem; /* Adjusted margin */
+        margin-bottom: 1.2rem; /* Adjusted margin */
     }
-    h1 { font-size: 2.5rem; text-align: center; margin-bottom: 2rem; }
-    h2 { font-size: 2rem; }
-    h3 { font-size: 1.5rem; }
-    h4 { font-size: 1.2rem; }
+    h1 { font-size: 2.8rem; text-align: center; margin-bottom: 2.5rem; } /* Larger, more impactful */
+    h2 { font-size: 2.2rem; }
+    h3 { font-size: 1.7rem; }
+    h4 { font-size: 1.3rem; }
 
     /* Input Fields (Text, Text Area) */
     .stTextInput > div > div > input,
     .stTextArea > div > textarea {
         border: 1px solid var(--border-color);
-        border-radius: 12px; /* More rounded */
-        padding: 0.75rem 1rem;
+        border-radius: 12px; /* Consistent roundedness */
+        padding: 0.85rem 1.1rem; /* Slightly more padding */
         font-size: 1rem;
         box-shadow: none;
         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -76,7 +77,7 @@ st.markdown("""
     .stTextInput > div > div > input:focus,
     .stTextArea > div > textarea:focus {
         border-color: var(--primary-blue);
-        box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.2); /* Focus ring */
+        box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.25); /* More prominent focus ring */
         outline: none;
     }
 
@@ -85,9 +86,9 @@ st.markdown("""
         background-color: var(--primary-blue);
         color: white;
         font-weight: 600;
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-        border-radius: 10px; /* More rounded */
+        padding: 0.85rem 1.8rem; /* Increased padding for better touch target */
+        font-size: 1.05rem; /* Slightly larger font */
+        border-radius: 12px; /* Consistent roundedness */
         border: none;
         box-shadow: var(--shadow-sm);
         transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
@@ -95,8 +96,8 @@ st.markdown("""
     }
     .stButton button:hover {
         background-color: var(--primary-blue-dark);
-        box-shadow: var(--shadow-md);
-        transform: translateY(-1px);
+        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
+        transform: translateY(-2px); /* Subtle lift */
     }
     .stButton button:active {
         transform: translateY(0);
@@ -105,26 +106,27 @@ st.markdown("""
 
     /* Custom Card Styles for Data Display */
     .info-card, .success-card, .warning-card, .error-card {
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
+        padding: 1.2rem 1.8rem; /* Increased padding */
+        border-radius: 14px; /* Slightly more rounded */
+        margin-bottom: 1.8rem; /* Increased margin */
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 1.2rem; /* Increased gap */
         font-weight: 500;
         box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(0,0,0,0.05); /* Subtle border for definition */
     }
-    .info-card { background-color: var(--light-blue-bg); color: var(--primary-blue); }
-    .success-card { background-color: var(--success-bg); color: var(--success-text); }
-    .warning-card { background-color: var(--warning-bg); color: var(--warning-text); }
-    .error-card { background-color: var(--error-bg); color: var(--error-text); }
+    .info-card { background-color: var(--light-blue-bg); color: var(--primary-blue); border-color: rgba(47, 128, 237, 0.2); }
+    .success-card { background-color: var(--success-bg); color: var(--success-text); border-color: rgba(212, 237, 218, 0.7); }
+    .warning-card { background-color: var(--warning-bg); color: var(--warning-text); border-color: rgba(255, 243, 205, 0.7); }
+    .error-card { background-color: var(--error-error); color: var(--error-text); border-color: rgba(255, 204, 204, 0.7); }
 
     /* Specific Data Display Boxes (Email, Subject, Phone) */
     .data-display-box {
         background-color: var(--light-blue-bg);
-        padding: 0.8rem 1.2rem;
-        border-radius: 10px;
-        margin-bottom: 1rem;
+        padding: 1rem 1.5rem; /* Increased padding */
+        border-radius: 12px; /* Consistent roundedness */
+        margin-bottom: 1.2rem; /* Adjusted margin */
         color: var(--text-dark);
         font-weight: 500;
         font-size: 1rem;
@@ -132,7 +134,7 @@ st.markdown("""
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
+        gap: 12px; /* Increased gap */
         box-shadow: var(--shadow-sm);
     }
     .data-display-box span {
@@ -144,9 +146,9 @@ st.markdown("""
         background-color: var(--primary-blue);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 0.5rem 0.8rem;
-        font-size: 0.85rem;
+        border-radius: 10px; /* Slightly more rounded */
+        padding: 0.6rem 1rem; /* Adjusted padding */
+        font-size: 0.9rem; /* Slightly larger font */
         font-weight: 500;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out;
@@ -156,41 +158,41 @@ st.markdown("""
         background-color: var(--primary-blue-dark);
     }
 
-    /* Extracted Data Review Cards */
+    /* Extracted Data Review Cards - (Keeping for future interactive feature) */
     .extracted-data-card {
         background-color: var(--card-bg);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
+        border-radius: 14px; /* Consistent roundedness */
+        padding: 1.8rem; /* Increased padding */
+        margin-bottom: 1.8rem; /* Increased margin */
         box-shadow: var(--shadow-md);
     }
     .extracted-data-card h3 {
         margin-top: 0;
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
         color: var(--text-dark);
-        font-size: 1.3rem;
+        font-size: 1.4rem;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
     }
     .extracted-data-card .field-row {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        margin-bottom: 0.75rem;
+        gap: 1.2rem;
+        margin-bottom: 0.8rem;
     }
     .extracted-data-card .field-label {
         font-weight: 600;
         color: var(--text-medium);
-        min-width: 120px; /* Align labels */
+        min-width: 130px; /* Align labels better */
     }
     .extracted-data-card .field-value-display {
         flex-grow: 1;
         font-size: 1rem;
         color: var(--text-dark);
         background-color: var(--light-blue-bg);
-        padding: 0.6rem 1rem;
-        border-radius: 8px;
+        padding: 0.7rem 1.1rem;
+        border-radius: 10px;
         word-break: break-all;
     }
     .extracted-data-card .edit-icon {
@@ -206,12 +208,12 @@ st.markdown("""
     /* Order Items List */
     .order-item {
         background-color: var(--light-blue-bg);
-        border-radius: 10px;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
+        border-radius: 12px; /* Consistent roundedness */
+        padding: 1.2rem; /* Increased padding */
+        margin-bottom: 0.8rem; /* Adjusted margin */
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.6rem; /* Adjusted gap */
         box-shadow: var(--shadow-sm);
     }
     .order-item strong {
@@ -223,12 +225,12 @@ st.markdown("""
     .order-item .item-detail {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
     }
     .order-item .item-detail .label {
         font-weight: 600;
         color: var(--text-medium);
-        min-width: 80px;
+        min-width: 90px;
     }
     .order-item .item-detail .value {
         flex-grow: 1;
@@ -237,10 +239,10 @@ st.markdown("""
     /* Code Block Styling */
     .stCode {
         background-color: #f0f2f5; /* Lighter background for code */
-        border-radius: 12px;
-        padding: 1.5rem;
-        font-size: 0.95rem;
-        line-height: 1.6;
+        border-radius: 14px; /* Consistent roundedness */
+        padding: 1.8rem; /* Increased padding */
+        font-size: 0.98rem; /* Slightly larger font */
+        line-height: 1.7; /* Increased line height for readability */
         white-space: pre-wrap; /* Ensure wrapping */
         word-break: break-all;
         box-shadow: var(--shadow-sm);
@@ -249,13 +251,15 @@ st.markdown("""
 
     /* Responsive Adjustments */
     @media (max-width: 768px) {
-        h1 { font-size: 2rem; }
-        h2 { font-size: 1.7rem; }
-        .main .block-container { padding: 1rem; }
+        h1 { font-size: 2.2rem; margin-bottom: 2rem; }
+        h2 { font-size: 1.8rem; }
+        .main .block-container { padding: 1.5rem; }
         .extracted-data-card .field-row { flex-direction: column; align-items: flex-start; }
         .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.25rem; }
         .data-display-box { flex-direction: column; align-items: flex-start; }
         .copy-button { width: 100%; margin-top: 0.5rem; }
+        .info-card, .success-card, .warning-card, .error-card { padding: 1rem 1.2rem; }
+        .stButton button { padding: 0.7rem 1.2rem; font-size: 0.95rem; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -590,7 +594,7 @@ We regret to inform you that your recent order has been automatically cancelled 
 
 If you would still like to proceed with your order, we’d be happy to assist you in placing it manually. To do so, we kindly ask that you transfer the payment via Cash App.
 
-Once the payment is received, we will immediately process your order and provide confirmation along with tracking details.
+Once the payment is received, we will immediately process your order and provide confirmation along along with tracking details.
 
 If you have any questions or need assistance, feel free to reply to this email.
 
