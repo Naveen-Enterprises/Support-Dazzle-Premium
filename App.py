@@ -499,13 +499,31 @@ def generate_standard_email(parsed_data):
     items = parsed_data.get("items", [])
 
     order_details_list = []
-    for idx, item in enumerate(items):
-        order_details_list.append(
-            f"- Item {idx+1}:\n•\u2060  \u2060Product: {item.get('product_name', 'N/A')}\n"
+    # Check if there's more than one item to decide on item numbering
+    if len(items) > 1:
+        for idx, item in enumerate(items):
+            item_detail = (
+                f"- Item {idx+1}:\n"
+                f"•\u2060  \u2060Product: {item.get('product_name', 'N/A')}\n"
+                f"•\u2060  \u2060Style Code: {item.get('style_code', 'N/A')}\n"
+                f"•\u2060  \u2060Size: {item.get('size', 'N/A')}"
+            )
+            # Only add quantity if it's greater than 1
+            if item.get('quantity', 1) > 1:
+                item_detail += f"\n•\u2060  \u2060Quantity: {item.get('quantity', 1)}"
+            order_details_list.append(item_detail)
+    elif len(items) == 1: # Only one item, no "Item 1:" prefix
+        item = items[0]
+        item_detail = (
+            f"•\u2060  \u2060Product: {item.get('product_name', 'N/A')}\n"
             f"•\u2060  \u2060Style Code: {item.get('style_code', 'N/A')}\n"
-            f"•\u2060  \u2060Size: {item.get('size', 'N/A')}\n"
-            f"•\u2060  \u2060Quantity: {item.get('quantity', 1)}" # Added quantity
+            f"•\u2060  \u2060Size: {item.get('size', 'N/A')}"
         )
+        # Only add quantity if it's greater than 1
+        if item.get('quantity', 1) > 1:
+            item_detail += f"\n•\u2060  \u2060Quantity: {item.get('quantity', 1)}"
+        order_details_list.append(item_detail)
+    
     order_details = "\n\n".join(order_details_list) if order_details_list else "No items found."
 
     subject = f"Final Order Confirmation of dazzlepremium#{order_number}"
