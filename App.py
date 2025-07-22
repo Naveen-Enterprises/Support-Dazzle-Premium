@@ -441,45 +441,54 @@ def parse_shopify_export(raw_text_input):
             product_name = prod_info["line"] # Use full line as product name if no " - "
 
         # Look for size and quantity in the next few lines (Redundancy Level 3: Iterative Scan)
+        found_size_for_item = False
+        found_quantity_for_item = False
+
         for offset in range(1, 6): # Scan up to 5 lines after the product line
-            if line_idx + offset < len(lines):
-                potential_detail_line = lines[line_idx + offset]
-                
-                # Attempt to extract Quantity
+            if line_idx + offset >= len(lines):
+                break # Reached end of document
+
+            potential_detail_line = lines[line_idx + offset].strip()
+            
+            # Attempt to extract Quantity
+            if not found_quantity_for_item:
                 qty_match = re.search(r"x\s*(\d+)", potential_detail_line, re.IGNORECASE)
                 if qty_match:
                     quantity = int(qty_match.group(1))
-                    # Do NOT add to processed_indices here, as other details might be on the same line.
-                    # This line is primarily for quantity, not a full item description.
+                    found_quantity_for_item = True
 
-                # Attempt to extract Size (more flexible patterns)
+            # Attempt to extract Size (more flexible patterns)
+            if not found_size_for_item:
                 # Prioritize common letter sizes and "One Size"
                 size_match = re.search(r"\b(XS|S|M|L|XL|XXL|XXXL|One Size|OS)\b", potential_detail_line, re.IGNORECASE)
                 
                 # If no letter size, try numeric sizes, but be careful not to pick up prices or SKUs
+                # This regex aims for standalone numbers or common size formats like "32/30", "US 10"
+                # It avoids matching numbers that are part of prices (e.g., .00) or long SKU numbers.
                 if not size_match:
-                    # This regex tries to match a standalone number that is likely a size.
-                    # It looks for numbers that are typically small (1-3 digits),
-                    # optionally followed by / and another 1-2 digits,
-                    # and ensures it's not preceded by '$' or part of a decimal number (like .00).
-                    # It also tries to avoid matching within long strings of digits (like SKUs).
-                    size_match = re.search(r"^\s*(?:US|EU)?\s*(\d{1,3}(?:/\d{1,2})?)\s*$", potential_detail_line, re.IGNORECASE)
+                    size_match = re.search(r"\b(?:US|EU)?\s*(\d{1,3}(?:/\d{1,2})?)\b(?!\.\d{2}|\d{4,})", potential_detail_line, re.IGNORECASE)
                     
-                if size_match:
-                    size = size_match.group(0).strip()
-                    processed_indices.add(line_idx + offset)
-                    # CRUCIAL: Exit the inner loop once a size is found for this item.
-                    # This prevents overwriting a correct size with an incorrect one from a later line.
-                    break 
+                # Specific pattern for "M / YLW" or "16 / BS" where size is the first part
+                if not size_match:
+                    size_match = re.search(r"(\b\d{1,2}\b|\b[A-Z]{1,3}\b)\s*/\s*[A-Z0-9]+", potential_detail_line, re.IGNORECASE)
+                    if size_match:
+                        size = size_match.group(1).strip() # Capture the first group (the actual size part)
+                        found_size_for_item = True
+                        break # If we found a size in this format, it's usually definitive.
 
-                # If SKU is found, we know this is a detail line, but not the primary name
-                if "SKU:" in potential_detail_line.upper():
-                    processed_indices.add(line_idx + offset)
-                
-                # If we hit a line that signifies end of product details (e.g., another product, subtotal, discount)
-                if any(kw in potential_detail_line.lower() for kw in ["subtotal", "discount", "shipping", "tax", "total"]) or \
-                   (re.search(r" - [A-Z0-9\-]+$", potential_detail_line) and potential_detail_line != prod_info["line"]):
-                    break # Stop scanning for details for this item
+                if size_match and not found_size_for_item: # Ensure we don't overwrite if already found by a better regex
+                    size = size_match.group(0).strip()
+                    found_size_for_item = True
+            
+            # If both size and quantity are found, we can stop scanning for this item's details.
+            if found_size_for_item and found_quantity_for_item:
+                break 
+
+            # If we hit a line that signifies end of product details (e.g., another product, subtotal, discount)
+            # This is a strong signal to stop.
+            if any(kw in potential_detail_line.lower() for kw in ["subtotal", "discount", "shipping", "tax", "total", "paid", "balance"]) or \
+               (re.search(r" - [A-Z0-9\-]+$", potential_detail_line) and potential_detail_line != prod_info["line"]):
+                break # Stop scanning for details for this item
 
         # Special handling for "Sock" products: assign "One Size" if no explicit size was found
         # This logic was inverted, now corrected: apply if it IS a sock AND size is N/A
