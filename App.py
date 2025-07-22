@@ -9,7 +9,7 @@ st.set_page_config(page_title="DAZZLE PREMIUM Order Email Generator", layout="wi
 # --- Custom CSS Styling (Inspired by Material Design & Apple Aesthetics) ---
 # Using Google Fonts (Inter for body, Montserrat for headings)
 st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght=700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
 <style>
     /* CSS Variables for consistent theming */
     :root {
@@ -32,9 +32,9 @@ st.markdown("""
         --error-text: #DC3545;
 
         /* Shadows - refined for more depth on hover/active, very subtle */
-        --shadow-sm: rgba(0, 0, 0, 0.03) 0px 1px 2px; /* Even lighter shadow */
-        --shadow-md: rgba(0, 0, 0, 0.06) 0px 3px 6px; /* Lighter md shadow */
-        --shadow-lg: rgba(0, 0, 0, 0.09) 0px 6px 12px; /* Lighter lg shadow */
+        --shadow-sm: rgba(0, 0, 0, 0.02) 0px 1px 1px; /* Even lighter shadow */
+        --shadow-md: rgba(0, 0, 0, 0.04) 0px 2px 4px; /* Lighter md shadow */
+        --shadow-lg: rgba(0, 0, 0, 0.06) 0px 4px 8px; /* Lighter lg shadow */
     }
 
     /* General Body and App Styling */
@@ -44,44 +44,45 @@ st.markdown("""
         background-color: var(--bg-light);
     }
     .main .block-container {
-        padding-top: 1.5rem; /* Further reduced padding */
-        padding-bottom: 1.5rem; /* Further reduced padding */
-        max-width: 900px; /* Reduced max width for content */
+        padding-top: 1rem; /* Significantly reduced padding */
+        padding-bottom: 1rem; /* Significantly reduced padding */
+        max-width: 800px; /* Further reduced max width for content */
         margin: 0 auto; /* Center content */
     }
 
     /* Headings */
     h1, h2, h3, h4 {
-        font-family: 'Montserrat', sans-serif; /* Keep Montserrat for impact */
-        color: var(--text-dark); /* Darker headings for contrast */
+        font-family: 'Montserrat', sans-serif;
+        color: var(--text-dark);
         font-weight: 700;
-        margin-top: 1.5rem; /* Adjusted margin */
-        margin-bottom: 0.6rem; /* Adjusted margin */
+        margin-top: 1.2rem; /* Reduced margin */
+        margin-bottom: 0.5rem; /* Reduced margin */
     }
-    h1 { font-size: 2.2rem; text-align: center; margin-bottom: 1.5rem; color: var(--primary-blue); } /* Reduced size, primary blue */
-    h2 { font-size: 1.8rem; }
-    h3 { font-size: 1.3rem; }
-    h4 { font-size: 1.1rem; color: var(--text-medium); margin-top: 0.8rem; } /* Slightly softer color for sub-headings */
+    h1 { font-size: 2rem; text-align: center; margin-bottom: 1.2rem; color: var(--primary-blue); } /* Reduced size */
+    h2 { font-size: 1.6rem; }
+    h3 { font-size: 1.1rem; }
+    h4 { font-size: 0.95rem; color: var(--text-medium); margin-top: 0.6rem; } /* Reduced size, softer color */
 
     /* Input Fields (Text, Text Area) */
     .stTextInput > div > div > input,
     .stTextArea > div > textarea {
         border: 1px solid var(--border-color);
-        border-radius: 10px; /* Reduced roundedness */
-        padding: 0.7rem 0.9rem; /* Reduced padding */
-        font-size: 0.9rem; /* Reduced font size */
-        box-shadow: var(--shadow-sm); /* Subtle initial shadow */
+        border-radius: 8px; /* Reduced roundedness */
+        padding: 0.6rem 0.8rem; /* Reduced padding */
+        font-size: 0.85rem; /* Reduced font size */
+        box-shadow: var(--shadow-sm);
         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        background-color: var(--card-bg); /* White background for inputs */
+        background-color: var(--card-bg);
     }
-    .stTextArea > div > textarea { /* Specific styling for the text area for distinctness */
-        border: 2px solid var(--border-color); /* Slightly thicker border */
-        box-shadow: var(--shadow-md); /* More distinct shadow */
+    .stTextArea > div > textarea { /* Specific distinct styling for the text area */
+        border: 1px solid var(--primary-blue); /* Distinct blue border */
+        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1), var(--shadow-md); /* Subtle blue glow + distinct shadow */
+        background-color: #FFFFFF; /* Ensure white background */
     }
     .stTextInput > div > div > input:focus,
     .stTextArea > div > textarea:focus {
         border-color: var(--primary-blue);
-        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.15), var(--shadow-md); /* Softer, blue focus ring + deeper shadow */
+        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2), var(--shadow-md); /* Softer, blue focus ring + deeper shadow */
         outline: none;
     }
 
@@ -90,224 +91,160 @@ st.markdown("""
         background-color: var(--primary-blue);
         color: white;
         font-weight: 600;
-        padding: 0.7rem 1.2rem; /* Reduced padding */
-        font-size: 0.95rem; /* Reduced font size */
-        border-radius: 10px; /* Reduced roundedness */
+        padding: 0.6rem 1rem; /* Reduced padding */
+        font-size: 0.9rem; /* Reduced font size */
+        border-radius: 8px; /* Reduced roundedness */
         border: none;
-        box-shadow: var(--shadow-md); /* More pronounced initial shadow */
+        box-shadow: var(--shadow-md);
         transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
         cursor: pointer;
     }
     .stButton button:hover {
         background-color: var(--primary-blue-dark);
-        box-shadow: var(--shadow-lg); /* Deeper shadow on hover */
-        transform: translateY(-1px); /* Subtle lift */
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-0.5px); /* Subtle lift */
     }
     .stButton button:active {
         transform: translateY(0);
-        box-shadow: var(--shadow-sm); /* Return to smaller shadow on active */
+        box-shadow: var(--shadow-sm);
     }
 
     /* Custom Card Styles for Data Display */
     .info-card, .success-card, .warning-card, .error-card {
-        padding: 1rem 1.2rem; /* Reduced padding */
-        border-radius: 12px; /* Reduced roundedness for a tighter feel */
-        margin-bottom: 1.2rem; /* Reduced margin */
-        display: flex;
-        align-items: center;
-        gap: 0.8rem; /* Reduced gap */
-        font-weight: 500;
+        padding: 0.8rem 1rem; /* Reduced padding */
+        border-radius: 10px; /* Reduced roundedness */
+        margin-bottom: 1rem; /* Reduced margin */
+        gap: 0.6rem; /* Reduced gap */
+        font-size: 0.85rem; /* Reduced font size */
         box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-color); /* More visible subtle border */
-        transition: all 0.2s ease-in-out;
-        background-color: var(--card-bg); /* Ensure white background for all cards */
-        font-size: 0.9rem; /* Reduced font size */
+        border: 1px solid var(--border-color);
+        background-color: var(--card-bg);
     }
     .info-card:hover, .success-card:hover, .warning-card:hover, .error-card:hover {
-        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
-        transform: translateY(-1px); /* More pronounced lift */
+        box-shadow: var(--shadow-md);
+        transform: translateY(-0.5px);
     }
-    /* Specific card colors for text and background, but keeping card-bg as white */
-    .info-card { color: var(--primary-blue); background-color: var(--light-blue-bg); border-color: rgba(0, 122, 255, 0.1); }
-    .success-card { color: var(--success-text); background-color: var(--success-bg); border-color: rgba(40, 167, 69, 0.1); }
-    .warning-card { color: var(--warning-text); background-color: var(--warning-bg); border-color: rgba(255, 193, 7, 0.1); }
-    .error-card { color: var(--error-text); background-color: var(--error-bg); border-color: rgba(220, 53, 69, 0.1); }
+    .info-card { color: var(--primary-blue); background-color: var(--light-blue-bg); border-color: rgba(0, 122, 255, 0.08); }
+    .success-card { color: var(--success-text); background-color: var(--success-bg); border-color: rgba(40, 167, 69, 0.08); }
+    .warning-card { color: var(--warning-text); background-color: var(--warning-bg); border-color: rgba(255, 193, 7, 0.08); }
+    .error-card { color: var(--error-text); background-color: var(--error-bg); border-color: rgba(220, 53, 69, 0.08); }
     .info-card span, .success-card span, .warning-card span, .error-card span {
-        font-size: 1.2rem; /* Adjusted icon size */
+        font-size: 1rem; /* Adjusted icon size */
     }
 
     /* Specific Data Display Boxes (Email, Subject, Phone) */
     .data-display-box {
-        background-color: var(--light-blue-bg); /* Use the lighter blue background */
-        padding: 0.8rem 1rem; /* Reduced padding */
-        border-radius: 10px; /* Reduced roundedness */
-        margin-bottom: 0.8rem; /* Reduced margin */
-        color: var(--text-dark);
-        font-weight: 500;
-        font-size: 0.9rem; /* Reduced font size */
-        word-break: break-all;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px; /* Reduced gap */
+        background-color: var(--light-blue-bg);
+        padding: 0.7rem 0.9rem; /* Reduced padding */
+        border-radius: 8px; /* Reduced roundedness */
+        margin-bottom: 0.7rem; /* Reduced margin */
+        font-size: 0.85rem; /* Reduced font size */
+        gap: 6px; /* Reduced gap */
         box-shadow: var(--shadow-sm);
-        transition: all 0.2s ease-in-out;
-        border: 1px solid rgba(0,0,0,0.05); /* Subtle border */
+        border: 1px solid rgba(0,0,0,0.04);
     }
     .data-display-box:hover {
-        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
-        transform: translateY(-1px); /* Subtle lift */
-    }
-    .data-display-box span {
-        flex-grow: 1;
+        box-shadow: var(--shadow-md);
+        transform: translateY(-0.5px);
     }
 
     /* Copy Button within Data Display */
     .copy-button {
         background-color: var(--primary-blue);
         color: white;
-        border: none;
-        border-radius: 8px; /* Reduced roundedness */
-        padding: 0.5rem 0.8rem; /* Reduced padding */
-        font-size: 0.8rem; /* Reduced font size */
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        white-space: nowrap; /* Prevent text wrapping */
-        box-shadow: var(--shadow-sm); /* Subtle shadow for copy buttons */
+        border-radius: 6px; /* Reduced roundedness */
+        padding: 0.4rem 0.7rem; /* Reduced padding */
+        font-size: 0.75rem; /* Reduced font size */
+        box-shadow: var(--shadow-sm);
     }
     .copy-button:hover {
         background-color: var(--primary-blue-dark);
         box-shadow: var(--shadow-md);
     }
-    .copy-button:active {
-        transform: translateY(0);
-        box-shadow: var(--shadow-sm);
-    }
 
     /* Extracted Data Review Cards */
     .extracted-data-card {
         background-color: var(--card-bg);
-        border-radius: 12px; /* Reduced roundedness */
-        padding: 1.2rem; /* Reduced padding */
-        margin-bottom: 1.2rem; /* Reduced margin */
-        box-shadow: var(--shadow-md); /* More pronounced shadow */
-        transition: all 0.2s ease-in-out;
+        border-radius: 10px; /* Reduced roundedness */
+        padding: 1rem; /* Reduced padding */
+        margin-bottom: 1rem; /* Reduced margin */
+        box-shadow: var(--shadow-md);
         border: 1px solid var(--border-color);
     }
     .extracted-data-card:hover {
-        box-shadow: var(--shadow-lg); /* Even deeper shadow on hover for cards */
-        transform: translateY(-2px); /* More pronounced lift */
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-1px);
     }
     .extracted-data-card h3 {
-        margin-top: 0;
-        margin-bottom: 0.8rem; /* Reduced margin */
-        color: var(--text-dark);
-        font-size: 1.2rem; /* Reduced font size */
-        display: flex;
-        align-items: center;
-        gap: 0.5rem; /* Reduced gap */
+        margin-bottom: 0.7rem;
+        font-size: 1.1rem;
+        gap: 0.4rem;
     }
     .extracted-data-card .field-row {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem; /* Reduced gap */
-        margin-bottom: 0.6rem; /* Reduced margin */
+        gap: 0.7rem;
+        margin-bottom: 0.5rem;
     }
     .extracted-data-card .field-label {
-        font-weight: 600;
-        color: var(--text-medium);
-        min-width: 100px; /* Adjusted min-width */
-        font-size: 0.9rem; /* Reduced font size */
+        min-width: 90px; /* Adjusted min-width */
+        font-size: 0.85rem;
     }
     .extracted-data-card .field-value-display {
-        flex-grow: 1;
-        font-size: 0.9rem; /* Reduced font size */
-        color: var(--text-dark);
-        background-color: var(--light-blue-bg);
-        padding: 0.5rem 0.8rem; /* Reduced padding */
-        border-radius: 8px; /* Reduced roundedness */
-        word-break: break-all;
-        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); /* Subtle inner shadow */
+        font-size: 0.85rem;
+        padding: 0.4rem 0.7rem;
+        border-radius: 6px;
     }
     .extracted-data-card .edit-icon {
-        cursor: pointer;
-        color: var(--primary-blue);
-        opacity: 0.8;
-        transition: opacity 0.2s ease-in-out;
-        font-size: 1rem; /* Reduced font size */
-    }
-    .extracted-data-card .edit-icon:hover {
-        opacity: 1;
+        font-size: 0.9rem;
     }
 
     /* Order Items List */
     .order-item {
-        background-color: var(--card-bg); /* Changed to white for a cleaner look within the card */
-        border-radius: 10px; /* Reduced roundedness */
-        padding: 0.8rem; /* Reduced padding */
-        margin-bottom: 0.5rem; /* Reduced margin */
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem; /* Reduced gap */
-        box-shadow: var(--shadow-sm); /* Subtle shadow */
-        transition: all 0.2s ease-in-out;
-        border: 1px solid var(--border-color); /* Subtle border */
+        background-color: var(--card-bg);
+        border-radius: 8px; /* Reduced roundedness */
+        padding: 0.7rem; /* Reduced padding */
+        margin-bottom: 0.4rem; /* Reduced margin */
+        gap: 0.3rem; /* Reduced gap */
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
     }
     .order-item:hover {
-        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
-        transform: translateY(-1px); /* Subtle lift */
-    }
-    .order-item strong {
-        color: var(--primary-blue);
-    }
-    .order-item span {
-        color: var(--text-dark);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-0.5px);
     }
     .order-item .item-detail {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem; /* Reduced gap */
+        gap: 0.4rem;
     }
     .order-item .item-detail .label {
-        font-weight: 600;
-        color: var(--text-medium);
-        min-width: 70px; /* Adjusted min-width */
-        font-size: 0.85rem; /* Reduced font size */
+        min-width: 60px; /* Adjusted min-width */
+        font-size: 0.8rem;
     }
     .order-item .item-detail .value {
-        flex-grow: 1;
-        font-size: 0.85rem; /* Reduced font size */
+        font-size: 0.8rem;
     }
 
     /* Code Block Styling (for email body) */
     .stCode {
-        background-color: var(--bg-light); /* Use a very light background, almost white */
-        border-radius: 10px; /* Reduced roundedness */
-        padding: 1.2rem; /* Reduced padding */
-        font-size: 0.9rem; /* Reduced font size */
-        line-height: 1.6; /* Reduced line height for readability */
-        white-space: pre-wrap; /* Ensure wrapping */
-        word-break: break-all;
-        box-shadow: var(--shadow-sm); /* Subtle shadow */
+        background-color: var(--bg-light);
+        border-radius: 8px; /* Reduced roundedness */
+        padding: 1rem; /* Reduced padding */
+        font-size: 0.85rem; /* Reduced font size */
+        line-height: 1.5; /* Reduced line height */
+        box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-color);
-        color: var(--text-dark);
     }
 
     /* Responsive Adjustments */
     @media (max-width: 768px) {
-        h1 { font-size: 2rem; margin-bottom: 1.5rem; }
-        h2 { font-size: 1.6rem; }
-        .main .block-container { padding: 1rem 0.6rem; }
-        .extracted-data-card .field-row { flex-direction: column; align-items: flex-start; }
-        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.2rem; }
-        .data-display-box { flex-direction: column; align-items: flex-start; }
-        .copy-button { width: 100%; margin-top: 0.5rem; }
-        .info-card, .success-card, .warning-card, .error-card { padding: 0.8rem 1rem; font-size: 0.85rem; }
-        .stButton button { padding: 0.6rem 1rem; font-size: 0.9rem; }
-        .extracted-data-card { padding: 1rem; }
-        .extracted-data-card h3 { font-size: 1.1rem; }
-        .order-item { padding: 0.6rem; }
+        h1 { font-size: 1.8rem; margin-bottom: 1rem; }
+        h2 { font-size: 1.4rem; }
+        .main .block-container { padding: 0.8rem 0.5rem; }
+        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.15rem; }
+        .copy-button { width: 100%; margin-top: 0.4rem; }
+        .info-card, .success-card, .warning-card, .error-card { padding: 0.6rem 0.8rem; font-size: 0.8rem; }
+        .stButton button { padding: 0.5rem 0.8rem; font-size: 0.85rem; }
+        .extracted-data-card { padding: 0.8rem; }
+        .extracted-data-card h3 { font-size: 1rem; }
+        .order-item { padding: 0.5rem; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -702,7 +639,7 @@ with col_left:
     st.subheader("1. Paste Shopify Order Export")
     st.markdown("""
         <div class="info-card">
-            <span style="font-size: 1.5rem;">📄</span>
+            <span style="font-size: 1.2rem;">📄</span>
             Paste the full text from your Shopify order export summary below.
             We'll automatically extract all the necessary details.
         </div>
@@ -797,7 +734,7 @@ with col_right:
         
         js_safe_email_body = json.dumps(st.session_state.generated_email_body)
         st.markdown(f"""
-            <div style="text-align: right; margin-top: -1.2rem; margin-bottom: 1.2rem;">
+            <div style="text-align: right; margin-top: -1rem; margin-bottom: 1rem;">
                 <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
                     {js_safe_email_body}, 'copyBodyBtn'
                 )">Copy Email Body</button>
@@ -877,8 +814,8 @@ with col_right:
         # Placeholder message when no email has been generated yet, now using custom card style
         st.markdown("""
             <div class="info-card" style="min-height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-                <span style="font-size: 2.5rem; margin-bottom: 0.8rem;">✨</span>
-                <p style="font-size: 1.1rem; font-weight: 600;">Your generated email will appear here.</p>
-                <p style="color: var(--text-medium); font-size: 0.9rem;">Paste your order details on the left and click 'Generate Email' to see the magic!</p>
+                <span style="font-size: 2.2rem; margin-bottom: 0.7rem;">✨</span>
+                <p style="font-size: 1rem; font-weight: 600;">Your generated email will appear here.</p>
+                <p style="color: var(--text-medium); font-size: 0.85rem;">Paste your order details on the left and click 'Generate Email' to see the magic!</p>
             </div>
         """, unsafe_allow_html=True)
