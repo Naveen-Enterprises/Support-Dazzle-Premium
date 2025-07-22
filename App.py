@@ -242,4 +242,4 @@ If you have any questions or need assistance, feel free to reply to this email."
         st.warning("Please paste the order export before generating the message.")
 
 st.markdown("""</div>""", unsafe_allow_html=True)
-```
+
