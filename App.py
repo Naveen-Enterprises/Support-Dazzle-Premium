@@ -1,8 +1,7 @@
 import streamlit as st
 import re
 import json # Import the json module
-import asyncio # For async operations with LLM
-import httpx # For making async HTTP requests
+# Removed asyncio and httpx imports as LLM is no longer used
 
 # --- Page Configuration ---
 st.set_page_config(page_title="DAZZLE PREMIUM Order Email Generator", layout="wide", initial_sidebar_state="collapsed")
@@ -296,115 +295,152 @@ if "generated_email_body" not in st.session_state:
     st.session_state.generated_email_body = ""
 if "generated_subject" not in st.session_state:
     st.session_state.generated_subject = ""
-# Removed missing_info_flags as LLM will provide defaults
+if "missing_info_flags" not in st.session_state: # Re-added for regex parser
+    st.session_state.missing_info_flags = []
+
 
 # --- Helper Functions ---
 
-async def parse_shopify_export_with_llm(raw_text_input):
+# Reverting to the original regex-based parsing function
+def parse_shopify_export(raw_text_input):
     """
-    Parses the raw Shopify order export text using an LLM to extract key information
-    and return it in a structured JSON format.
+    Parses the raw Shopify order export text to extract key information.
+    This function uses more robust regex patterns to handle variations.
     """
-    api_key = "" # If you want to use models other than gemini-2.0-flash, provide an API key here.
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-
-    # Define the JSON schema for the LLM's response
-    response_schema = {
-        "type": "OBJECT",
-        "properties": {
-            "customer_name": { "type": "STRING", "default": "Customer" },
-            "email_address": { "type": "STRING", "default": "email@example.com" },
-            "phone_number": { "type": "STRING", "default": "N/A" },
-            "order_number": { "type": "STRING", "default": "UNKNOWN" },
-            "items": {
-                "type": "ARRAY",
-                "items": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "product_name": { "type": "STRING", "default": "Unknown Product" },
-                        "style_code": { "type": "STRING", "default": "N/A" },
-                        "size": { "type": "STRING", "default": "N/A" },
-                        "quantity": { "type": "INTEGER", "default": 1 }
-                    },
-                    "required": ["product_name", "style_code", "size", "quantity"]
-                }
-            }
-        },
-        "required": ["customer_name", "email_address", "phone_number", "order_number", "items"]
+    data = {
+        "customer_name": "[Customer Name Not Found]",
+        "email_address": "[Email Not Found]",
+        "phone_number": "[Phone Not Found]",
+        "order_number": "[Order # Not Found]",
+        "items": [],
+        "missing_info": []
     }
 
-    prompt = f"""You are an expert data extractor. Your task is to extract specific information from the provided Shopify order export text and return it in a strict JSON format.
-    If a piece of information is not found, use the default placeholder specified in the schema.
-    Ensure all fields are present in the JSON output, using defaults if necessary.
+    lines = [line.strip() for line in raw_text_input.split('\n') if line.strip()]
 
-    Shopify Order Export Text:
-    ---
-    {raw_text_input}
-    ---
-    """
+    # --- Extract Customer Name ---
+    name_found = False
+    
+    # Priority 1: Try to get name from "Order confirmation email was sent to [Name] ([email])"
+    email_sent_match = re.search(r"Order confirmation email was sent to (.*?) \([\w\.-]+@[\w\.-]+\.[\w\.-]+\)", raw_text_input)
+    if email_sent_match:
+        data["customer_name"] = email_sent_match.group(1).strip()
+        name_found = True
 
-    chat_history = []
-    chat_history.append({ "role": "user", "parts": [{ "text": prompt }] })
+    # Priority 2: Fallback to "Customer" label, then "Shipping address", then "Billing address"
+    if not name_found:
+        for i, line in enumerate(lines):
+            if re.search(r"Customer\s*$", line, re.IGNORECASE) and i + 1 < len(lines):
+                potential_name = lines[i+1].split('\n')[0].strip()
+                if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
+                    data["customer_name"] = potential_name
+                    name_found = True
+                    break
+            elif (re.search(r"Shipping address\s*$", line, re.IGNORECASE) or \
+                  re.search(r"Billing address\s*$", line, re.IGNORECASE)) and i + 1 < len(lines):
+                potential_name = lines[i+1].split('\n')[0].strip()
+                if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
+                    data["customer_name"] = potential_name
+                    name_found = True
+                    break
+    
+    if not name_found or data["customer_name"] == "[Customer Name Not Found]":
+        data["missing_info"].append("Customer Name")
 
-    payload = {
-        "contents": chat_history,
-        "generationConfig": {
-            "responseMimeType": "application/json",
-            "responseSchema": response_schema
-        }
-    }
 
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(api_url, json=payload, timeout=60.0) # Increased timeout
-            response.raise_for_status() # Raise an exception for HTTP errors (4xx or 5xx)
-            result = response.json()
+    # --- Extract Email Address ---
+    email_match = re.search(r"[\w\.-]+@[\w\.-]+\.[\w\.-]+", raw_text_input)
+    if email_match:
+        data["email_address"] = email_match.group(0).strip()
+    else:
+        data["missing_info"].append("Email Address")
 
-        if result.get("candidates") and result["candidates"][0].get("content") and result["candidates"][0]["content"].get("parts"):
-            json_text = result["candidates"][0]["content"]["parts"][0]["text"]
-            parsed_data = json.loads(json_text)
-            return parsed_data
-        else:
-            st.error("LLM did not return a valid response structure.")
-            return {
-                "customer_name": "Customer",
-                "email_address": "email@example.com",
-                "phone_number": "N/A",
-                "order_number": "UNKNOWN",
-                "items": []
-            }
-    except httpx.RequestError as e:
-        st.error(f"Network or API request error: {e}")
-        return {
-            "customer_name": "Customer",
-            "email_address": "email@example.com",
-            "phone_number": "N/A",
-            "order_number": "UNKNOWN",
-            "items": []
-        }
-    except json.JSONDecodeError as e:
-        st.error(f"Failed to decode JSON from LLM response: {e}. Raw response: {json_text}")
-        return {
-            "customer_name": "Customer",
-            "email_address": "email@example.com",
-            "phone_number": "N/A",
-            "order_number": "UNKNOWN",
-            "items": []
-        }
-    except Exception as e:
-        st.error(f"An unexpected error occurred during LLM parsing: {e}")
-        return {
-            "customer_name": "Customer",
-            "email_address": "email@example.com",
-            "phone_number": "N/A",
-            "order_number": "UNKNOWN",
-            "items": []
-        }
+    # --- Extract Phone Number ---
+    # More flexible phone number regex for common US formats
+    phone_match = re.search(r"(\+1[\s\-()]?\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4}|\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4})", raw_text_input)
+    if phone_match:
+        data["phone_number"] = phone_match.group(0).strip()
+    else:
+        data["missing_info"].append("Phone Number")
+
+    # --- Extract Order Number ---
+    order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text_input, re.IGNORECASE)
+    if order_number_match:
+        data["order_number"] = order_number_match.group(1).strip()
+    else:
+        data["missing_info"].append("Order Number")
+
+    # --- Extract Items ---
+    # This is the trickiest part, relies on specific patterns in Shopify export.
+    # We look for lines that look like product names, then try to find size/SKU below them.
+    
+    # A list to hold the raw product lines and their potential indices
+    product_lines_info = []
+    for i, line in enumerate(lines):
+        # Heuristic: A line containing " - " and a potential SKU-like pattern
+        # and not explicitly a SKU or Discount line itself
+        if " - " in line and re.search(r" - [A-Z0-9\-]+$", line) and \
+           not any(kw in line.lower() for kw in ["sku", "discount", "subtotal", "shipping", "tax", "total"]):
+            product_lines_info.append({"line": line, "index": i})
+
+    for prod_info in product_lines_info:
+        product_name = prod_info["line"].rsplit(" - ", 1)[0].strip()
+        style_code = prod_info["line"].rsplit(" - ", 1)[1].strip()
+        line_idx = prod_info["index"]
+        
+        size = "N/A" # Default to N/A for cleaner output
+        size_found_explicitly = False
+        quantity = 1 # Default quantity
+
+        # Look for size/quantity in the next few lines
+        for offset in range(1, 5): # Check up to 4 lines after product line
+            if line_idx + offset < len(lines):
+                potential_line = lines[line_idx + offset]
+                
+                # Try to extract quantity first (e.g., "$57.00 x 1")
+                qty_match = re.search(r"x\s*(\d+)", potential_line, re.IGNORECASE)
+                if qty_match:
+                    quantity = int(qty_match.group(1))
+
+                # Heuristic for size line:
+                # - Contains common size patterns (e.g., "M", "XL", "32", "32/30", "US 10")
+                # - Not a price or SKU line
+                if re.match(r"^((\d{1,2}(/\d{1,2})?[\s/]?[A-Z]{2,3})|[XSML]{1,3}|[0-9]{1,2}|US\s*\d{1,2}|EU\s*\d{1,2})\b", potential_line, re.IGNORECASE) and \
+                   not potential_line.startswith("$") and not "SKU" in potential_line.upper():
+                    size = potential_line.split('\n')[0].strip().split(' ')[0] # Take the first part of the size line
+                    size_found_explicitly = True
+                    # If size is found, we can break from this inner loop for size
+                    # Quantity might be on the same line or previous, so keep looking for it if not found yet
+                    # For simplicity, if size is found, assume we've processed this item's details.
+                    break 
+        
+        # Special handling for "Sock" products if no explicit size was found
+        if not size_found_explicitly and "sock" in product_name.lower():
+            size = "One Size"
+
+        data["items"].append({
+            "product_name": product_name,
+            "style_code": style_code,
+            "size": size,
+            "quantity": quantity # Added quantity to the parsed data
+        })
+        
+        # If size is still N/A and it's not a sock, flag it
+        if size == "N/A" and "sock" not in product_name.lower():
+            if "Item Sizes" not in data["missing_info"]:
+                data["missing_info"].append("Item Sizes")
+
+
+    if not data["items"]:
+        data["missing_info"].append("Order Items")
+
+    return data
+
 
 def generate_standard_email(parsed_data):
     """Generates the standard order confirmation email."""
-    customer_name = parsed_data.get("customer_name", "Customer")
-    order_number = parsed_data.get("order_number", "UNKNOWN")
+    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]")
+    order_number = parsed_data.get("order_number", "[Order # Not Found]")
     items = parsed_data.get("items", [])
 
     order_details_list = []
@@ -439,7 +475,7 @@ Thank you for choosing DAZZLE PREMIUM!"""
 
 def generate_high_risk_email(parsed_data):
     """Generates the high-risk order cancellation email."""
-    customer_name = parsed_data.get("customer_name", "Customer")
+    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]")
 
     subject = f"Important: Your DAZZLE PREMIUM Order - Action Required"
     message = f"""Hello {customer_name},
@@ -460,7 +496,7 @@ DAZZLE PREMIUM Support"""
 
 def generate_return_email(parsed_data):
     """Generates the return mail template."""
-    customer_name = parsed_data.get("customer_name", "Customer") # Get the customer name
+    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]") # Get the customer name
 
     subject = f"DAZZLE PREMIUM: Your Return Request Instructions"
     message = f"""Dear {customer_name},
@@ -496,6 +532,7 @@ def reset_app_state():
     st.session_state.parsed_data = {}
     st.session_state.generated_email_body = ""
     st.session_state.generated_subject = ""
+    st.session_state.missing_info_flags = [] # Reset this too
     st.rerun() # Rerun to clear the UI immediately
 
 # --- Main Application Logic ---
@@ -528,8 +565,9 @@ with col_left:
         if st.button("✨ Generate Order Email", use_container_width=True):
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
-                with st.spinner("Extracting details and generating email..."):
-                    st.session_state.parsed_data = asyncio.run(parse_shopify_export_with_llm(raw_text_input))
+                # Removed spinner as LLM is no longer used, parsing is fast
+                st.session_state.parsed_data = parse_shopify_export(raw_text_input)
+                st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"] # Re-assign missing flags
                 
                 subject, message = generate_standard_email(st.session_state.parsed_data)
                 st.session_state.generated_subject = subject
@@ -542,8 +580,9 @@ with col_left:
         if st.button("🚨 High-Risk Email", use_container_width=True): # Shorter button text
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
-                with st.spinner("Extracting details and generating high-risk email..."):
-                    st.session_state.parsed_data = asyncio.run(parse_shopify_export_with_llm(raw_text_input))
+                # Removed spinner
+                st.session_state.parsed_data = parse_shopify_export(raw_text_input)
+                st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"] # Re-assign missing flags
                 
                 subject, message = generate_high_risk_email(st.session_state.parsed_data)
                 st.session_state.generated_subject = subject
@@ -556,8 +595,9 @@ with col_left:
         if st.button("↩️ Return Email Template", use_container_width=True):
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
-                with st.spinner("Extracting details and generating return email..."):
-                    st.session_state.parsed_data = asyncio.run(parse_shopify_export_with_llm(raw_text_input)) # Parse to get customer name
+                # Removed spinner
+                st.session_state.parsed_data = parse_shopify_export(raw_text_input) # Parse to get customer name
+                st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"] # Re-assign missing flags
                 
                 subject, message = generate_return_email(st.session_state.parsed_data)
                 st.session_state.generated_subject = subject
@@ -573,13 +613,21 @@ with col_right:
     
     # Conditionally display content based on whether an email has been generated
     if st.session_state.generated_email_body:
-        # Display a generic success message since LLM handles defaults
-        st.markdown("""
-            <div class="success-card">
-                <span style="font-size: 1.5rem;">✅</span>
-                Email generated successfully! Ready to copy and send.
-            </div>
-        """, unsafe_allow_html=True)
+        # Re-introducing the warning card for missing info flags
+        if st.session_state.current_step == "generate_standard" and st.session_state.missing_info_flags:
+            st.markdown(f"""
+                <div class="warning-card">
+                    <span style="font-size: 1.5rem;">⚠️</span>
+                    We couldn't find all the information automatically. Please double-check the following fields in the email: <strong>{', '.join(st.session_state.missing_info_flags)}</strong>.
+                </div>
+            """, unsafe_allow_html=True)
+        else: # For high-risk, return, or standard with no missing info
+            st.markdown("""
+                <div class="success-card">
+                    <span style="font-size: 1.5rem;">✅</span>
+                    Email generated successfully! Ready to copy and send.
+                </div>
+            """, unsafe_allow_html=True)
 
         if st.session_state.current_step == "generate_standard":
             # Display standard email details
@@ -710,4 +758,3 @@ with col_right:
                 <p style="color: var(--text-medium);">Paste your order details on the left and click 'Generate Email' to see the magic!</p>
             </div>
         """, unsafe_allow_html=True)
-
