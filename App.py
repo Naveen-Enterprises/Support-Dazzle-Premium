@@ -478,14 +478,18 @@ def reset_app_state():
     st.session_state.generated_email_body = ""
     st.session_state.generated_subject = ""
     st.session_state.missing_info_flags = []
-    st.rerun() # Rerun the app to reflect the reset state
+    # No st.rerun() here, as it's called by the button's on_click directly.
+    # We need to ensure the state is cleared before the next render cycle.
+    # The button's on_click will trigger a rerun.
 
 # --- Main Application Logic ---
 
 st.markdown("""<h1 style='text-align: center;'>📦 DAZZLE PREMIUM Order Email Generator</h1>""", unsafe_allow_html=True)
 
-# --- Step 1: Input Raw Text ---
-if st.session_state.current_step == "input":
+# Create two columns for the main layout
+col_left, col_right = st.columns(2)
+
+with col_left:
     st.subheader("1. Paste Shopify Order Export")
     st.markdown("""
         <div class="info-card">
@@ -499,7 +503,8 @@ if st.session_state.current_step == "input":
         "Full Order Export Text",
         height=400,
         value=st.session_state.raw_text,
-        placeholder="Paste your Shopify order details here..."
+        placeholder="Paste your Shopify order details here...",
+        key="raw_text_input_main" # Add a key to avoid potential conflicts
     )
 
     col_buttons_input = st.columns(2)
@@ -510,11 +515,10 @@ if st.session_state.current_step == "input":
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input)
                 st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"]
                 
-                # Directly generate standard email
                 subject, message = generate_standard_email(st.session_state.parsed_data)
                 st.session_state.generated_subject = subject
                 st.session_state.generated_email_body = message
-                st.session_state.current_step = "generate_standard"
+                st.session_state.current_step = "generate_standard" # Keep track of which email type was generated
                 st.rerun()
             else:
                 st.warning("Please paste the order export text to generate an email.")
@@ -526,107 +530,110 @@ if st.session_state.current_step == "input":
                 subject, message = generate_high_risk_email(st.session_state.parsed_data)
                 st.session_state.generated_subject = subject
                 st.session_state.generated_email_body = message
-                st.session_state.current_step = "generate_high_risk"
+                st.session_state.current_step = "generate_high_risk" # Keep track of which email type was generated
                 st.rerun()
             else:
                 st.warning("Please paste the order export text to generate a high-risk email.")
 
-# --- Display Generated Email (Standard) ---
-elif st.session_state.current_step == "generate_standard":
-    st.subheader("2. Your Generated Email") # Changed from 3 to 2
+with col_right:
+    st.subheader("2. Your Generated Email")
     
-    # Display warnings if any info is missing directly here
-    if st.session_state.missing_info_flags:
-        st.markdown(f"""
-            <div class="warning-card">
-                <span style="font-size: 1.5rem;">⚠️</span>
-                We couldn't find all the information automatically. Please double-check the following fields in the email: <strong>{', '.join(st.session_state.missing_info_flags)}</strong>.
-            </div>
-        """, unsafe_allow_html=True)
+    # Conditionally display content based on whether an email has been generated
+    if st.session_state.generated_email_body:
+        if st.session_state.current_step == "generate_standard":
+            if st.session_state.missing_info_flags:
+                st.markdown(f"""
+                    <div class="warning-card">
+                        <span style="font-size: 1.5rem;">⚠️</span>
+                        We couldn't find all the information automatically. Please double-check the following fields in the email: <strong>{', '.join(st.session_state.missing_info_flags)}</strong>.
+                    </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                    <div class="success-card">
+                        <span style="font-size: 1.5rem;">✅</span>
+                        All information looks good! Ready to copy and send.
+                    </div>
+                """, unsafe_allow_html=True)
+
+            # Display standard email details
+            st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.parsed_data.get('email_address', 'N/A')}</span>
+                    <button class="copy-button" id="copyEmailBtn" onclick="copyToClipboard(
+                        '{st.session_state.parsed_data.get('email_address', 'N/A').replace("'", "\\'")}', 'copyEmailBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.generated_subject}</span>
+                    <button class="copy-button" id="copySubjectBtn" onclick="copyToClipboard(
+                        '{st.session_state.generated_subject.replace("'", "\\'")}', 'copySubjectBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
+            st.code(st.session_state.generated_email_body, language="text")
+            st.markdown(f"""
+                <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
+                    <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
+                        `{st.session_state.generated_email_body.replace("`", "\\`")}`, 'copyBodyBtn'
+                    )">Copy Email Body</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📱 Customer Phone Number:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.parsed_data.get('phone_number', 'N/A')}</span>
+                    <button class="copy-button" id="copyPhoneBtn" onclick="copyToClipboard(
+                        '{st.session_state.parsed_data.get('phone_number', 'N/A').replace("'", "\\'")}', 'copyPhoneBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+        elif st.session_state.current_step == "generate_high_risk":
+            st.markdown("""
+                <div class="warning-card">
+                    <span style="font-size: 1.5rem;">🚨</span>
+                    This is the email for high-risk order cancellations. Please review carefully before sending.
+                </div>
+            """, unsafe_allow_html=True)
+
+            # Display high-risk email details
+            st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.generated_subject}</span>
+                    <button class="copy-button" id="copyHRSubjectBtn" onclick="copyToClipboard(
+                        '{st.session_state.generated_subject.replace("'", "\\'")}', 'copyHRSubjectBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
+            st.code(st.session_state.generated_email_body, language="text")
+            st.markdown(f"""
+                <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
+                    <button class="copy-button" id="copyHRBodyBtn" onclick="copyToClipboard(
+                        `{st.session_state.generated_email_body.replace("`", "\\`")}`, 'copyHRBodyBtn'
+                    )">Copy Email Body</button>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        # Always show "Start New Order" button on the right side if an email has been generated
+        st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True)
     else:
+        # Placeholder message when no email has been generated yet
         st.markdown("""
-            <div class="success-card">
-                <span style="font-size: 1.5rem;">✅</span>
-                All information looks good! Ready to copy and send.
+            <div class="info-card" style="min-height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                <span style="font-size: 3rem; margin-bottom: 1rem;">✨</span>
+                <p style="font-size: 1.2rem; font-weight: 600;">Your generated email will appear here.</p>
+                <p style="color: var(--text-medium);">Paste your order details on the left and click 'Generate Email' to see the magic!</p>
             </div>
         """, unsafe_allow_html=True)
-
-    # Email Address
-    st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
-    st.markdown(f"""
-        <div class="data-display-box">
-            <span>{st.session_state.parsed_data.get('email_address', 'N/A')}</span>
-            <button class="copy-button" id="copyEmailBtn" onclick="copyToClipboard(
-                '{st.session_state.parsed_data.get('email_address', 'N/A').replace("'", "\\'")}', 'copyEmailBtn'
-            )">Copy</button>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Subject
-    st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
-    st.markdown(f"""
-        <div class="data-display-box">
-            <span>{st.session_state.generated_subject}</span>
-            <button class="copy-button" id="copySubjectBtn" onclick="copyToClipboard(
-                '{st.session_state.generated_subject.replace("'", "\\'")}', 'copySubjectBtn'
-            )">Copy</button>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Email Body
-    st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
-    st.code(st.session_state.generated_email_body, language="text")
-    st.markdown(f"""
-        <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
-            <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
-                `{st.session_state.generated_email_body.replace("`", "\\`")}`, 'copyBodyBtn'
-            )">Copy Email Body</button>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Phone Number
-    st.markdown("<h4>📱 Customer Phone Number:</h4>", unsafe_allow_html=True)
-    st.markdown(f"""
-        <div class="data-display-box">
-            <span>{st.session_state.parsed_data.get('phone_number', 'N/A')}</span>
-            <button class="copy-button" id="copyPhoneBtn" onclick="copyToClipboard(
-                '{st.session_state.parsed_data.get('phone_number', 'N/A').replace("'", "\\'")}', 'copyPhoneBtn'
-            )">Copy</button>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True)
-
-# --- Display Generated Email (High-Risk) ---
-elif st.session_state.current_step == "generate_high_risk":
-    st.subheader("2. High-Risk Order Email Generated") # Changed from 3 to 2
-    st.markdown("""
-        <div class="warning-card">
-            <span style="font-size: 1.5rem;">🚨</span>
-            This is the email for high-risk order cancellations. Please review carefully before sending.
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Subject
-    st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
-    st.markdown(f"""
-        <div class="data-display-box">
-            <span>{st.session_state.generated_subject}</span>
-            <button class="copy-button" id="copyHRSubjectBtn" onclick="copyToClipboard(
-                '{st.session_state.generated_subject.replace("'", "\\'")}', 'copyHRSubjectBtn'
-            )">Copy</button>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Email Body
-    st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
-    st.code(st.session_state.generated_email_body, language="text")
-    st.markdown(f"""
-        <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
-            <button class="copy-button" id="copyHRBodyBtn" onclick="copyToClipboard(
-                `{st.session_state.generated_email_body.replace("`", "\\`")}`, 'copyHRBodyBtn'
-            )">Copy Email Body</button>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True)
