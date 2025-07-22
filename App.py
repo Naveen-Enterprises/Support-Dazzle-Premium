@@ -6,35 +6,35 @@ import json # Import the json module
 # --- Page Configuration ---
 st.set_page_config(page_title="DAZZLE PREMIUM Order Email Generator", layout="wide", initial_sidebar_state="collapsed")
 
-# --- Custom CSS Styling (Inspired by Material Design & Apple Aesthetics) ---
+# --- Custom CSS Styling (Inspired by Material Design & Google Aesthetics) ---
 # Using Google Fonts (Inter for body, Montserrat for headings)
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
 <style>
     /* CSS Variables for consistent theming */
     :root {
-        --primary-blue: #007AFF; /* Apple-like blue */
-        --primary-blue-dark: #0056B3; /* Darker shade for hover */
-        --light-blue-bg: #F0F8FF; /* Very light blue for soft backgrounds */
-        --text-dark: #1C1C1E; /* Darker, more Apple-like text */
-        --text-medium: #636366;
-        --text-light: #AEAEB2;
-        --border-color: #E0E0E0; /* Lighter, subtle border */
-        --bg-light: #F2F2F7; /* Apple-like light gray background */
+        --primary-blue: #2F80ED;
+        --primary-blue-dark: #1366d6;
+        --light-blue-bg: #EEF2F8;
+        --text-dark: #1A1A1A;
+        --text-medium: #4A4A4A;
+        --text-light: #757575;
+        --border-color: #D1D5DB;
+        --bg-light: #F8F9FA; /* Slightly softer background */
         --card-bg: #FFFFFF;
 
-        /* Feedback colors - slightly adjusted for consistency */
-        --success-bg: #E6F7EA; /* Lighter green */
-        --success-text: #28A745;
-        --warning-bg: #FFF8E6; /* Lighter yellow */
-        --warning-text: #FFC107;
-        --error-bg: #FFEBEB; /* Lighter red */
-        --error-text: #DC3545;
+        /* Feedback colors */
+        --success-bg: #D4EDDA;
+        --success-text: #155724;
+        --warning-bg: #FFF3CD;
+        --warning-text: #856404;
+        --error-bg: #FFCCCC;
+        --error-text: #900;
 
-        /* Shadows - refined for more depth on hover/active, very subtle */
-        --shadow-sm: rgba(0, 0, 0, 0.02) 0px 1px 1px; /* Even lighter shadow */
-        --shadow-md: rgba(0, 0, 0, 0.04) 0px 2px 4px; /* Lighter md shadow */
-        --shadow-lg: rgba(0, 0, 0, 0.06) 0px 4px 8px; /* Lighter lg shadow */
+        /* Shadows - refined for more depth on hover/active */
+        --shadow-sm: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+        --shadow-md: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+        --shadow-lg: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
     }
 
     /* General Body and App Styling */
@@ -44,45 +44,40 @@ st.markdown("""
         background-color: var(--bg-light);
     }
     .main .block-container {
-        padding-top: 1rem; /* Significantly reduced padding */
-        padding-bottom: 1rem; /* Significantly reduced padding */
-        max-width: 800px; /* Further reduced max width for content */
+        padding-top: 2.5rem; /* Increased padding */
+        padding-bottom: 2.5rem; /* Increased padding */
+        max-width: 1200px; /* Max width for content */
         margin: 0 auto; /* Center content */
     }
 
     /* Headings */
     h1, h2, h3, h4 {
         font-family: 'Montserrat', sans-serif;
-        color: var(--text-dark);
+        color: var(--primary-blue);
         font-weight: 700;
-        margin-top: 1.2rem; /* Reduced margin */
-        margin-bottom: 0.5rem; /* Reduced margin */
+        margin-top: 2rem; /* Adjusted margin */
+        margin-bottom: 1.2rem; /* Adjusted margin */
     }
-    h1 { font-size: 2rem; text-align: center; margin-bottom: 1.2rem; color: var(--primary-blue); } /* Reduced size */
-    h2 { font-size: 1.6rem; }
-    h3 { font-size: 1.1rem; }
-    h4 { font-size: 0.95rem; color: var(--text-medium); margin-top: 0.6rem; } /* Reduced size, softer color */
+    h1 { font-size: 2.8rem; text-align: center; margin-bottom: 2.5rem; } /* Larger, more impactful */
+    h2 { font-size: 2.2rem; }
+    h3 { font-size: 1.7rem; }
+    h4 { font-size: 1.3rem; }
 
     /* Input Fields (Text, Text Area) */
     .stTextInput > div > div > input,
     .stTextArea > div > textarea {
         border: 1px solid var(--border-color);
-        border-radius: 8px; /* Reduced roundedness */
-        padding: 0.6rem 0.8rem; /* Reduced padding */
-        font-size: 0.85rem; /* Reduced font size */
-        box-shadow: var(--shadow-sm);
+        border-radius: 12px; /* Consistent roundedness */
+        padding: 0.85rem 1.1rem; /* Slightly more padding */
+        font-size: 1rem;
+        box-shadow: none;
         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        background-color: var(--card-bg);
-    }
-    .stTextArea > div > textarea { /* Specific distinct styling for the text area */
-        border: 1px solid var(--primary-blue); /* Distinct blue border */
-        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1), var(--shadow-md); /* Subtle blue glow + distinct shadow */
-        background-color: #FFFFFF; /* Ensure white background */
+        background-color: var(--card-bg); /* White background for inputs */
     }
     .stTextInput > div > div > input:focus,
     .stTextArea > div > textarea:focus {
         border-color: var(--primary-blue);
-        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2), var(--shadow-md); /* Softer, blue focus ring + deeper shadow */
+        box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.25); /* More prominent focus ring */
         outline: none;
     }
 
@@ -91,18 +86,18 @@ st.markdown("""
         background-color: var(--primary-blue);
         color: white;
         font-weight: 600;
-        padding: 0.6rem 1rem; /* Reduced padding */
-        font-size: 0.9rem; /* Reduced font size */
-        border-radius: 8px; /* Reduced roundedness */
+        padding: 0.85rem 1.8rem; /* Increased padding for better touch target */
+        font-size: 1.05rem; /* Slightly larger font */
+        border-radius: 12px; /* Consistent roundedness */
         border: none;
-        box-shadow: var(--shadow-md);
+        box-shadow: var(--shadow-sm);
         transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
         cursor: pointer;
     }
     .stButton button:hover {
         background-color: var(--primary-blue-dark);
-        box-shadow: var(--shadow-lg);
-        transform: translateY(-0.5px); /* Subtle lift */
+        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
+        transform: translateY(-2px); /* Subtle lift */
     }
     .stButton button:active {
         transform: translateY(0);
@@ -111,140 +106,180 @@ st.markdown("""
 
     /* Custom Card Styles for Data Display */
     .info-card, .success-card, .warning-card, .error-card {
-        padding: 0.8rem 1rem; /* Reduced padding */
-        border-radius: 10px; /* Reduced roundedness */
-        margin-bottom: 1rem; /* Reduced margin */
-        gap: 0.6rem; /* Reduced gap */
-        font-size: 0.85rem; /* Reduced font size */
+        padding: 1.2rem 1.8rem; /* Increased padding */
+        border-radius: 14px; /* Slightly more rounded */
+        margin-bottom: 1.8rem; /* Increased margin */
+        display: flex;
+        align-items: center;
+        gap: 1.2rem; /* Increased gap */
+        font-weight: 500;
         box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-color);
-        background-color: var(--card-bg);
+        border: 1px solid rgba(0,0,0,0.05); /* Subtle border for definition */
+        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
     }
     .info-card:hover, .success-card:hover, .warning-card:hover, .error-card:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-0.5px);
+        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
+        transform: translateY(-1px); /* Subtle lift */
     }
-    .info-card { color: var(--primary-blue); background-color: var(--light-blue-bg); border-color: rgba(0, 122, 255, 0.08); }
-    .success-card { color: var(--success-text); background-color: var(--success-bg); border-color: rgba(40, 167, 69, 0.08); }
-    .warning-card { color: var(--warning-text); background-color: var(--warning-bg); border-color: rgba(255, 193, 7, 0.08); }
-    .error-card { color: var(--error-text); background-color: var(--error-bg); border-color: rgba(220, 53, 69, 0.08); }
-    .info-card span, .success-card span, .warning-card span, .error-card span {
-        font-size: 1rem; /* Adjusted icon size */
-    }
+    .info-card { background-color: var(--light-blue-bg); color: var(--primary-blue); border-color: rgba(47, 128, 237, 0.2); }
+    .success-card { background-color: var(--success-bg); color: var(--success-text); border-color: rgba(212, 237, 218, 0.7); }
+    .warning-card { background-color: var(--warning-bg); color: var(--warning-text); border-color: rgba(255, 243, 205, 0.7); }
+    .error-card { background-color: var(--error-bg); color: var(--error-text); border-color: rgba(255, 204, 204, 0.7); } /* Fixed typo here */
 
     /* Specific Data Display Boxes (Email, Subject, Phone) */
     .data-display-box {
         background-color: var(--light-blue-bg);
-        padding: 0.7rem 0.9rem; /* Reduced padding */
-        border-radius: 8px; /* Reduced roundedness */
-        margin-bottom: 0.7rem; /* Reduced margin */
-        font-size: 0.85rem; /* Reduced font size */
-        gap: 6px; /* Reduced gap */
+        padding: 1rem 1.5rem; /* Increased padding */
+        border-radius: 12px; /* Consistent roundedness */
+        margin-bottom: 1.2rem; /* Adjusted margin */
+        color: var(--text-dark);
+        font-weight: 500;
+        font-size: 1rem;
+        word-break: break-all;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px; /* Increased gap */
         box-shadow: var(--shadow-sm);
-        border: 1px solid rgba(0,0,0,0.04);
+        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
     }
     .data-display-box:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-0.5px);
+        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
+        transform: translateY(-1px); /* Subtle lift */
+    }
+    .data-display-box span {
+        flex-grow: 1;
     }
 
     /* Copy Button within Data Display */
     .copy-button {
         background-color: var(--primary-blue);
         color: white;
-        border-radius: 6px; /* Reduced roundedness */
-        padding: 0.4rem 0.7rem; /* Reduced padding */
-        font-size: 0.75rem; /* Reduced font size */
-        box-shadow: var(--shadow-sm);
+        border: none;
+        border-radius: 10px; /* Slightly more rounded */
+        padding: 0.6rem 1rem; /* Adjusted padding */
+        font-size: 0.9rem; /* Slightly larger font */
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        white-space: nowrap; /* Prevent text wrapping */
     }
     .copy-button:hover {
         background-color: var(--primary-blue-dark);
-        box-shadow: var(--shadow-md);
     }
 
-    /* Extracted Data Review Cards */
+    /* Extracted Data Review Cards - (Keeping for future interactive feature) */
     .extracted-data-card {
         background-color: var(--card-bg);
-        border-radius: 10px; /* Reduced roundedness */
-        padding: 1rem; /* Reduced padding */
-        margin-bottom: 1rem; /* Reduced margin */
+        border-radius: 14px; /* Consistent roundedness */
+        padding: 1.8rem; /* Increased padding */
+        margin-bottom: 1.8rem; /* Increased margin */
         box-shadow: var(--shadow-md);
-        border: 1px solid var(--border-color);
+        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
     }
     .extracted-data-card:hover {
-        box-shadow: var(--shadow-lg);
-        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg); /* Even deeper shadow on hover for cards */
+        transform: translateY(-2px); /* More pronounced lift */
     }
     .extracted-data-card h3 {
-        margin-bottom: 0.7rem;
-        font-size: 1.1rem;
-        gap: 0.4rem;
+        margin-top: 0;
+        margin-bottom: 1.2rem;
+        color: var(--text-dark);
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
     }
     .extracted-data-card .field-row {
-        gap: 0.7rem;
-        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        margin-bottom: 0.8rem;
     }
     .extracted-data-card .field-label {
-        min-width: 90px; /* Adjusted min-width */
-        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-medium);
+        min-width: 130px; /* Align labels better */
     }
     .extracted-data-card .field-value-display {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.7rem;
-        border-radius: 6px;
+        flex-grow: 1;
+        font-size: 1rem;
+        color: var(--text-dark);
+        background-color: var(--light-blue-bg);
+        padding: 0.7rem 1.1rem;
+        border-radius: 10px;
+        word-break: break-all;
     }
     .extracted-data-card .edit-icon {
-        font-size: 0.9rem;
+        cursor: pointer;
+        color: var(--primary-blue);
+        opacity: 0.7;
+        transition: opacity 0.2s ease-in-out;
+    }
+    .extracted-data-card .edit-icon:hover {
+        opacity: 1;
     }
 
     /* Order Items List */
     .order-item {
-        background-color: var(--card-bg);
-        border-radius: 8px; /* Reduced roundedness */
-        padding: 0.7rem; /* Reduced padding */
-        margin-bottom: 0.4rem; /* Reduced margin */
-        gap: 0.3rem; /* Reduced gap */
+        background-color: var(--light-blue-bg);
+        border-radius: 12px; /* Consistent roundedness */
+        padding: 1.2rem; /* Increased padding */
+        margin-bottom: 0.8rem; /* Adjusted margin */
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem; /* Adjusted gap */
         box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-color);
+        transition: all 0.2s ease-in-out; /* Added transition for hover effect */
     }
     .order-item:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-0.5px);
+        box-shadow: var(--shadow-md); /* Deeper shadow on hover */
+        transform: translateY(-1px); /* Subtle lift */
+    }
+    .order-item strong {
+        color: var(--primary-blue);
+    }
+    .order-item span {
+        color: var(--text-dark);
     }
     .order-item .item-detail {
-        gap: 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
     }
     .order-item .item-detail .label {
-        min-width: 60px; /* Adjusted min-width */
-        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-medium);
+        min-width: 90px;
     }
     .order-item .item-detail .value {
-        font-size: 0.8rem;
+        flex-grow: 1;
     }
 
-    /* Code Block Styling (for email body) */
+    /* Code Block Styling */
     .stCode {
-        background-color: var(--bg-light);
-        border-radius: 8px; /* Reduced roundedness */
-        padding: 1rem; /* Reduced padding */
-        font-size: 0.85rem; /* Reduced font size */
-        line-height: 1.5; /* Reduced line height */
+        background-color: #f0f2f5; /* Lighter background for code */
+        border-radius: 14px; /* Consistent roundedness */
+        padding: 1.8rem; /* Increased padding */
+        font-size: 0.98rem; /* Slightly larger font */
+        line-height: 1.7; /* Increased line height for readability */
+        white-space: pre-wrap; /* Ensure wrapping */
+        word-break: break-all;
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-color);
     }
 
     /* Responsive Adjustments */
     @media (max-width: 768px) {
-        h1 { font-size: 1.8rem; margin-bottom: 1rem; }
-        h2 { font-size: 1.4rem; }
-        .main .block-container { padding: 0.8rem 0.5rem; }
-        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.15rem; }
-        .copy-button { width: 100%; margin-top: 0.4rem; }
-        .info-card, .success-card, .warning-card, .error-card { padding: 0.6rem 0.8rem; font-size: 0.8rem; }
-        .stButton button { padding: 0.5rem 0.8rem; font-size: 0.85rem; }
-        .extracted-data-card { padding: 0.8rem; }
-        .extracted-data-card h3 { font-size: 1rem; }
-        .order-item { padding: 0.5rem; }
+        h1 { font-size: 2.2rem; margin-bottom: 2rem; }
+        h2 { font-size: 1.8rem; }
+        .main .block-container { padding: 1.5rem; }
+        .extracted-data-card .field-row { flex-direction: column; align-items: flex-start; }
+        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.25rem; }
+        .data-display-box { flex-direction: column; align-items: flex-start; }
+        .copy-button { width: 100%; margin-top: 0.5rem; }
+        .info-card, .success-card, .warning-card, .error-card { padding: 1rem 1.2rem; }
+        .stButton button { padding: 0.7rem 1.2rem; font-size: 0.95rem; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -639,7 +674,7 @@ with col_left:
     st.subheader("1. Paste Shopify Order Export")
     st.markdown("""
         <div class="info-card">
-            <span style="font-size: 1.2rem;">📄</span>
+            <span style="font-size: 1.5rem;">📄</span>
             Paste the full text from your Shopify order export summary below.
             We'll automatically extract all the necessary details.
         </div>
@@ -658,6 +693,7 @@ with col_left:
         if st.button("✨ Generate Order Email", use_container_width=True):
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
+                # Removed spinner as LLM is no longer used, parsing is fast
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input)
                 st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"] # Re-assign missing flags
                 
@@ -672,6 +708,7 @@ with col_left:
         if st.button("🚨 High-Risk Email", use_container_width=True): # Shorter button text
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
+                # Removed spinner
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input)
                 st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"] # Re-assign missing flags
                 
@@ -686,6 +723,7 @@ with col_left:
         if st.button("↩️ Return Email Template", use_container_width=True):
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
+                # Removed spinner
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input) # Parse to get customer name
                 st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"] # Re-assign missing flags
                 
@@ -696,9 +734,6 @@ with col_left:
                 st.rerun()
             else:
                 st.warning("Please paste the order export text to generate a return email.")
-    
-    # Placed Reset All button below the main generation buttons for clarity
-    st.button("🔄 Reset All", on_click=reset_app_state, use_container_width=True)
 
 
 with col_right:
@@ -706,116 +741,148 @@ with col_right:
     
     # Conditionally display content based on whether an email has been generated
     if st.session_state.generated_email_body:
-        # Display recipient email (moved to top)
-        st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
-        st.markdown(f"""
-            <div class="data-display-box">
-                <span>{st.session_state.parsed_data.get('email_address', 'N/A')}</span>
-                <button class="copy-button" id="copyEmailBtn" onclick="copyToClipboard(
-                    '{st.session_state.parsed_data.get('email_address', 'N/A').replace("'", "\\'")}', 'copyEmailBtn'
-                )">Copy</button>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # Display email subject
-        st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
-        st.markdown(f"""
-            <div class="data-display-box">
-                <span>{st.session_state.generated_subject}</span>
-                <button class="copy-button" id="copySubjectBtn" onclick="copyToClipboard(
-                    '{st.session_state.generated_subject.replace("'", "\\'")}', 'copySubjectBtn'
-                )">Copy</button>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # Display email body
-        st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
-        st.code(st.session_state.generated_email_body, language="text")
-        
-        js_safe_email_body = json.dumps(st.session_state.generated_email_body)
-        st.markdown(f"""
-            <div style="text-align: right; margin-top: -1rem; margin-bottom: 1rem;">
-                <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
-                    {js_safe_email_body}, 'copyBodyBtn'
-                )">Copy Email Body</button>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # Display info/warning/success cards (kept after email content for context)
-        if st.session_state.missing_info_flags and st.session_state.current_step == "generate_standard":
-            missing_text = ", ".join(st.session_state.missing_info_flags)
+        # Re-introducing the warning card for missing info flags
+        if st.session_state.current_step == "generate_standard" and st.session_state.missing_info_flags:
             st.markdown(f"""
                 <div class="warning-card">
-                    <span style="font-size: 1.2rem;">⚠️</span>
-                    <strong>Missing Information:</strong> Could not automatically extract: {missing_text}.
-                    Please verify the generated email and manually add/correct these details.
+                    <span style="font-size: 1.5rem;">⚠️</span>
+                    We couldn't find all the information automatically. Please double-check the following fields in the email: <strong>{', '.join(st.session_state.missing_info_flags)}</strong>.
                 </div>
             """, unsafe_allow_html=True)
-        elif st.session_state.current_step == "generate_high_risk":
-            st.markdown("""
-                <div class="warning-card">
-                    <span style="font-size: 1.2rem;">🚨</span>
-                    This is the email for high-risk order cancellations. Please review carefully before sending.
-                </div>
-            """, unsafe_allow_html=True)
-        elif st.session_state.current_step == "generate_return":
-            st.markdown("""
-                <div class="info-card">
-                    <span style="font-size: 1.2rem;">↩️</span>
-                    This is the return mail template. Ensure the customer name is correct.
-                </div>
-            """, unsafe_allow_html=True)
-        else: # For standard with no missing info
+        else: # For high-risk, return, or standard with no missing info
             st.markdown("""
                 <div class="success-card">
-                    <span style="font-size: 1.2rem;">✅</span>
+                    <span style="font-size: 1.5rem;">✅</span>
                     Email generated successfully! Ready to copy and send.
                 </div>
             """, unsafe_allow_html=True)
 
-        # Display extracted information card (only for standard email, or if user wants to see it for others)
         if st.session_state.current_step == "generate_standard":
+            # Display standard email details
+            st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
             st.markdown(f"""
-                <div class="extracted-data-card">
-                    <h3><span style="font-size: 1.2rem;">🔍</span> Additional Order Details</h3>
-                    <div class="field-row">
-                        <span class="field-label">Customer Name:</span>
-                        <span class="field-value-display">{st.session_state.parsed_data.get('customer_name', '[Not Found]')}</span>
-                    </div>
-                    <div class="field-row">
-                        <span class="field-label">Order Number:</span>
-                        <span class="field-value-display">{st.session_state.parsed_data.get('order_number', '[Not Found]')}</span>
-                    </div>
-                    <div class="field-row">
-                        <span class="field-label">Phone:</span>
-                        <span class="field-value-display">{st.session_state.parsed_data.get('phone_number', '[Not Found]')}</span>
-                    </div>
-                    <h4>Order Items:</h4>
+                <div class="data-display-box">
+                    <span>{st.session_state.parsed_data.get('email_address', 'N/A')}</span>
+                    <button class="copy-button" id="copyEmailBtn" onclick="copyToClipboard(
+                        '{st.session_state.parsed_data.get('email_address', 'N/A').replace("'", "\\'")}', 'copyEmailBtn'
+                    )">Copy</button>
+                </div>
             """, unsafe_allow_html=True)
 
-            if st.session_state.parsed_data.get("items"):
-                for item in st.session_state.parsed_data["items"]:
-                    st.markdown(f"""
-                        <div class="order-item">
-                            <div class="item-detail"><span class="label">Product:</span> <span class="value">{item.get('product_name', 'N/A')}</span></div>
-                            <div class="item-detail"><span class="label">Style Code:</span> <span class="value">{item.get('style_code', 'N/A')}</span></div>
-                            <div class="item-detail"><span class="label">Size:</span> <span class="value">{item.get('size', 'Size Not Found')}</span></div>
-                            <div class="item-detail"><span class="label">Quantity:</span> <span class="value">{item.get('quantity', 1)}</span></div>
-                        </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.markdown("""<div class="info-card">No items extracted.</div>""", unsafe_allow_html=True)
+            st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.generated_subject}</span>
+                    <button class="copy-button" id="copySubjectBtn" onclick="copyToClipboard(
+                        '{st.session_state.generated_subject.replace("'", "\\'")}', 'copySubjectBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
 
-            st.markdown("</div>", unsafe_allow_html=True) # Close extracted-data-card
+            st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
+            st.code(st.session_state.generated_email_body, language="text")
+            
+            # Fix applied here: Use json.dumps to safely embed the email body into JavaScript
+            js_safe_email_body = json.dumps(st.session_state.generated_email_body)
+            st.markdown(f"""
+                <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
+                    <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
+                        {js_safe_email_body}, 'copyBodyBtn'
+                    )">Copy Email Body</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📱 Customer Phone Number:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.parsed_data.get('phone_number', 'N/A')}</span>
+                    <button class="copy-button" id="copyPhoneBtn" onclick="copyToClipboard(
+                        '{st.session_state.parsed_data.get('phone_number', 'N/A').replace("'", "\\'")}', 'copyPhoneBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+        elif st.session_state.current_step == "generate_high_risk":
+            st.markdown("""
+                <div class="warning-card">
+                    <span style="font-size: 1.5rem;">🚨</span>
+                    This is the email for high-risk order cancellations. Please review carefully before sending.
+                </div>
+            """, unsafe_allow_html=True)
+
+            # Display high-risk email details
+            st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.generated_subject}</span>
+                    <button class="copy-button" id="copyHRSubjectBtn" onclick="copyToClipboard(
+                        '{st.session_state.generated_subject.replace("'", "\\'")}', 'copyHRSubjectBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
+            st.code(st.session_state.generated_email_body, language="text")
+
+            # Fix applied here for high-risk email as well
+            js_safe_email_body_hr = json.dumps(st.session_state.generated_email_body)
+            st.markdown(f"""
+                <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
+                    <button class="copy-button" id="copyHRBodyBtn" onclick="copyToClipboard(
+                        {js_safe_email_body_hr}, 'copyHRBodyBtn'
+                    )">Copy Email Body</button>
+                </div>
+            """, unsafe_allow_html=True)
+            
+        elif st.session_state.current_step == "generate_return":
+            st.markdown("""
+                <div class="info-card">
+                    <span style="font-size: 1.5rem;">↩️</span>
+                    This is the return mail template. Ensure the customer name is correct.
+                </div>
+            """, unsafe_allow_html=True)
+
+            # Display return email details
+            st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.parsed_data.get('email_address', 'N/A')}</span>
+                    <button class="copy-button" id="copyReturnEmailBtn" onclick="copyToClipboard(
+                        '{st.session_state.parsed_data.get('email_address', 'N/A').replace("'", "\\'")}', 'copyReturnEmailBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.generated_subject}</span>
+                    <button class="copy-button" id="copyReturnSubjectBtn" onclick="copyToClipboard(
+                        '{st.session_state.generated_subject.replace("'", "\\'")}', 'copyReturnSubjectBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
+            st.code(st.session_state.generated_email_body, language="text")
+
+            js_safe_email_body_return = json.dumps(st.session_state.generated_email_body)
+            st.markdown(f"""
+                <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
+                    <button class="copy-button" id="copyReturnBodyBtn" onclick="copyToClipboard(
+                        {js_safe_email_body_return}, 'copyReturnBodyBtn'
+                    )">Copy Email Body</button>
+                </div>
+            """, unsafe_allow_html=True)
 
         # Always show "Start New Order" button on the right side if an email has been generated
         st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True)
     else:
-        # Placeholder message when no email has been generated yet, now using custom card style
+        # Placeholder message when no email has been generated yet
         st.markdown("""
             <div class="info-card" style="min-height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-                <span style="font-size: 2.2rem; margin-bottom: 0.7rem;">✨</span>
-                <p style="font-size: 1rem; font-weight: 600;">Your generated email will appear here.</p>
-                <p style="color: var(--text-medium); font-size: 0.85rem;">Paste your order details on the left and click 'Generate Email' to see the magic!</p>
+                <span style="font-size: 3rem; margin-bottom: 1rem;">✨</span>
+                <p style="font-size: 1.2rem; font-weight: 600;">Your generated email will appear here.</p>
+                <p style="color: var(--text-medium);">Paste your order details on the left and click 'Generate Email' to see the magic!</p>
             </div>
         """, unsafe_allow_html=True)
