@@ -465,25 +465,24 @@ def parse_shopify_export(raw_text_input):
                 # Pattern 1: Common letter sizes (S, M, L, XL, etc.) or "One Size"
                 size_match = re.search(r"\b(XS|S|M|L|XL|XXL|XXXL|One Size|OS)\b", potential_detail_line, re.IGNORECASE)
                 
-                # Pattern 2: Sizes like "M / YLW" or "16 / BS"
+                # Pattern 2: Sizes like "M / YLW" or "16 / BS" (size is the first part before /)
                 if not size_match:
-                    size_match = re.search(r"(\b\d{1,2}\b|\b[A-Z]{1,3}\b)\s*/\s*[A-Z0-9]+", potential_detail_line, re.IGNORECASE)
-                    if size_match:
-                        size = size_match.group(1).strip() # Capture the first group (the actual size part)
+                    match_slash_size = re.search(r"(\b\d{1,2}\b|\b[A-Z]{1,3}\b)\s*/\s*[A-Z0-9]+", potential_detail_line, re.IGNORECASE)
+                    if match_slash_size:
+                        size = match_slash_size.group(1).strip() # Capture the first group (the actual size part)
                         found_size_for_item = True
-                        # If a size is found in this format, it's usually definitive, no need to check other patterns
-                        # and we can break from scanning for size.
-                        # However, we still need to ensure quantity is captured.
                         
-                # Pattern 3: Standalone numeric sizes (e.g., "12", "32/30", "US 10")
-                # This regex is very strict to avoid matching prices or parts of SKUs.
-                # It looks for a number (1-3 digits, optional / and 1-2 digits) that is
-                # either at the start/end of the line, or surrounded by non-word characters.
-                # It also explicitly avoids matching numbers that look like decimals (.00) or long numbers (SKUs).
-                if not size_match:
-                    size_match = re.search(r"^(?:US|EU)?\s*(\d{1,3}(?:/\d{1,2})?)\s*$", potential_detail_line, re.IGNORECASE)
-                    if not size_match: # Broader search if the strict one fails, but still avoids prices/SKUs
-                        size_match = re.search(r"\b(?:US|EU)?\s*(\d{1,3}(?:/\d{1,2})?)\b(?!\.\d{2}|\d{4,})", potential_detail_line, re.IGNORECASE)
+                # Pattern 3: Standalone numeric sizes, but ONLY if the line doesn't contain "SKU" or "$"
+                if not size_match: # Only attempt if size not found by previous patterns
+                    if "SKU" not in potential_detail_line.upper() and "$" not in potential_detail_line:
+                        # Very strict: must be just the number or number/number on the line
+                        # Ensures it's a standalone size, not part of a larger number or price.
+                        numeric_size_match = re.search(r"^\s*(?:US|EU)?\s*(\d{1,3}(?:/\d{1,2})?)\s*$", potential_detail_line, re.IGNORECASE)
+                        if numeric_size_match:
+                            size = numeric_size_match.group(1).strip()
+                            found_size_for_item = True
+                        # No need for the broader search here, the strict one is safer given the context.
+                        # If it's not a standalone size line, it's probably not a size.
 
                 if size_match and not found_size_for_item: # Only assign if size hasn't been found yet
                     size = size_match.group(0).strip()
@@ -514,6 +513,12 @@ def parse_shopify_export(raw_text_input):
 
     if not data["items"]:
         data["missing_info"].append("Order Items")
+    
+    # Add "Item Sizes" to missing_info if any item still has "Size Not Found" after all attempts
+    for item in data["items"]:
+        if item["size"] == "Size Not Found" and "Item Sizes" not in data["missing_info"]:
+            data["missing_info"].append("Item Sizes")
+
 
     return data
 
