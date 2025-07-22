@@ -79,14 +79,15 @@ with st.container():
         if generate and raw_text:
             st.session_state.raw_text = raw_text
 
+            # Extract Customer Name
             name_match = re.search(r"Customer\s*\n(.*)", raw_text)
             if not name_match:
                 name_match = re.search(r"Shipping address\s*\n(.*)", raw_text)
             if not name_match:
                 name_match = re.search(r"Billing address\s*\n(.*)", raw_text)
-
             customer_name = name_match.group(1).strip() if name_match else "[Customer Name Not Found]"
 
+            # Extract Email, Phone, Order Number
             email_match = re.search(r"[\w\.-]+@[\w\.-]+", raw_text)
             phone_match = re.search(r"\+1[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-()]*\d{4}", raw_text)
             order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text)
@@ -95,50 +96,63 @@ with st.container():
             phone_number = phone_match.group(0).strip() if phone_match else "[Phone Not Found]"
             order_number = order_number_match.group(1).strip() if order_number_match else "[Order # Not Found]"
 
+            # Parse Order Items
             lines = [line.strip() for line in raw_text.split('\n') if line.strip() != ""]
             items = []
             i = 0
             while i < len(lines):
                 line = lines[i]
+                # Identify product lines by their format ending with " - SKU"
                 if re.search(r" - [A-Z0-9\-]+$", line) and not any(skip in line for skip in ["SKU", "Discount"]):
                     product_line = line
                     product_name, style_code = product_line.rsplit(" - ", 1)
                     size = "[Size Not Found]"
 
-                    for offset in range(1, 5):
+                    # Look for size in subsequent lines
+                    for offset in range(1, 5): # Check up to 4 lines after the product line
                         if i + offset < len(lines):
                             size_line = lines[i + offset]
+                            # Regex to match common size formats (e.g., "32 / DK.BLU", "XS", "M")
+                            # Ensure it's not a price or SKU line
                             if re.match(r"^(\d{1,2}[\s/]?[A-Z]{2,3}|[XSML]{1,2})", size_line) and not size_line.startswith("$") and not size_line.startswith("SKU"):
                                 size_parts = re.split(r"[ /]", size_line.strip())
                                 size = size_parts[0].strip()
                                 break
-
+                
                     items.append((product_name.strip(), style_code.strip(), size))
                 i += 1
 
-            order_details = "\n\n".join([
-                f"- Item {idx+1}:\n•\u2060  \u2060Product: {p}\n•\u2060  \u2060Style Code: {s}\n•\u2060  \u2060Size: {z}" 
-                for idx, (p, s, z) in enumerate(items)
-            ])
+            # Construct Order Details string based on item count
+            order_details_list = []
+            for idx, (p, s, z) in enumerate(items):
+                item_detail = f"- Item {idx+1}:\n•\u2060  \u2060Product: {p}\n•\u2060  \u2060Size: {z}"
+                # Only include Style Code if there are multiple items
+                if len(items) > 1:
+                    item_detail += f"\n•\u2060  \u2060Style Code: {s}"
+                order_details_list.append(item_detail)
 
+            order_details = "\n\n".join(order_details_list)
+
+            # Construct Email Subject and Message
             subject = f"Final Order Confirmation of dazzlepremium#{order_number}"
             message = f"""Hello {customer_name},
 
 This is DAZZLE PREMIUM Support confirming Order {order_number}
 
-- Please reply YES to confirm just this order only.
-- Kindly also reply YES to the SMS sent automatically to your inbox.
+**- Please reply YES to confirm just this order only.**
+**- Kindly also reply YES to the SMS sent automatically to your inbox.**
 
 Order Details:
 {order_details}
 
 For your security, we use two-factor authentication. If this order wasn’t placed by you, text us immediately at 410-381-0000 to cancel.
 
-Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.
+**Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.**
 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
 
+            # Check for missing information and display warnings
             missing_info = []
             if "[Customer Name Not Found]" in customer_name:
                 missing_info.append("Customer Name")
@@ -156,13 +170,15 @@ Thank you for choosing DAZZLE PREMIUM!"""
             else:
                 st.markdown("<div style='background-color:#d4edda;padding:1rem;border-radius:10px;color:#155724;font-weight:bold;margin-bottom:1rem;'>✅ All information looks good. Ready to copy and send.</div>", unsafe_allow_html=True)
 
+            # Display generated email components
             st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
-            st.code(message, language="text")
+            st.code(message, language="text") # Use st.code for the message to preserve formatting
             st.markdown(f"<h4>📱 Phone Number:</h4><div class='subject-box'>{phone_number}</div>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
         elif high_risk and raw_text:
+            # Logic for High-Risk Order Email
             name_match = re.search(r"Customer\s*\n(.*)", raw_text)
             if not name_match:
                 name_match = re.search(r"Shipping address\s*\n(.*)", raw_text)
@@ -183,9 +199,11 @@ Once the payment is received, we will immediately process your order and provide
 If you have any questions or need assistance, feel free to reply to this email."""
 
             st.markdown("<div style='background-color:#fff3cd;padding:1rem;border-radius:10px;color:#856404;font-weight:bold;margin-bottom:1rem;'>⚠️ High-Risk Order Notice</div>", unsafe_allow_html=True)
-            st.code(high_risk_msg, language="text")
+            st.code(high_risk_msg, language="text") # Use st.code for the message
+            st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
-    if not raw_text:
+    # Display warning if raw_text is empty and generate/high_risk buttons are clicked
+    if (generate or high_risk) and not raw_text:
         st.warning("Please paste the order export before generating the message.")
 
 st.markdown("""</div>""", unsafe_allow_html=True)
