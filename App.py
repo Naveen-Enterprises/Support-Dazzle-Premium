@@ -111,12 +111,20 @@ with st.container():
                     # Look for size in subsequent lines
                     for offset in range(1, 5): # Check up to 4 lines after the product line
                         if i + offset < len(lines):
-                            size_line = lines[i + offset]
-                            # Regex to match common size formats (e.g., "32 / DK.BLU", "XS", "M")
-                            # Ensure it's not a price or SKU line
-                            if re.match(r"^(\d{1,2}[\s/]?[A-Z]{2,3}|[XSML]{1,2})", size_line) and not size_line.startswith("$") and not size_line.startswith("SKU"):
-                                size_parts = re.split(r"[ /]", size_line.strip())
-                                size = size_parts[0].strip()
+                            size_line = lines[i + offset].strip()
+                            # Attempt to match numerical/alphanumeric size (e.g., "32 / DK.BLU")
+                            size_match_num_alpha = re.match(r"^(\d{1,2})\s*[/]?\s*([A-Za-z0-9.\s]+)", size_line)
+                            if size_match_num_alpha:
+                                size = size_match_num_alpha.group(1).strip() # Capture only the numerical part
+                                break
+                            # Attempt to match common letter sizes (e.g., "XS", "M")
+                            size_match_letters = re.match(r"^[XSML]{1,2}[XS]?", size_line)
+                            if size_match_letters:
+                                size = size_match_letters.group(0).strip()
+                                break
+                            # Fallback: if it's not price or SKU and looks like a simple size string
+                            if not size_line.startswith("$") and not size_line.startswith("SKU") and len(size_line) > 0 and len(size_line) < 10:
+                                size = size_line
                                 break
                 
                     items.append((product_name.strip(), style_code.strip(), size))
@@ -125,7 +133,13 @@ with st.container():
             # Construct Order Details string based on item count
             order_details_list = []
             for idx, (p, s, z) in enumerate(items):
-                item_detail = f"- Item {idx+1}:\n•\u2060  \u2060Product: {p}\n•\u2060  \u2060Size: {z}"
+                # Conditional item count and style code
+                item_prefix = ""
+                if len(items) > 1:
+                    item_prefix = f"- Item {idx+1}:\n"
+                
+                item_detail = f"{item_prefix}•\u2060  \u2060Product: {p}\n•\u2060  \u2060Size: {z}"
+                
                 # Only include Style Code if there are multiple items
                 if len(items) > 1:
                     item_detail += f"\n•\u2060  \u2060Style Code: {s}"
@@ -173,7 +187,8 @@ Thank you for choosing DAZZLE PREMIUM!"""
             # Display generated email components
             st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
-            st.code(message, language="text") # Use st.code for the message to preserve formatting
+            # Changed st.code to st.markdown to render bold text
+            st.markdown(message) 
             st.markdown(f"<h4>📱 Phone Number:</h4><div class='subject-box'>{phone_number}</div>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
@@ -199,7 +214,7 @@ Once the payment is received, we will immediately process your order and provide
 If you have any questions or need assistance, feel free to reply to this email."""
 
             st.markdown("<div style='background-color:#fff3cd;padding:1rem;border-radius:10px;color:#856404;font-weight:bold;margin-bottom:1rem;'>⚠️ High-Risk Order Notice</div>", unsafe_allow_html=True)
-            st.code(high_risk_msg, language="text") # Use st.code for the message
+            st.markdown(high_risk_msg) # Changed st.code to st.markdown
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
     # Display warning if raw_text is empty and generate/high_risk buttons are clicked
