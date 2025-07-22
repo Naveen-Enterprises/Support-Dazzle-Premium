@@ -151,21 +151,21 @@ with st.container():
             # Construct Email Subject and Message (Plain Text)
             subject = f"Final Order Confirmation of dazzlepremium#{order_number}"
             
-            # Building the message line by line for precise plain text formatting
+            # Building the message line by line for precise plain text formatting, no asterisks for bolding
             message_lines = [
                 f"Hello {customer_name},",
                 "", # Empty line for spacing
                 f"This is DAZZLE PREMIUM Support confirming Order {order_number}",
                 "", # Empty line for spacing
-                "* Please reply YES to confirm just this order only.",
-                "* Kindly also reply YES to the SMS sent automatically to your inbox.",
+                "- Please reply YES to confirm just this order only.",
+                "- Kindly also reply YES to the SMS sent automatically to your inbox.",
                 "", # Empty line for spacing
                 "Order Details:",
                 order_details, # This already contains its own internal newlines
                 "", # Empty line for spacing
                 "For your security, we use two-factor authentication. If this order wasn't placed by you, text us immediately at 410-381-0000 to cancel.",
                 "", # Empty line for spacing
-                "*Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.*",
+                "Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.",
                 "", # Empty line for spacing
                 "If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.",
                 "Thank you for choosing DAZZLE PREMIUM!"
