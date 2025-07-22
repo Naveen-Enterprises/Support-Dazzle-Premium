@@ -301,11 +301,11 @@ if "missing_info_flags" not in st.session_state: # Re-added for regex parser
 
 # --- Helper Functions ---
 
-# Reverting to the original regex-based parsing function
 def parse_shopify_export(raw_text_input):
     """
     Parses the raw Shopify order export text to extract key information.
-    This function uses more robust regex patterns to handle variations.
+    This function uses multiple, redundant regex patterns and fallback strategies
+    to maximize extraction success without human intervention.
     """
     data = {
         "customer_name": "[Customer Name Not Found]",
@@ -316,120 +316,175 @@ def parse_shopify_export(raw_text_input):
         "missing_info": []
     }
 
+    # Normalize input: remove extra spaces, ensure consistent line breaks
+    normalized_text = re.sub(r'\s+', ' ', raw_text_input).strip() # Replace multiple spaces with single
     lines = [line.strip() for line in raw_text_input.split('\n') if line.strip()]
 
-    # --- Extract Customer Name ---
+    # --- Extract Customer Name (Redundancy Level 1: Multiple Patterns) ---
     name_found = False
     
-    # Priority 1: Try to get name from "Order confirmation email was sent to [Name] ([email])"
-    email_sent_match = re.search(r"Order confirmation email was sent to (.*?) \([\w\.-]+@[\w\.-]+\.[\w\.-]+\)", raw_text_input)
+    # Attempt 1: From "Order confirmation email was sent to [Name] ([email])"
+    email_sent_match = re.search(r"Order confirmation email was sent to (.*?) \([\w\.-]+@[\w\.-]+\.[\w\.-]+\)", raw_text_input, re.IGNORECASE)
     if email_sent_match:
         data["customer_name"] = email_sent_match.group(1).strip()
         name_found = True
 
-    # Priority 2: Fallback to "Customer" label, then "Shipping address", then "Billing address"
+    # Attempt 2: From "Customer" or "Contact information" sections
     if not name_found:
         for i, line in enumerate(lines):
-            if re.search(r"Customer\s*$", line, re.IGNORECASE) and i + 1 < len(lines):
-                potential_name = lines[i+1].split('\n')[0].strip()
-                if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
-                    data["customer_name"] = potential_name
-                    name_found = True
-                    break
+            # Look for "Customer" or "Contact information" labels
+            if re.search(r"Customer\s*$", line, re.IGNORECASE) or re.search(r"Contact information\s*$", line, re.IGNORECASE):
+                # Try to find the name on the next line
+                if i + 1 < len(lines):
+                    potential_name = lines[i+1].split('\n')[0].strip()
+                    # Ensure it doesn't look like an email or phone number
+                    if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
+                        data["customer_name"] = potential_name
+                        name_found = True
+                        break
+            # Attempt 3: From "Shipping address" or "Billing address" sections
             elif (re.search(r"Shipping address\s*$", line, re.IGNORECASE) or \
-                  re.search(r"Billing address\s*$", line, re.IGNORECASE)) and i + 1 < len(lines):
-                potential_name = lines[i+1].split('\n')[0].strip()
-                if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
-                    data["customer_name"] = potential_name
-                    name_found = True
-                    break
+                  re.search(r"Billing address\s*$", line, re.IGNORECASE)):
+                # Try to find the name on the next line
+                if i + 1 < len(lines):
+                    potential_name = lines[i+1].split('\n')[0].strip()
+                    if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
+                        data["customer_name"] = potential_name
+                        name_found = True
+                        break
     
     if not name_found or data["customer_name"] == "[Customer Name Not Found]":
         data["missing_info"].append("Customer Name")
 
 
-    # --- Extract Email Address ---
+    # --- Extract Email Address (Redundancy Level 1: Multiple Patterns) ---
+    # Attempt 1: General email pattern
     email_match = re.search(r"[\w\.-]+@[\w\.-]+\.[\w\.-]+", raw_text_input)
     if email_match:
         data["email_address"] = email_match.group(0).strip()
     else:
-        data["missing_info"].append("Email Address")
+        # Attempt 2: Look for "Email:" label explicitly
+        email_label_match = re.search(r"Email:\s*([\w\.-]+@[\w\.-]+\.[\w\.-]+)", raw_text_input, re.IGNORECASE)
+        if email_label_match:
+            data["email_address"] = email_label_match.group(1).strip()
+        else:
+            data["missing_info"].append("Email Address")
 
-    # --- Extract Phone Number ---
-    # More flexible phone number regex for common US formats
+    # --- Extract Phone Number (Redundancy Level 1: Multiple Patterns) ---
+    # Attempt 1: Flexible US phone number regex (common formats)
     phone_match = re.search(r"(\+1[\s\-()]?\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4}|\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4})", raw_text_input)
     if phone_match:
         data["phone_number"] = phone_match.group(0).strip()
     else:
-        data["missing_info"].append("Phone Number")
+        # Attempt 2: Look for "Phone:" label explicitly
+        phone_label_match = re.search(r"(?:Phone|Tel|Contact):\s*(\+?\d[\d\s\-\(\).]{7,})", raw_text_input, re.IGNORECASE)
+        if phone_label_match:
+            data["phone_number"] = phone_label_match.group(1).strip()
+        else:
+            data["missing_info"].append("Phone Number")
 
-    # --- Extract Order Number ---
+    # --- Extract Order Number (Redundancy Level 1: Multiple Patterns) ---
+    # Attempt 1: dazzlepremium# followed by digits
     order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text_input, re.IGNORECASE)
     if order_number_match:
         data["order_number"] = order_number_match.group(1).strip()
     else:
-        data["missing_info"].append("Order Number")
+        # Attempt 2: General "Order #" or "Order Number" followed by digits
+        order_number_match_general = re.search(r"(?:Order #|Order Number|Invoice #)\s*(\d+)", raw_text_input, re.IGNORECASE)
+        if order_number_match_general:
+            data["order_number"] = order_number_match_general.group(1).strip()
+        else:
+            data["missing_info"].append("Order Number")
 
-    # --- Extract Items ---
-    # This is the trickiest part, relies on specific patterns in Shopify export.
-    # We look for lines that look like product names, then try to find size/SKU below them.
+    # --- Extract Items (Redundancy Level 2: Layered Heuristics) ---
+    # Strategy: Find lines that look like product names, then parse details from surrounding lines.
     
-    # A list to hold the raw product lines and their potential indices
     product_lines_info = []
+    # Heuristic 1: Lines containing " - " and ending with a style code (e.g., "Product Name - STYLECODE")
     for i, line in enumerate(lines):
-        # Heuristic: A line containing " - " and a potential SKU-like pattern
-        # and not explicitly a SKU or Discount line itself
         if " - " in line and re.search(r" - [A-Z0-9\-]+$", line) and \
-           not any(kw in line.lower() for kw in ["sku", "discount", "subtotal", "shipping", "tax", "total"]):
+           not any(kw in line.lower() for kw in ["sku", "discount", "subtotal", "shipping", "tax", "total", "paid", "balance"]):
             product_lines_info.append({"line": line, "index": i})
+    
+    # Heuristic 2: Lines containing a price and a quantity (e.g., "$57.00 x 1")
+    # This helps identify product lines that might not have a style code in their main name
+    if not product_lines_info: # Only try this if Heuristic 1 didn't find anything
+        for i, line in enumerate(lines):
+            if re.search(r"\$\d+\.\d{2}\s*x\s*\d+", line) and \
+               not any(kw in line.lower() for kw in ["sku", "discount", "subtotal", "shipping", "tax", "total", "paid", "balance"]):
+                # Try to infer product name from the line above or current line if it seems like a product
+                if i > 0 and " - " in lines[i-1]: # Check line above for typical product format
+                    product_lines_info.append({"line": lines[i-1], "index": i-1})
+                else: # Fallback: use the line itself as product name, will need manual review
+                     # This might pick up non-product lines, so it's a last resort
+                    product_lines_info.append({"line": line.split('$')[0].strip(), "index": i})
+
+
+    processed_indices = set() # To avoid processing the same product line multiple times
 
     for prod_info in product_lines_info:
-        product_name = prod_info["line"].rsplit(" - ", 1)[0].strip()
-        style_code = prod_info["line"].rsplit(" - ", 1)[1].strip()
         line_idx = prod_info["index"]
-        
-        size = "N/A" # Default to N/A for cleaner output
-        size_found_explicitly = False
-        quantity = 1 # Default quantity
+        if line_idx in processed_indices:
+            continue # Skip if already processed
 
-        # Look for size/quantity in the next few lines
-        for offset in range(1, 5): # Check up to 4 lines after product line
+        product_name = "Unknown Product"
+        style_code = "N/A"
+        size = "N/A"
+        quantity = 1
+
+        # Extract product name and style code from the identified product line
+        if " - " in prod_info["line"]:
+            parts = prod_info["line"].rsplit(" - ", 1)
+            product_name = parts[0].strip()
+            style_code = parts[1].strip()
+        else:
+            product_name = prod_info["line"] # Use full line as product name if no " - "
+
+        # Look for size and quantity in the next few lines (Redundancy Level 3: Iterative Scan)
+        for offset in range(1, 6): # Scan up to 5 lines after the product line
             if line_idx + offset < len(lines):
-                potential_line = lines[line_idx + offset]
+                potential_detail_line = lines[line_idx + offset]
                 
-                # Try to extract quantity first (e.g., "$57.00 x 1")
-                qty_match = re.search(r"x\s*(\d+)", potential_line, re.IGNORECASE)
+                # Attempt to extract Quantity
+                qty_match = re.search(r"x\s*(\d+)", potential_detail_line, re.IGNORECASE)
                 if qty_match:
                     quantity = int(qty_match.group(1))
+                    processed_indices.add(line_idx + offset) # Mark this line as processed if it contains quantity
 
-                # Heuristic for size line:
-                # - Contains common size patterns (e.g., "M", "XL", "32", "32/30", "US 10")
-                # - Not a price or SKU line
-                if re.match(r"^((\d{1,2}(/\d{1,2})?[\s/]?[A-Z]{2,3})|[XSML]{1,3}|[0-9]{1,2}|US\s*\d{1,2}|EU\s*\d{1,2})\b", potential_line, re.IGNORECASE) and \
-                   not potential_line.startswith("$") and not "SKU" in potential_line.upper():
-                    size = potential_line.split('\n')[0].strip().split(' ')[0] # Take the first part of the size line
-                    size_found_explicitly = True
-                    # If size is found, we can break from this inner loop for size
-                    # Quantity might be on the same line or previous, so keep looking for it if not found yet
-                    # For simplicity, if size is found, assume we've processed this item's details.
-                    break 
-        
+                # Attempt to extract Size (more flexible patterns)
+                # Common sizes: S, M, L, XL, XS, XXL, XXXL
+                # Numeric sizes: 10, 32, 32/30, US 10, EU 42
+                # Specific patterns like "One Size"
+                size_match = re.search(r"\b(XS|S|M|L|XL|XXL|XXXL|One Size|OS)\b", potential_detail_line, re.IGNORECASE)
+                if not size_match:
+                    size_match = re.search(r"\b(?:US|EU)?\s*(\d{1,2}(?:/\d{1,2})?)\b", potential_detail_line, re.IGNORECASE)
+                
+                if size_match:
+                    size = size_match.group(0).strip()
+                    processed_indices.add(line_idx + offset) # Mark this line as processed if it contains size
+                    # If size and quantity are found on different lines, we want to capture both.
+                    # We continue scanning for other details if not all found.
+
+                # If SKU is found, we know this is a detail line, but not the primary name
+                if "SKU:" in potential_detail_line.upper():
+                    processed_indices.add(line_idx + offset)
+                
+                # If we hit a line that signifies end of product details (e.g., another product, subtotal, discount)
+                if any(kw in potential_detail_line.lower() for kw in ["subtotal", "discount", "shipping", "tax", "total"]) or \
+                   (re.search(r" - [A-Z0-9\-]+$", potential_detail_line) and potential_detail_line != prod_info["line"]):
+                    break # Stop scanning for details for this item
+
         # Special handling for "Sock" products if no explicit size was found
-        if not size_found_explicitly and "sock" in product_name.lower():
+        if size == "N/A" and "sock" in product_name.lower():
             size = "One Size"
 
         data["items"].append({
             "product_name": product_name,
             "style_code": style_code,
             "size": size,
-            "quantity": quantity # Added quantity to the parsed data
+            "quantity": quantity
         })
-        
-        # If size is still N/A and it's not a sock, flag it
-        if size == "N/A" and "sock" not in product_name.lower():
-            if "Item Sizes" not in data["missing_info"]:
-                data["missing_info"].append("Item Sizes")
-
+        processed_indices.add(line_idx) # Mark the main product line as processed
 
     if not data["items"]:
         data["missing_info"].append("Order Items")
