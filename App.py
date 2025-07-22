@@ -449,24 +449,28 @@ def parse_shopify_export(raw_text_input):
                 qty_match = re.search(r"x\s*(\d+)", potential_detail_line, re.IGNORECASE)
                 if qty_match:
                     quantity = int(qty_match.group(1))
-                    processed_indices.add(line_idx + offset) # Mark this line as processed if it contains quantity
+                    # Do NOT add to processed_indices here, as other details might be on the same line.
+                    # This line is primarily for quantity, not a full item description.
 
                 # Attempt to extract Size (more flexible patterns)
                 # Prioritize common letter sizes and "One Size"
                 size_match = re.search(r"\b(XS|S|M|L|XL|XXL|XXXL|One Size|OS)\b", potential_detail_line, re.IGNORECASE)
                 
-                # If no letter size, try numeric sizes, but be careful not to pick up prices
+                # If no letter size, try numeric sizes, but be careful not to pick up prices or SKUs
                 if not size_match:
-                    # This regex tries to match a number that is likely a size, not a price.
-                    # It looks for numbers that are typically small (1-2 digits),
+                    # This regex tries to match a standalone number that is likely a size.
+                    # It looks for numbers that are typically small (1-3 digits),
                     # optionally followed by / and another 1-2 digits,
-                    # and ensures it's not preceded by '$' or part of a decimal number.
-                    size_match = re.search(r"(?<!\$)\b(?:US|EU)?\s*(\d{1,2}(?:/\d{1,2})?)\b(?!\.\d)", potential_detail_line, re.IGNORECASE)
+                    # and ensures it's not preceded by '$' or part of a decimal number (like .00).
+                    # It also tries to avoid matching within long strings of digits (like SKUs).
+                    size_match = re.search(r"^\s*(?:US|EU)?\s*(\d{1,3}(?:/\d{1,2})?)\s*$", potential_detail_line, re.IGNORECASE)
                     
                 if size_match:
                     size = size_match.group(0).strip()
                     processed_indices.add(line_idx + offset)
-                    break # CRUCIAL: Exit the inner loop once a size is found for this item
+                    # CRUCIAL: Exit the inner loop once a size is found for this item.
+                    # This prevents overwriting a correct size with an incorrect one from a later line.
+                    break 
 
                 # If SKU is found, we know this is a detail line, but not the primary name
                 if "SKU:" in potential_detail_line.upper():
@@ -477,8 +481,9 @@ def parse_shopify_export(raw_text_input):
                    (re.search(r" - [A-Z0-9\-]+$", potential_detail_line) and potential_detail_line != prod_info["line"]):
                     break # Stop scanning for details for this item
 
-        # Special handling for "Sock" products if no explicit size was found
-        if size == "N/A" and "sock" not in product_name.lower():
+        # Special handling for "Sock" products: assign "One Size" if no explicit size was found
+        # This logic was inverted, now corrected: apply if it IS a sock AND size is N/A
+        if size == "N/A" and "sock" in product_name.lower():
             size = "One Size"
 
         data["items"].append({
@@ -506,7 +511,7 @@ def generate_standard_email(parsed_data):
     if len(items) > 1:
         for idx, item in enumerate(items):
             item_detail = (
-                f"- Item {idx+1}:\n"
+                f"- Item {idx+1}:\n" # Display item count only if multiple items
                 f"•\u2060  \u2060Product: {item.get('product_name', 'N/A')}\n"
                 f"•\u2060  \u2060Style Code: {item.get('style_code', 'N/A')}\n"
                 f"•\u2060  \u2060Size: {item.get('size', 'N/A')}"
