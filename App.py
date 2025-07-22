@@ -1,5 +1,6 @@
 import streamlit as st
 import re
+import json # Import the json module
 
 # --- Page Configuration ---
 st.set_page_config(page_title="DAZZLE PREMIUM Order Email Generator", layout="wide", initial_sidebar_state="collapsed")
@@ -579,10 +580,13 @@ with col_right:
 
             st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
             st.code(st.session_state.generated_email_body, language="text")
+            
+            # Fix applied here: Use json.dumps to safely embed the email body into JavaScript
+            js_safe_email_body = json.dumps(st.session_state.generated_email_body)
             st.markdown(f"""
                 <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
                     <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
-                        `{st.session_state.generated_email_body.replace("`", "\\`")}`, 'copyBodyBtn'
+                        {js_safe_email_body}, 'copyBodyBtn'
                     )">Copy Email Body</button>
                 </div>
             """, unsafe_allow_html=True)
@@ -618,10 +622,13 @@ with col_right:
 
             st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
             st.code(st.session_state.generated_email_body, language="text")
+
+            # Fix applied here for high-risk email as well
+            js_safe_email_body_hr = json.dumps(st.session_state.generated_email_body)
             st.markdown(f"""
                 <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
                     <button class="copy-button" id="copyHRBodyBtn" onclick="copyToClipboard(
-                        `{st.session_state.generated_email_body.replace("`", "\\`")}`, 'copyHRBodyBtn'
+                        {js_safe_email_body_hr}, 'copyHRBodyBtn'
                     )">Copy Email Body</button>
                 </div>
             """, unsafe_allow_html=True)
