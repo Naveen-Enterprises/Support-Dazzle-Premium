@@ -291,7 +291,7 @@ function copyToClipboard(text, elementId) {
 
 # --- Initialize Session State ---
 if "current_step" not in st.session_state:
-    st.session_state.current_step = "input"  # input, review, generate_standard, generate_high_risk
+    st.session_state.current_step = "input"  # input, generate_standard, generate_high_risk
 if "raw_text" not in st.session_state:
     st.session_state.raw_text = ""
 if "parsed_data" not in st.session_state:
@@ -509,7 +509,12 @@ if st.session_state.current_step == "input":
                 st.session_state.raw_text = raw_text_input
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input)
                 st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"]
-                st.session_state.current_step = "review"
+                
+                # Directly generate standard email
+                subject, message = generate_standard_email(st.session_state.parsed_data)
+                st.session_state.generated_subject = subject
+                st.session_state.generated_email_body = message
+                st.session_state.current_step = "generate_standard"
                 st.rerun()
             else:
                 st.warning("Please paste the order export text to generate an email.")
@@ -526,102 +531,25 @@ if st.session_state.current_step == "input":
             else:
                 st.warning("Please paste the order export text to generate a high-risk email.")
 
-# --- Step 2: Review & Refine Parsed Data ---
-elif st.session_state.current_step == "review":
-    st.subheader("2. Review & Refine Order Details")
-    st.markdown("""
-        <div class="info-card">
-            <span style="font-size: 1.5rem;">🔍</span>
-            Please review the extracted information below. You can edit any field if needed.
-            Pay special attention to any fields marked with a warning.
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Display warnings if any info is missing
+# --- Display Generated Email (Standard) ---
+elif st.session_state.current_step == "generate_standard":
+    st.subheader("2. Your Generated Email") # Changed from 3 to 2
+    
+    # Display warnings if any info is missing directly here
     if st.session_state.missing_info_flags:
         st.markdown(f"""
             <div class="warning-card">
                 <span style="font-size: 1.5rem;">⚠️</span>
-                We couldn't find all the information automatically. Please double-check the following fields: <strong>{', '.join(st.session_state.missing_info_flags)}</strong>.
+                We couldn't find all the information automatically. Please double-check the following fields in the email: <strong>{', '.join(st.session_state.missing_info_flags)}</strong>.
             </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
             <div class="success-card">
                 <span style="font-size: 1.5rem;">✅</span>
-                All information looks good! Ready to generate your email.
+                All information looks good! Ready to copy and send.
             </div>
         """, unsafe_allow_html=True)
-
-    # Customer Details Card
-    st.markdown("<div class='extracted-data-card'>", unsafe_allow_html=True)
-    st.markdown("<h3><span style='font-size: 1.5rem;'>👤</span> Customer Information</h3>", unsafe_allow_html=True)
-    st.session_state.parsed_data["customer_name"] = st.text_input(
-        "Customer Name",
-        value=st.session_state.parsed_data.get("customer_name", ""),
-        key="edit_customer_name"
-    )
-    st.session_state.parsed_data["email_address"] = st.text_input(
-        "Email Address",
-        value=st.session_state.parsed_data.get("email_address", ""),
-        key="edit_email_address"
-    )
-    st.session_state.parsed_data["phone_number"] = st.text_input(
-        "Phone Number",
-        value=st.session_state.parsed_data.get("phone_number", ""),
-        key="edit_phone_number"
-    )
-    st.session_state.parsed_data["order_number"] = st.text_input(
-        "Order Number",
-        value=st.session_state.parsed_data.get("order_number", ""),
-        key="edit_order_number"
-    )
-    st.markdown("</div>", unsafe_allow_html=True) # Close extracted-data-card
-
-    # Order Items Card
-    st.markdown("<div class='extracted-data-card'>", unsafe_allow_html=True)
-    st.markdown("<h3><span style='font-size: 1.5rem;'>🛍️</span> Order Items</h3>", unsafe_allow_html=True)
-    if st.session_state.parsed_data.get("items"):
-        for i, item in enumerate(st.session_state.parsed_data["items"]):
-            st.markdown(f"<div class='order-item'>", unsafe_allow_html=True)
-            st.markdown(f"<div class='item-detail'><span class='label'>Product:</span> <span class='value'><strong>{item['product_name']}</strong></span></div>", unsafe_allow_html=True)
-            st.markdown(f"<div class='item-detail'><span class='label'>Style Code:</span> <span class='value'>{item['style_code']}</span></div>", unsafe_allow_html=True)
-            
-            # Allow editing of size directly
-            item_size_key = f"item_size_{i}"
-            st.session_state.parsed_data["items"][i]["size"] = st.text_input(
-                f"Size for {item['product_name']}",
-                value=item['size'],
-                key=item_size_key,
-                label_visibility="collapsed" # Hide default Streamlit label
-            )
-            st.markdown("</div>", unsafe_allow_html=True) # Close order-item
-    else:
-        st.info("No order items were extracted. Please add them manually if needed.")
-
-    st.markdown("</div>", unsafe_allow_html=True) # Close extracted-data-card
-
-    col_buttons_review = st.columns(2)
-    with col_buttons_review[0]:
-        if st.button("✅ Confirm & Generate Email", use_container_width=True):
-            subject, message = generate_standard_email(st.session_state.parsed_data)
-            st.session_state.generated_subject = subject
-            st.session_state.generated_email_body = message
-            st.session_state.current_step = "generate_standard"
-            st.rerun()
-    with col_buttons_review[1]:
-        if st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True):
-            pass # Handled by on_click
-
-# --- Step 3: Display Generated Email (Standard) ---
-elif st.session_state.current_step == "generate_standard":
-    st.subheader("3. Your Generated Email")
-    st.markdown("""
-        <div class="success-card">
-            <span style="font-size: 1.5rem;">✨</span>
-            Your email is ready! Copy the details below and send it to the customer.
-        </div>
-    """, unsafe_allow_html=True)
 
     # Email Address
     st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
@@ -669,9 +597,9 @@ elif st.session_state.current_step == "generate_standard":
 
     st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True)
 
-# --- Step 3: Display Generated Email (High-Risk) ---
+# --- Display Generated Email (High-Risk) ---
 elif st.session_state.current_step == "generate_high_risk":
-    st.subheader("3. High-Risk Order Email Generated")
+    st.subheader("2. High-Risk Order Email Generated") # Changed from 3 to 2
     st.markdown("""
         <div class="warning-card">
             <span style="font-size: 1.5rem;">🚨</span>
@@ -702,4 +630,3 @@ elif st.session_state.current_step == "generate_high_risk":
     """, unsafe_allow_html=True)
 
     st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True)
-
