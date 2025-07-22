@@ -44,9 +44,9 @@ st.markdown("""
         background-color: var(--bg-light);
     }
     .main .block-container {
-        padding-top: 3rem; /* More generous padding */
-        padding-bottom: 3rem; /* More generous padding */
-        max-width: 1200px; /* Max width for content */
+        padding-top: 2rem; /* Reduced padding */
+        padding-bottom: 2rem; /* Reduced padding */
+        max-width: 1000px; /* Reduced max width for content */
         margin: 0 auto; /* Center content */
     }
 
@@ -55,21 +55,21 @@ st.markdown("""
         font-family: 'Montserrat', sans-serif; /* Keep Montserrat for impact */
         color: var(--text-dark); /* Darker headings for contrast */
         font-weight: 700;
-        margin-top: 2.5rem; /* Adjusted margin */
-        margin-bottom: 1rem; /* Adjusted margin */
+        margin-top: 2rem; /* Adjusted margin */
+        margin-bottom: 0.8rem; /* Adjusted margin */
     }
-    h1 { font-size: 3rem; text-align: center; margin-bottom: 3rem; color: var(--primary-blue); } /* Larger, more impactful, primary blue */
-    h2 { font-size: 2.4rem; }
-    h3 { font-size: 1.8rem; }
-    h4 { font-size: 1.4rem; color: var(--text-medium); margin-top: 1.5rem; } /* Slightly softer color for sub-headings */
+    h1 { font-size: 2.5rem; text-align: center; margin-bottom: 2rem; color: var(--primary-blue); } /* Reduced size, primary blue */
+    h2 { font-size: 2rem; }
+    h3 { font-size: 1.5rem; }
+    h4 { font-size: 1.2rem; color: var(--text-medium); margin-top: 1rem; } /* Slightly softer color for sub-headings */
 
     /* Input Fields (Text, Text Area) */
     .stTextInput > div > div > input,
     .stTextArea > div > textarea {
         border: 1px solid var(--border-color);
-        border-radius: 16px; /* Increased roundedness */
-        padding: 1rem 1.2rem; /* Slightly more padding */
-        font-size: 1.05rem;
+        border-radius: 12px; /* Reduced roundedness slightly */
+        padding: 0.8rem 1rem; /* Reduced padding */
+        font-size: 0.95rem; /* Reduced font size */
         box-shadow: var(--shadow-sm); /* Subtle initial shadow */
         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         background-color: var(--card-bg); /* White background for inputs */
@@ -86,9 +86,9 @@ st.markdown("""
         background-color: var(--primary-blue);
         color: white;
         font-weight: 600;
-        padding: 0.9rem 2rem; /* Increased padding for better touch target */
-        font-size: 1.1rem; /* Slightly larger font */
-        border-radius: 16px; /* Consistent roundedness */
+        padding: 0.8rem 1.5rem; /* Reduced padding */
+        font-size: 1rem; /* Reduced font size */
+        border-radius: 12px; /* Reduced roundedness */
         border: none;
         box-shadow: var(--shadow-md); /* More pronounced initial shadow */
         transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
@@ -106,12 +106,12 @@ st.markdown("""
 
     /* Custom Card Styles for Data Display */
     .info-card, .success-card, .warning-card, .error-card {
-        padding: 1.5rem 2rem; /* Increased padding */
-        border-radius: 20px; /* Even more rounded for a softer look */
-        margin-bottom: 2rem; /* Increased margin */
+        padding: 1.2rem 1.5rem; /* Reduced padding */
+        border-radius: 16px; /* Reduced roundedness for a slightly tighter feel */
+        margin-bottom: 1.5rem; /* Reduced margin */
         display: flex;
         align-items: center;
-        gap: 1.5rem; /* Increased gap */
+        gap: 1rem; /* Reduced gap */
         font-weight: 500;
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-color); /* More visible subtle border */
@@ -120,7 +120,7 @@ st.markdown("""
     }
     .info-card:hover, .success-card:hover, .warning-card:hover, .error-card:hover {
         box-shadow: var(--shadow-md); /* Deeper shadow on hover */
-        transform: translateY(-2px); /* More pronounced lift */
+        transform: translateY(-1px); /* More pronounced lift */
     }
     /* Specific card colors for text and background, but keeping card-bg as white */
     .info-card { color: var(--primary-blue); background-color: var(--light-blue-bg); border-color: rgba(0, 122, 255, 0.1); }
@@ -131,17 +131,17 @@ st.markdown("""
     /* Specific Data Display Boxes (Email, Subject, Phone) */
     .data-display-box {
         background-color: var(--light-blue-bg); /* Use the lighter blue background */
-        padding: 1.2rem 1.8rem; /* Increased padding */
-        border-radius: 16px; /* Consistent roundedness */
-        margin-bottom: 1.5rem; /* Adjusted margin */
+        padding: 1rem 1.2rem; /* Reduced padding */
+        border-radius: 12px; /* Reduced roundedness */
+        margin-bottom: 1rem; /* Reduced margin */
         color: var(--text-dark);
         font-weight: 500;
-        font-size: 1.05rem;
+        font-size: 0.95rem; /* Reduced font size */
         word-break: break-all;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 15px; /* Increased gap */
+        gap: 10px; /* Reduced gap */
         box-shadow: var(--shadow-sm);
         transition: all 0.2s ease-in-out;
         border: 1px solid rgba(0,0,0,0.05); /* Subtle border */
@@ -159,9 +159,9 @@ st.markdown("""
         background-color: var(--primary-blue);
         color: white;
         border: none;
-        border-radius: 12px; /* Slightly more rounded */
-        padding: 0.7rem 1.1rem; /* Adjusted padding */
-        font-size: 0.95rem; /* Slightly larger font */
+        border-radius: 10px; /* Reduced roundedness */
+        padding: 0.6rem 1rem; /* Reduced padding */
+        font-size: 0.85rem; /* Reduced font size */
         font-weight: 500;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -180,45 +180,45 @@ st.markdown("""
     /* Extracted Data Review Cards */
     .extracted-data-card {
         background-color: var(--card-bg);
-        border-radius: 20px; /* Consistent roundedness */
-        padding: 2rem; /* Increased padding */
-        margin-bottom: 2rem; /* Increased margin */
+        border-radius: 16px; /* Reduced roundedness */
+        padding: 1.5rem; /* Reduced padding */
+        margin-bottom: 1.5rem; /* Reduced margin */
         box-shadow: var(--shadow-md); /* More pronounced shadow */
         transition: all 0.2s ease-in-out;
         border: 1px solid var(--border-color);
     }
     .extracted-data-card:hover {
         box-shadow: var(--shadow-lg); /* Even deeper shadow on hover for cards */
-        transform: translateY(-3px); /* More pronounced lift */
+        transform: translateY(-2px); /* More pronounced lift */
     }
     .extracted-data-card h3 {
         margin-top: 0;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem; /* Reduced margin */
         color: var(--text-dark);
-        font-size: 1.6rem;
+        font-size: 1.4rem; /* Reduced font size */
         display: flex;
         align-items: center;
-        gap: 0.8rem;
+        gap: 0.6rem; /* Reduced gap */
     }
     .extracted-data-card .field-row {
         display: flex;
         align-items: center;
-        gap: 1.5rem;
-        margin-bottom: 1rem;
+        gap: 1rem; /* Reduced gap */
+        margin-bottom: 0.7rem; /* Reduced margin */
     }
     .extracted-data-card .field-label {
         font-weight: 600;
         color: var(--text-medium);
-        min-width: 150px; /* Align labels better */
-        font-size: 1.05rem;
+        min-width: 120px; /* Adjusted min-width */
+        font-size: 0.95rem; /* Reduced font size */
     }
     .extracted-data-card .field-value-display {
         flex-grow: 1;
-        font-size: 1.05rem;
+        font-size: 0.95rem; /* Reduced font size */
         color: var(--text-dark);
         background-color: var(--light-blue-bg);
-        padding: 0.8rem 1.2rem;
-        border-radius: 12px;
+        padding: 0.6rem 1rem; /* Reduced padding */
+        border-radius: 10px; /* Reduced roundedness */
         word-break: break-all;
         box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); /* Subtle inner shadow */
     }
@@ -227,7 +227,7 @@ st.markdown("""
         color: var(--primary-blue);
         opacity: 0.8;
         transition: opacity 0.2s ease-in-out;
-        font-size: 1.2rem;
+        font-size: 1.1rem; /* Reduced font size */
     }
     .extracted-data-card .edit-icon:hover {
         opacity: 1;
@@ -236,12 +236,12 @@ st.markdown("""
     /* Order Items List */
     .order-item {
         background-color: var(--card-bg); /* Changed to white for a cleaner look within the card */
-        border-radius: 16px; /* Consistent roundedness */
-        padding: 1.5rem; /* Increased padding */
-        margin-bottom: 1rem; /* Adjusted margin */
+        border-radius: 12px; /* Reduced roundedness */
+        padding: 1rem; /* Reduced padding */
+        margin-bottom: 0.7rem; /* Reduced margin */
         display: flex;
         flex-direction: column;
-        gap: 0.8rem; /* Adjusted gap */
+        gap: 0.5rem; /* Reduced gap */
         box-shadow: var(--shadow-sm); /* Subtle shadow */
         transition: all 0.2s ease-in-out;
         border: 1px solid var(--border-color); /* Subtle border */
@@ -259,26 +259,26 @@ st.markdown("""
     .order-item .item-detail {
         display: flex;
         align-items: center;
-        gap: 0.8rem;
+        gap: 0.6rem; /* Reduced gap */
     }
     .order-item .item-detail .label {
         font-weight: 600;
         color: var(--text-medium);
-        min-width: 100px; /* Adjusted min-width */
-        font-size: 0.95rem;
+        min-width: 80px; /* Adjusted min-width */
+        font-size: 0.9rem; /* Reduced font size */
     }
     .order-item .item-detail .value {
         flex-grow: 1;
-        font-size: 0.95rem;
+        font-size: 0.9rem; /* Reduced font size */
     }
 
     /* Code Block Styling (for email body) */
     .stCode {
         background-color: var(--bg-light); /* Use a very light background, almost white */
-        border-radius: 16px; /* Consistent roundedness */
-        padding: 2rem; /* More padding */
-        font-size: 1rem; /* Slightly larger font */
-        line-height: 1.8; /* Increased line height for readability */
+        border-radius: 12px; /* Reduced roundedness */
+        padding: 1.5rem; /* Reduced padding */
+        font-size: 0.95rem; /* Reduced font size */
+        line-height: 1.7; /* Reduced line height for readability */
         white-space: pre-wrap; /* Ensure wrapping */
         word-break: break-all;
         box-shadow: var(--shadow-sm); /* Subtle shadow */
@@ -288,18 +288,18 @@ st.markdown("""
 
     /* Responsive Adjustments */
     @media (max-width: 768px) {
-        h1 { font-size: 2.5rem; margin-bottom: 2.5rem; }
-        h2 { font-size: 2rem; }
-        .main .block-container { padding: 2rem 1rem; }
+        h1 { font-size: 2.2rem; margin-bottom: 2rem; }
+        h2 { font-size: 1.8rem; }
+        .main .block-container { padding: 1.5rem 0.8rem; }
         .extracted-data-card .field-row { flex-direction: column; align-items: flex-start; }
-        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.4rem; }
+        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.3rem; }
         .data-display-box { flex-direction: column; align-items: flex-start; }
-        .copy-button { width: 100%; margin-top: 0.8rem; }
-        .info-card, .success-card, .warning-card, .error-card { padding: 1.2rem 1.5rem; }
-        .stButton button { padding: 0.8rem 1.5rem; font-size: 1rem; }
-        .extracted-data-card { padding: 1.5rem; }
-        .extracted-data-card h3 { font-size: 1.4rem; }
-        .order-item { padding: 1rem; }
+        .copy-button { width: 100%; margin-top: 0.6rem; }
+        .info-card, .success-card, .warning-card, .error-card { padding: 1rem 1.2rem; }
+        .stButton button { padding: 0.7rem 1.2rem; font-size: 0.95rem; }
+        .extracted-data-card { padding: 1.2rem; }
+        .extracted-data-card h3 { font-size: 1.2rem; }
+        .order-item { padding: 0.8rem; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -767,16 +767,16 @@ with col_right:
                 <div class="extracted-data-card">
                     <h3><span style="font-size: 1.5rem;">🔍</span> Extracted Order Details</h3>
                     <div class="field-row">
+                        <span class="field-label">Email:</span>
+                        <span class="field-value-display">{st.session_state.parsed_data.get('email_address', '[Not Found]')}</span>
+                    </div>
+                    <div class="field-row">
                         <span class="field-label">Customer Name:</span>
                         <span class="field-value-display">{st.session_state.parsed_data.get('customer_name', '[Not Found]')}</span>
                     </div>
                     <div class="field-row">
                         <span class="field-label">Order Number:</span>
                         <span class="field-value-display">{st.session_state.parsed_data.get('order_number', '[Not Found]')}</span>
-                    </div>
-                    <div class="field-row">
-                        <span class="field-label">Email:</span>
-                        <span class="field-value-display">{st.session_state.parsed_data.get('email_address', '[Not Found]')}</span>
                     </div>
                     <div class="field-row">
                         <span class="field-label">Phone:</span>
