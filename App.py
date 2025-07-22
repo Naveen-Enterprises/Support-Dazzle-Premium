@@ -2,13 +2,6 @@ import streamlit as st
 import re
 from datetime import datetime
 
-# Try to import pyperclip, but make it optional
-try:
-    import pyperclip
-    CLIPBOARD_AVAILABLE = True
-except ImportError:
-    CLIPBOARD_AVAILABLE = False
-
 # Page configuration
 st.set_page_config(
     page_title="Mail - DAZZLE PREMIUM",
@@ -306,46 +299,15 @@ with col2:
         </div>
         """, unsafe_allow_html=True)
         
-        # Email fields
-        st.text_input("To:", value=email_to, key="email_to")
-        st.text_input("Subject:", value=email_subject, key="email_subject")
-        st.text_area("Message:", value=email_body, height=400, key="email_body")
+        # Email fields with built-in copy functionality
+        st.subheader("📧 To:")
+        st.code(email_to, language=None)
         
-        # Copy buttons
-        col2a, col2b, col2c = st.columns(3)
+        st.subheader("📝 Subject:")
+        st.code(email_subject, language=None)
         
-        with col2a:
-            if st.button("📋 Copy To", use_container_width=True):
-                if CLIPBOARD_AVAILABLE:
-                    try:
-                        pyperclip.copy(email_to)
-                        st.success("Email address copied!")
-                    except:
-                        st.info("Click to select and copy: " + email_to)
-                else:
-                    st.info("Email ready to copy manually")
-        
-        with col2b:
-            if st.button("📋 Copy Subject", use_container_width=True):
-                if CLIPBOARD_AVAILABLE:
-                    try:
-                        pyperclip.copy(email_subject)
-                        st.success("Subject copied!")
-                    except:
-                        st.info("Click to select and copy: " + email_subject[:50] + "...")
-                else:
-                    st.info("Subject ready to copy manually")
-        
-        with col2c:
-            if st.button("📋 Copy Message", use_container_width=True):
-                if CLIPBOARD_AVAILABLE:
-                    try:
-                        pyperclip.copy(email_body)
-                        st.success("Message copied!")
-                    except:
-                        st.info("Message ready to copy manually")
-                else:
-                    st.info("Message ready to copy manually")
+        st.subheader("💬 Message:")
+        st.code(email_body, language=None)
     
     else:
         st.info("👆 Parse order data and select an email type to generate the email content.")
