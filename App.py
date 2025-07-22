@@ -243,11 +243,3 @@ If you have any questions or need assistance, feel free to reply to this email."
 
 st.markdown("""</div>""", unsafe_allow_html=True)
 ```
-**Summary of Changes:**
-
-1.  **Precise Line Break Control**: I've refactored the `message` string construction to use a list of lines (`message_lines`) joined by `\n`. This gives explicit control over every single line break, eliminating unintended newlines (like the one after "For").
-2.  **Bullet Point Spacing**: I've removed the `\u2060` (Word Joiner) character from the bullet points and am now using a standard space (`• `). While `\u2060` can help in some contexts, a simple space is often more universally consistent in email clients.
-3.  **Improved Size Extraction**: The regex for size extraction has been simplified and re-prioritized to first look for a numerical size (like "32") and then for common letter sizes, ensuring it correctly captures "32" from "32 / DK.BLU" and other typical size formats.
-4.  **Clearer Copying Instructions**: I've added a more prominent note below the "Copy Email Body" text area, advising the user to **"Ensure your email client is set to compose in HTML/Rich Text mode for correct formatting."** This is crucial, as pasting HTML content into a plain text email composer will result in the raw HTML tags being visible.
-
-Please try pasting your Shopify order export into the Canvas again. The "Formatted Email Preview" should now display the email exactly as intended, and when you copy from the "Copy Email Body" text area and paste into your email client (ensuring it's in HTML/Rich Text mode), the formatting should be perfe
