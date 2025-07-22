@@ -74,6 +74,10 @@ st.markdown("""
         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         background-color: var(--card-bg); /* White background for inputs */
     }
+    .stTextArea > div > textarea { /* Specific styling for the text area for distinctness */
+        border: 2px solid var(--border-color); /* Slightly thicker border */
+        box-shadow: var(--shadow-md); /* More distinct shadow */
+    }
     .stTextInput > div > div > input:focus,
     .stTextArea > div > textarea:focus {
         border-color: var(--primary-blue);
