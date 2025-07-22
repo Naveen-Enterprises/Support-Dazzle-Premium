@@ -148,24 +148,24 @@ with st.container():
 
             order_details = "\n\n".join(order_details_list) # Use \n\n for spacing between items
 
-            # Construct Email Subject and Message
+            # Construct Email Subject and Message (Plain Text)
             subject = f"Final Order Confirmation of dazzlepremium#{order_number}"
             
-            # Building the message line by line to explicitly control newlines and spacing
+            # Building the message line by line for precise plain text formatting
             message_lines = [
                 f"Hello {customer_name},",
                 "", # Empty line for spacing
                 f"This is DAZZLE PREMIUM Support confirming Order {order_number}",
                 "", # Empty line for spacing
-                "<b>- Please reply YES to confirm just this order only.<br>",
-                "- Kindly also reply YES to the SMS sent automatically to your inbox.</b>",
+                "* Please reply YES to confirm just this order only.",
+                "* Kindly also reply YES to the SMS sent automatically to your inbox.",
                 "", # Empty line for spacing
                 "Order Details:",
                 order_details, # This already contains its own internal newlines
                 "", # Empty line for spacing
-                "For your security, we use two-factor authentication. If this order wasn’t placed by you, text us immediately at 410-381-0000 to cancel.",
+                "For your security, we use two-factor authentication. If this order wasn't placed by you, text us immediately at 410-381-0000 to cancel.",
                 "", # Empty line for spacing
-                "<b>Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.</b>",
+                "*Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.*",
                 "", # Empty line for spacing
                 "If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.",
                 "Thank you for choosing DAZZLE PREMIUM!"
@@ -194,20 +194,16 @@ with st.container():
             st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
             
-            st.markdown("<h4>📋 Formatted Email Preview:</h4>", unsafe_allow_html=True)
-            # Display the formatted email using st.markdown for visual preview
-            st.markdown(message, unsafe_allow_html=True) 
-
-            st.markdown("<h4>📋 Copy Email Body (for pasting):</h4>", unsafe_allow_html=True)
+            st.markdown("<h4>📋 Copy This Email Body:</h4>", unsafe_allow_html=True)
             # Use st.text_area for the message to allow easy copying by the user
             st.text_area("Email Body", value=message, height=350, key="generated_email_body")
-            st.markdown("<p style='font-size:0.9rem; color:#555;'>👆 Copy the text above and paste it into your email client. <b>Ensure your email client is set to compose in HTML/Rich Text mode for correct formatting.</b></p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size:0.9rem; color:#555;'>👆 Simply copy the text above and paste it directly into your email client. No special settings needed!</p>", unsafe_allow_html=True)
 
             st.markdown(f"<h4>📱 Phone Number:</h4><div class='subject-box'>{phone_number}</div>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
         elif high_risk and raw_text:
-            # Logic for High-Risk Order Email
+            # Logic for High-Risk Order Email (Plain Text)
             name_match = re.search(r"Customer\s*\n(.*)", raw_text)
             if not name_match:
                 name_match = re.search(r"Shipping address\s*\n(.*)", raw_text)
@@ -229,12 +225,9 @@ If you have any questions or need assistance, feel free to reply to this email."
 
             st.markdown("<div style='background-color:#fff3cd;padding:1rem;border-radius:10px;color:#856404;font-weight:bold;margin-bottom:1rem;'>⚠️ High-Risk Order Notice</div>", unsafe_allow_html=True)
             
-            st.markdown("<h4>📋 Formatted Email Preview:</h4>", unsafe_allow_html=True)
-            st.markdown(high_risk_msg, unsafe_allow_html=True)
-
-            st.markdown("<h4>📋 Copy Email Body (for pasting):</h4>", unsafe_allow_html=True)
+            st.markdown("<h4>📋 Copy This Email Body:</h4>", unsafe_allow_html=True)
             st.text_area("High-Risk Email Body", value=high_risk_msg, height=350, key="high_risk_email_body")
-            st.markdown("<p style='font-size:0.9rem; color:#555;'>👆 Copy the text above and paste it into your email client. <b>Ensure your email client is set to compose in HTML/Rich Text mode for correct formatting.</b></p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size:0.9rem; color:#555;'>👆 Simply copy the text above and paste it directly into your email client. No special settings needed!</p>", unsafe_allow_html=True)
             st.button("🔁 Start New Order", on_click=lambda: st.session_state.update({"reset_clicked": True}))
 
     # Display warning if raw_text is empty and generate/high_risk buttons are clicked
@@ -242,4 +235,3 @@ If you have any questions or need assistance, feel free to reply to this email."
         st.warning("Please paste the order export before generating the message.")
 
 st.markdown("""</div>""", unsafe_allow_html=True)
-
