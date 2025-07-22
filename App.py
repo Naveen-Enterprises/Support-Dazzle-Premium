@@ -472,7 +472,7 @@ DAZZLE PREMIUM Support"""
 
 def generate_return_email(parsed_data):
     """Generates the return mail template."""
-    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]")
+    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]") # Get the customer name
 
     subject = f"DAZZLE PREMIUM: Your Return Request Instructions"
     message = f"""Dear {customer_name},
