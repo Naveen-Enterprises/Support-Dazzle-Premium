@@ -1,7 +1,13 @@
 import streamlit as st
 import re
 from datetime import datetime
-import pyperclip
+
+# Try to import pyperclip, but make it optional
+try:
+    import pyperclip
+    CLIPBOARD_AVAILABLE = True
+except ImportError:
+    CLIPBOARD_AVAILABLE = False
 
 # Page configuration
 st.set_page_config(
@@ -310,26 +316,35 @@ with col2:
         
         with col2a:
             if st.button("📋 Copy To", use_container_width=True):
-                try:
-                    pyperclip.copy(email_to)
-                    st.success("Email address copied!")
-                except:
-                    st.info("Email address ready to copy manually")
+                if CLIPBOARD_AVAILABLE:
+                    try:
+                        pyperclip.copy(email_to)
+                        st.success("Email address copied!")
+                    except:
+                        st.info("Click to select and copy: " + email_to)
+                else:
+                    st.info("Email ready to copy manually")
         
         with col2b:
             if st.button("📋 Copy Subject", use_container_width=True):
-                try:
-                    pyperclip.copy(email_subject)
-                    st.success("Subject copied!")
-                except:
+                if CLIPBOARD_AVAILABLE:
+                    try:
+                        pyperclip.copy(email_subject)
+                        st.success("Subject copied!")
+                    except:
+                        st.info("Click to select and copy: " + email_subject[:50] + "...")
+                else:
                     st.info("Subject ready to copy manually")
         
         with col2c:
             if st.button("📋 Copy Message", use_container_width=True):
-                try:
-                    pyperclip.copy(email_body)
-                    st.success("Message copied!")
-                except:
+                if CLIPBOARD_AVAILABLE:
+                    try:
+                        pyperclip.copy(email_body)
+                        st.success("Message copied!")
+                    except:
+                        st.info("Message ready to copy manually")
+                else:
                     st.info("Message ready to copy manually")
     
     else:
