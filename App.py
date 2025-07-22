@@ -292,7 +292,7 @@ function copyToClipboard(text, elementId) {
 
 # --- Initialize Session State ---
 if "current_step" not in st.session_state:
-    st.session_state.current_step = "input"  # input, generate_standard, generate_high_risk
+    st.session_state.current_step = "input"  # input, generate_standard, generate_high_risk, generate_return
 if "raw_text" not in st.session_state:
     st.session_state.raw_text = ""
 if "parsed_data" not in st.session_state:
@@ -470,6 +470,36 @@ Thank you,
 DAZZLE PREMIUM Support"""
     return subject, message
 
+def generate_return_email(parsed_data):
+    """Generates the return mail template."""
+    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]")
+
+    subject = f"DAZZLE PREMIUM: Your Return Request Instructions"
+    message = f"""Dear {customer_name},
+Thank you for reaching out to us regarding your return request. To 
+ensure a smooth and successful return process, please carefully follow 
+the steps below:
+1. Go to your local post office or any shipping carrier (USPS, FedEx, UPS, DHL).
+
+2. Create and pay for the return shipping label.
+(Please note: You are responsible for the return shipping cost.)
+
+3. Ship the item to the following address:
+
+Dazzle Premium 
+3500 East-West Highway 
+Suite 1032 
+Hyattsville, MD 20782 
++1 (301) 942-0000 
+
+4. Email us the tracking number after you ship the package by replying to this email.
+
+Once we receive the returned item in its original condition with the 
+tags intact and complete our inspection, we will process your refund.
+If you have any questions, feel free to reply to this email.
+"""
+    return subject, message
+
 
 def reset_app_state():
     """Resets all session state variables to their initial values."""
@@ -508,9 +538,9 @@ with col_left:
         key="raw_text_input_main" # Add a key to avoid potential conflicts
     )
 
-    col_buttons_input = st.columns(2)
+    col_buttons_input = st.columns(3) # Changed to 3 columns for 3 buttons
     with col_buttons_input[0]:
-        if st.button("✨ Generate Email", use_container_width=True):
+        if st.button("✨ Generate Order Email", use_container_width=True):
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input)
@@ -524,7 +554,7 @@ with col_left:
             else:
                 st.warning("Please paste the order export text to generate an email.")
     with col_buttons_input[1]:
-        if st.button("🚨 High-Risk Order Email", use_container_width=True):
+        if st.button("🚨 High-Risk Email", use_container_width=True): # Shorter button text
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input)
@@ -535,6 +565,19 @@ with col_left:
                 st.rerun()
             else:
                 st.warning("Please paste the order export text to generate a high-risk email.")
+    with col_buttons_input[2]: # New button for return email
+        if st.button("↩️ Return Email Template", use_container_width=True):
+            if raw_text_input:
+                st.session_state.raw_text = raw_text_input
+                st.session_state.parsed_data = parse_shopify_export(raw_text_input) # Parse to get customer name
+                subject, message = generate_return_email(st.session_state.parsed_data)
+                st.session_state.generated_subject = subject
+                st.session_state.generated_email_body = message
+                st.session_state.current_step = "generate_return"
+                st.rerun()
+            else:
+                st.warning("Please paste the order export text to generate a return email.")
+
 
 with col_right:
     st.subheader("2. Your Generated Email")
@@ -585,6 +628,9 @@ with col_right:
             js_safe_email_body = json.dumps(st.session_state.generated_email_body)
             st.markdown(f"""
                 <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
+                    <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
+                        {js_safe_email_body}, 'copyBodyBtn'
+                    )">Copy Email Body</button>
                 </div>
             """, unsafe_allow_html=True)
 
@@ -630,6 +676,47 @@ with col_right:
                 </div>
             """, unsafe_allow_html=True)
         
+        elif st.session_state.current_step == "generate_return":
+            st.markdown("""
+                <div class="info-card">
+                    <span style="font-size: 1.5rem;">↩️</span>
+                    This is the return mail template. Ensure the customer name is correct.
+                </div>
+            """, unsafe_allow_html=True)
+
+            # Display return email details
+            st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.parsed_data.get('email_address', 'N/A')}</span>
+                    <button class="copy-button" id="copyReturnEmailBtn" onclick="copyToClipboard(
+                        '{st.session_state.parsed_data.get('email_address', 'N/A').replace("'", "\\'")}', 'copyReturnEmailBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="data-display-box">
+                    <span>{st.session_state.generated_subject}</span>
+                    <button class="copy-button" id="copyReturnSubjectBtn" onclick="copyToClipboard(
+                        '{st.session_state.generated_subject.replace("'", "\\'")}', 'copyReturnSubjectBtn'
+                    )">Copy</button>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
+            st.code(st.session_state.generated_email_body, language="text")
+
+            js_safe_email_body_return = json.dumps(st.session_state.generated_email_body)
+            st.markdown(f"""
+                <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
+                    <button class="copy-button" id="copyReturnBodyBtn" onclick="copyToClipboard(
+                        {js_safe_email_body_return}, 'copyReturnBodyBtn'
+                    )">Copy Email Body</button>
+                </div>
+            """, unsafe_allow_html=True)
+
         # Always show "Start New Order" button on the right side if an email has been generated
         st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True)
     else:
