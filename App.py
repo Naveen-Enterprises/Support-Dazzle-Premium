@@ -12,55 +12,55 @@ st.markdown("""
     body { 
         font-family: 'Inter', sans-serif; 
         font-size: 16px; 
-        color: #333333; /* Darker grey for body text */
-        background-color: #F0F2F5; /* Light background */
+        color: #333333;
+        background-color: #F0F2F5;
     }
     .main { 
-        background-color: #ffffff; /* Pure white for the main content area */
-        padding: 3rem; /* More breathing room */
-        border-radius: 16px; /* More rounded corners */
-        box-shadow: 0 8px 30px rgba(0,0,0,0.08); /* Softer, more pronounced shadow */
-        max-width: 1200px; /* Max width for better readability on large screens */
-        margin: 2rem auto; /* Center the main content */
+        background-color: #ffffff;
+        padding: 3rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        max-width: 1200px;
+        margin: 2rem auto;
     }
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea {
         padding: 1rem;
         font-size: 1rem;
         border-radius: 10px;
-        border: 1px solid #E0E0E0; /* Softer border */
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* Subtle inner shadow */
+        border: 1px solid #E0E0E0;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .stTextInput > div > div > input:focus,
     .stTextArea > div > div > textarea:focus {
-        border-color: #007AFF; /* Apple Blue on focus */
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.08), 0 0 0 3px rgba(0,122,255,0.2); /* Glow effect */
+        border-color: #007AFF;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.08), 0 0 0 3px rgba(0,122,255,0.2);
         outline: none;
     }
     .stButton button {
-        background-color: #007AFF; /* Apple Blue */
+        background-color: #007AFF;
         color: white;
         font-weight: 600;
-        padding: 0.9rem 1.8rem; /* Larger buttons */
+        padding: 0.9rem 1.8rem;
         font-size: 1.05rem;
         border-radius: 10px;
         border: none;
         cursor: pointer;
         transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-        box-shadow: 0 4px 15px rgba(0,122,255,0.25); /* More prominent shadow */
+        box-shadow: 0 4px 15px rgba(0,122,255,0.25);
     }
     .stButton button:hover {
-        background-color: #005BB5; /* Darker blue on hover */
-        transform: translateY(-2px); /* Lift effect */
+        background-color: #005BB5;
+        transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(0,122,255,0.35);
     }
     .stButton button:active {
         transform: translateY(0);
-        box-shadow: inset 0 1px 5px rgba(0,0,0,0.2); /* Pressed effect */
+        box-shadow: inset 0 1px 5px rgba(0,0,0,0.2);
     }
     .stCode {
-        background-color: #F7F8FA; /* Light gray for code blocks */
+        background-color: #F7F8FA;
         border-radius: 10px;
         padding: 1.2rem;
         font-size: 0.95rem;
@@ -68,45 +68,45 @@ st.markdown("""
         box-shadow: 0 1px 5px rgba(0,0,0,0.05);
     }
     .subject-box {
-        background-color: #E6F2FF; /* Very light blue for info boxes */
+        background-color: #E6F2FF;
         padding: 1rem 1.2rem;
         border-radius: 10px;
         margin-bottom: 1.5rem;
-        color: #005BB5; /* Darker blue text */
+        color: #005BB5;
         font-weight: 500;
         font-size: 1.05rem;
-        border: 1px solid #D0E8FF; /* Subtle border */
+        border: 1px solid #D0E8FF;
     }
     .warning-box {
-        background-color: #FFF0F0; /* Light red for warnings */
+        background-color: #FFF0F0;
         padding: 1.2rem;
         border-radius: 10px;
-        color: #CC0000; /* Dark red text */
+        color: #CC0000;
         font-weight: 600;
         margin-bottom: 1.5rem;
         border: 1px solid #FFCCCC;
     }
     .success-box {
-        background-color: #E6FFE6; /* Light green for success */
+        background-color: #E6FFE6;
         padding: 1.2rem;
         border-radius: 10px;
-        color: #008000; /* Dark green text */
+        color: #008000;
         font-weight: 600;
         margin-bottom: 1.5rem;
         border: 1px solid #CCFFCC;
     }
     h1, h2, h4 { 
-        color: #1A1A1A; /* Dark charcoal for headings */
+        color: #1A1A1A;
         font-weight: 700; 
         margin-bottom: 1rem; 
     } 
     h1 { 
-        font-size: 2.8rem; /* Larger main title */
+        font-size: 2.8rem;
         text-align: center; 
         margin-bottom: 2.5rem; 
-        letter-spacing: -0.02em; /* Tighter letter spacing */
+        letter-spacing: -0.02em;
     }
-    h2 { font-size: 2rem; margin-bottom: 1.5rem; } /* Larger subheadings */
+    h2 { font-size: 2rem; margin-bottom: 1.5rem; }
     h4 { font-size: 1.3rem; margin-bottom: 0.8rem; }
     .stAlert {
         border-radius: 10px;
@@ -115,36 +115,27 @@ st.markdown("""
     .stAlert > div {
         border-radius: 10px !important;
     }
+    
+    /* Custom copy button styling */
+    .copy-button {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        transition: background-color 0.2s ease;
+    }
+    .copy-button:hover {
+        background-color: #218838;
+    }
+    .copy-button:active {
+        background-color: #1e7e34;
+    }
 </style>
 """, unsafe_allow_html=True)
-
-# JavaScript for robust copying to clipboard
-# This function is defined and called within the Streamlit component
-# to ensure it executes reliably within the iframe, directly triggered by user action.
-# It creates a temporary textarea, copies its content, and removes it.
-# document.execCommand('copy') is used as it's more widely supported in iframes
-# than navigator.clipboard.writeText().
-js_copy_function = """
-<script>
-function copyTextToClipboard(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed'; // Prevent scrolling to bottom of page
-    textarea.style.left = '-9999px'; // Move off-screen
-    document.body.appendChild(textarea);
-    textarea.focus(); // Focus the textarea
-    textarea.select(); // Select its content
-    try {
-        document.execCommand('copy'); // Execute copy command
-    } catch (err) {
-        console.error('Copy command failed:', err);
-    } finally {
-        document.body.removeChild(textarea); // Remove textarea
-    }
-}
-</script>
-"""
-st.markdown(js_copy_function, unsafe_allow_html=True)
 
 st.markdown("""<h1 style='text-align: center;'>📦 DAZZLE PREMIUM Order Email Generator</h1>""", unsafe_allow_html=True)
 
@@ -166,12 +157,10 @@ with st.container():
 
     with col1:
         st.subheader("Paste Shopify Order Export Here")
-        # The core "no friction" input: email generates as text is typed/pasted
         raw_text = st.text_area("Order Details", height=500, key="raw_text_input", 
-                                value=st.session_state.get("raw_text_input", ""), # Use the correct key for value
+                                value=st.session_state.get("raw_text_input", ""),
                                 help="Paste the full Shopify order export text.")
         
-        # High-Risk button remains a distinct action
         high_risk_action = st.button("🚨 Generate High-Risk Email")
 
     with col2:
@@ -290,42 +279,58 @@ We hope this message finds you well.
 
 We regret to inform you that your recent order has been automatically cancelled as it was flagged as a high-risk transaction by our system. This is a standard security measure to help prevent unauthorized or fraudulent activity.
 
-If you would still like to proceed with your order, we’d be happy to assist you in placing it manually. To do so, we kindly ask that you transfer the payment via Cash App.
+If you would still like to proceed with your order, we'd be happy to assist you in placing it manually. To do so, we kindly ask that you transfer the payment via Cash App.
 
 Once the payment is received, we will immediately process your order and provide confirmation along with tracking details.
 
 If you have any questions or need assistance, feel free to reply to this email."""
                 st.session_state.generated_email_body = high_risk_msg
-                # Overwrite message for display
                 message = high_risk_msg
-                missing_info = [] # Clear warnings for high-risk message
+                missing_info = []
 
         # Display output only if raw_text is present or high_risk_action was clicked with raw_text
         if raw_text or (high_risk_action and raw_text):
             if missing_info:
                 st.markdown(f"<div class='warning-box'>⚠️ Please double-check the following fields: {', '.join(missing_info)}</div>", unsafe_allow_html=True)
-            elif raw_text and not high_risk_action: # Only show success for regular generation
+            elif raw_text and not high_risk_action:
                 st.markdown("<div class='success-box'>✅ Email ready to copy.</div>", unsafe_allow_html=True)
-            elif high_risk_action and raw_text: # Specific message for high-risk
+            elif high_risk_action and raw_text:
                  st.markdown("<div class='warning-box'>⚠️ High-Risk Email Generated.</div>", unsafe_allow_html=True)
-
 
             st.markdown(f"<h4>📧 Email Address:</h4><div class='subject-box'>{email_address}</div>", unsafe_allow_html=True)
             st.markdown(f"<h4>📨 Subject:</h4><div class='subject-box'>{subject}</div>", unsafe_allow_html=True)
             
             st.markdown("<h4>📋 Email Body:</h4>", unsafe_allow_html=True)
-            # This is the single source of truth for the email body
-            st.text_area("Email Body", value=st.session_state.get("generated_email_body", ""), height=350, key="display_email_body")
             
-            # Copy button: directly calls the JS function
-            # The key ensures the button is re-rendered correctly if the text area changes
-            if st.button("✨ Copy Email to Clipboard", key="copy_button"):
-                # Call the JS function defined globally, passing the message directly from session state
-                st.components.v1.html(
-                    f"<script>copyTextToClipboard(`{st.session_state.get('generated_email_body', '')}`);</script>",
-                    height=0, width=0
-                )
-                st.success("Copied to clipboard!") # Instant feedback
+            # Method 1: Using st.code with built-in copy functionality (Recommended)
+            email_body = st.session_state.get("generated_email_body", "")
+            st.code(email_body, language="text")
+            
+            # Alternative Method 2: Using HTML/JavaScript (if st.code doesn't work in your environment)
+            # Uncomment the lines below and comment out the st.code line above if needed
+            
+            # email_body_escaped = email_body.replace("`", "\\`").replace("\\", "\\\\").replace("\n", "\\n")
+            # copy_button_html = f"""
+            # <div style="margin: 10px 0;">
+            #     <button class="copy-button" onclick="copyToClipboard()">✨ Copy Email to Clipboard</button>
+            # </div>
+            # <textarea id="emailContent" style="width: 100%; height: 350px; font-family: monospace; font-size: 14px; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">{email_body}</textarea>
+            # <script>
+            # function copyToClipboard() {{
+            #     const textarea = document.getElementById('emailContent');
+            #     textarea.select();
+            #     textarea.setSelectionRange(0, 99999);
+            #     try {{
+            #         document.execCommand('copy');
+            #         alert('Email copied to clipboard!');
+            #     }} catch (err) {{
+            #         console.error('Failed to copy text: ', err);
+            #         alert('Copy failed. Please select the text manually and press Ctrl+C');
+            #     }}
+            # }}
+            # </script>
+            # """
+            # st.markdown(copy_button_html, unsafe_allow_html=True)
 
             st.markdown(f"<h4>📱 Phone Number:</h4><div class='subject-box'>{phone_number}</div>", unsafe_allow_html=True)
             
@@ -334,6 +339,5 @@ If you have any questions or need assistance, feel free to reply to this email."
 
         elif not raw_text:
             st.info("Paste your Shopify order export on the left to begin.")
-
 
 st.markdown("""</div>""", unsafe_allow_html=True)
