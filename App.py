@@ -585,9 +585,6 @@ with col_right:
             js_safe_email_body = json.dumps(st.session_state.generated_email_body)
             st.markdown(f"""
                 <div style="text-align: right; margin-top: -1.5rem; margin-bottom: 1.5rem;">
-                    <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
-                        {js_safe_email_body}, 'copyBodyBtn'
-                    )">Copy Email Body</button>
                 </div>
             """, unsafe_allow_html=True)
 
