@@ -10,17 +10,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
+# Custom CSS for a polished look
 st.markdown("""
 <style>
     .main > div {
         padding-top: 2rem;
     }
-    
-    .stSelectbox > div > div > div {
-        background-color: #f0f2f6;
+    .stTextArea textarea {
+        font-family: monospace;
     }
-    
     .missing-info {
         background-color: #fff3cd;
         border-left: 4px solid #ffc107;
@@ -28,17 +26,14 @@ st.markdown("""
         border-radius: 0.5rem;
         margin: 1rem 0;
     }
-    
     .missing-info h4 {
         color: #856404;
         margin: 0 0 0.5rem 0;
     }
-    
     .missing-info ul {
         margin: 0;
         padding-left: 1.5rem;
     }
-    
     .success-message {
         background-color: #d4edda;
         border-left: 4px solid #28a745;
@@ -46,28 +41,22 @@ st.markdown("""
         border-radius: 0.5rem;
         margin: 1rem 0;
     }
-    
-    .button-container {
-        display: flex;
-        gap: 10px;
-        margin: 1rem 0;
-    }
-    
-    .copy-button {
-        font-size: 0.8rem;
-        padding: 0.25rem 0.5rem;
-    }
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state
+# Initialize session state variables
 if 'parsed_data' not in st.session_state:
     st.session_state.parsed_data = None
 if 'email_generated' not in st.session_state:
     st.session_state.email_generated = False
+if 'email_data' not in st.session_state:
+    st.session_state.email_data = (None, None, None)
 
 def parse_shopify_data(raw_text):
-    """Parse Shopify order data from raw text"""
+    """
+    Parse Shopify order data from raw text using more robust regex.
+    This version correctly handles multi-line item details including size.
+    """
     data = {
         "customer_name": "[Customer Name Not Found]",
         "email_address": "[Email Not Found]",
@@ -77,17 +66,21 @@ def parse_shopify_data(raw_text):
         "missing_info": []
     }
 
-    if not raw_text.strip():
-        return data
-
-    lines = [line.strip() for line in raw_text.split('\n') if line.strip()]
+    if not raw_text or not raw_text.strip():
+        return None # Return None if input is empty
 
     # Extract customer name
-    email_sent_match = re.search(r'Order confirmation email was sent to (.*?) \([\w\.-]+@[\w\.-]+\.[\w\.-]+\)', raw_text, re.IGNORECASE)
-    if email_sent_match:
-        data["customer_name"] = email_sent_match.group(1).strip()
+    name_match = re.search(r'Order confirmation email was sent to (.*?)\s*\(', raw_text, re.IGNORECASE)
+    if name_match:
+        data["customer_name"] = name_match.group(1).strip()
     else:
-        data["missing_info"].append("Customer Name")
+        # Fallback for customer name
+        name_fallback_match = re.search(r'Customer\n\n(.*?)\n', raw_text)
+        if name_fallback_match:
+            data["customer_name"] = name_fallback_match.group(1).strip()
+        else:
+            data["missing_info"].append("Customer Name")
+
 
     # Extract email
     email_match = re.search(r'[\w\.-]+@[\w\.-]+\.[\w\.-]+', raw_text)
@@ -97,7 +90,7 @@ def parse_shopify_data(raw_text):
         data["missing_info"].append("Email Address")
 
     # Extract phone
-    phone_match = re.search(r'(\+1[\s\-()]?\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4}|\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4})', raw_text)
+    phone_match = re.search(r'\+1[ \d\-()]{10,}', raw_text)
     if phone_match:
         data["phone_number"] = phone_match.group(0).strip()
     else:
@@ -110,47 +103,61 @@ def parse_shopify_data(raw_text):
     else:
         data["missing_info"].append("Order Number")
 
-    # Extract items (simplified)
-    for line in lines:
-        if ' - ' in line and 'discount' not in line.lower() and 'total' not in line.lower():
-            parts = line.split(' - ')
-            if len(parts) >= 2:
-                data["items"].append({
-                    "product_name": parts[0].strip(),
-                    "style_code": parts[1].strip(),
-                    "size": "One Size",
-                    "quantity": 1
-                })
+    # Extract items using a more reliable, line-by-line method
+    lines = [line.strip() for line in raw_text.split('\n')]
+    for i, line in enumerate(lines):
+        # Find items by looking for the SKU, which is a consistent marker
+        if line.startswith("SKU:") and i > 1 and i < len(lines) - 1:
+            try:
+                product_line = lines[i-2]
+                size_line = lines[i-1]
+                quantity_line = lines[i+1]
 
+                # Product Name and Style Code
+                product_match = re.match(r'(.*) - (.*)', product_line)
+                product_name = product_match.group(1).strip() if product_match else product_line
+                style_code = product_match.group(2).strip() if product_match else "[Style Code Not Found]"
+
+                # Size
+                size = size_line.split('/')[0].strip() if '/' in size_line else size_line
+
+                # Quantity
+                quantity_match = re.search(r'×\s*(\d+)', quantity_line)
+                quantity = int(quantity_match.group(1)) if quantity_match else 1
+                
+                data["items"].append({
+                    "product_name": product_name,
+                    "style_code": style_code,
+                    "size": size,
+                    "quantity": quantity
+                })
+            except (IndexError, AttributeError):
+                # Could not parse this item, skip it
+                continue
+    
     if not data["items"]:
         data["missing_info"].append("Order Items")
 
     return data
 
-def generate_standard_email(parsed_data):
-    """Generate standard confirmation email"""
-    subject = f"Final Order Confirmation of dazzlepremium#{parsed_data['order_number']}"
-    
-    # Build order details
-    order_details = ""
-    if len(parsed_data["items"]) > 1:
-        for idx, item in enumerate(parsed_data["items"]):
-            order_details += f"- Item {idx + 1}:\n"
-            order_details += f"•  Product: {item['product_name']}\n"
-            order_details += f"•  Style Code: {item['style_code']}\n"
-            order_details += f"•  Size: {item['size']}"
-            if item["quantity"] > 1:
-                order_details += f"\n•  Quantity: {item['quantity']}"
-            order_details += "\n\n"
-    elif len(parsed_data["items"]) == 1:
-        item = parsed_data["items"][0]
-        order_details = f"•  Product: {item['product_name']}\n•  Style Code: {item['style_code']}\n•  Size: {item['size']}"
-        if item["quantity"] > 1:
-            order_details += f"\n•  Quantity: {item['quantity']}"
-    else:
-        order_details = "No items found."
+def generate_email_content(parsed_data, email_type):
+    """Single function to generate different email types."""
+    if email_type == "standard":
+        subject = f"Final Order Confirmation of dazzlepremium#{parsed_data['order_number']}"
+        order_details = ""
+        if parsed_data["items"]:
+            for idx, item in enumerate(parsed_data["items"]):
+                order_details += f"- Item {idx + 1}:\n"
+                order_details += f"•  Product: {item['product_name']}\n"
+                order_details += f"•  Style Code: {item['style_code']}\n"
+                order_details += f"•  Size: {item['size']}"
+                if item["quantity"] > 1:
+                    order_details += f"\n•  Quantity: {item['quantity']}"
+                order_details += "\n\n"
+        else:
+            order_details = "No items found."
 
-    message = f"""Hello {parsed_data['customer_name']},
+        message = f"""Hello {parsed_data['customer_name']},
 
 This is DAZZLE PREMIUM Support confirming Order {parsed_data['order_number']}
 
@@ -158,7 +165,7 @@ This is DAZZLE PREMIUM Support confirming Order {parsed_data['order_number']}
 - Kindly also reply YES to the SMS sent automatically to your inbox.
 
 Order Details:
-{order_details}
+{order_details.strip()}
 
 For your security, we use two-factor authentication. If this order wasn't placed by you, text us immediately at 410-381-0000 to cancel.
 
@@ -166,13 +173,11 @@ Note: Any order confirmed after 3:00 pm will be scheduled for the next business 
 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
+        return parsed_data["email_address"], subject, message
 
-    return parsed_data["email_address"], subject, message
-
-def generate_high_risk_email(parsed_data):
-    """Generate high-risk cancellation email"""
-    subject = "Important: Your DAZZLE PREMIUM Order - Action Required"
-    message = f"""Hello {parsed_data['customer_name']},
+    elif email_type == "high_risk":
+        subject = "Important: Your DAZZLE PREMIUM Order - Action Required"
+        message = f"""Hello {parsed_data['customer_name']},
 
 We hope this message finds you well.
 
@@ -186,13 +191,11 @@ If you have any questions or need assistance, feel free to reply to this email.
 
 Thank you,
 DAZZLE PREMIUM Support"""
+        return parsed_data["email_address"], subject, message
 
-    return parsed_data["email_address"], subject, message
-
-def generate_return_email(parsed_data):
-    """Generate return instructions email"""
-    subject = "DAZZLE PREMIUM: Your Return Request Instructions"
-    message = f"""Dear {parsed_data['customer_name']},
+    elif email_type == "return":
+        subject = "DAZZLE PREMIUM: Your Return Request Instructions"
+        message = f"""Dear {parsed_data['customer_name']},
 
 Thank you for reaching out to us regarding your return request. To ensure a smooth and successful return process, please carefully follow the steps below:
 
@@ -214,103 +217,81 @@ Hyattsville, MD 20782
 Once we receive the returned item in its original condition with the tags intact and complete our inspection, we will process your refund.
 
 If you have any questions, feel free to reply to this email."""
+        return parsed_data["email_address"], subject, message
 
-    return parsed_data["email_address"], subject, message
-
-# Main app layout
+# --- Main App Layout ---
 st.title("📧 Mail - DAZZLE PREMIUM")
 st.markdown("### Premium Email Generator")
 
-# Current date and time
 current_time = datetime.now()
 st.info(f"📅 {current_time.strftime('%A, %B %d, %Y')} | 🕒 {current_time.strftime('%I:%M:%S %p')}")
 
-# Create two columns
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.markdown("#### 📋 Order Data Input")
+    st.markdown("#### 📋 Paste Shopify Order Data")
     
-    # Text area for order data
     order_data = st.text_area(
-        "Paste Shopify order export here:",
-        height=300,
-        placeholder="Paste your Shopify order export here..."
+        "The email will generate automatically below once you paste the data.",
+        height=350,
+        placeholder="Paste your full Shopify order page content here...",
+        key="order_input"
     )
     
-    # Parse button
-    if st.button("🔍 Parse Order Data", type="primary"):
-        if order_data.strip():
-            st.session_state.parsed_data = parse_shopify_data(order_data)
+    # Seamlessly parse data on input change
+    if order_data:
+        st.session_state.parsed_data = parse_shopify_data(order_data)
+        # Reset email generation state if input changes
+        if 'email_data' in st.session_state:
             st.session_state.email_generated = False
-        else:
-            st.warning("Please paste order data first.")
-    
-    # Display missing information if any
+            del st.session_state['email_data']
+    else:
+        st.session_state.parsed_data = None
+
+
+    # Display missing information if parsing occurred and there are issues
     if st.session_state.parsed_data and st.session_state.parsed_data.get("missing_info"):
-        st.markdown("""
-        <div class="missing-info">
-            <h4>⚠️ Missing Information</h4>
-            <ul>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="missing-info"><h4>⚠️ Missing Information</h4><ul>', unsafe_allow_html=True)
         for item in st.session_state.parsed_data["missing_info"]:
             st.markdown(f"<li>{item}</li>", unsafe_allow_html=True)
         st.markdown("</ul></div>", unsafe_allow_html=True)
     
-    # Email generation buttons
     st.markdown("#### ✨ Generate Email")
     
+    # Email generation buttons
     col1a, col1b, col1c = st.columns(3)
     
+    def handle_email_generation(email_type):
+        if st.session_state.parsed_data:
+            st.session_state.email_data = generate_email_content(st.session_state.parsed_data, email_type)
+            st.session_state.email_generated = True
+        else:
+            st.warning("Please paste order data first!")
+
     with col1a:
-        if st.button("✨ Standard", use_container_width=True):
-            if st.session_state.parsed_data:
-                st.session_state.email_data = generate_standard_email(st.session_state.parsed_data)
-                st.session_state.email_generated = True
-            else:
-                st.warning("Parse order data first!")
+        st.button("✨ Standard", on_click=handle_email_generation, args=("standard",), use_container_width=True, type="primary")
     
     with col1b:
-        if st.button("🚨 High Risk", use_container_width=True):
-            if st.session_state.parsed_data:
-                st.session_state.email_data = generate_high_risk_email(st.session_state.parsed_data)
-                st.session_state.email_generated = True
-            else:
-                st.warning("Parse order data first!")
+        st.button("🚨 High Risk", on_click=handle_email_generation, args=("high_risk",), use_container_width=True)
     
     with col1c:
-        if st.button("↩️ Return", use_container_width=True):
-            if st.session_state.parsed_data:
-                st.session_state.email_data = generate_return_email(st.session_state.parsed_data)
-                st.session_state.email_generated = True
-            else:
-                st.warning("Parse order data first!")
+        st.button("↩️ Return", on_click=handle_email_generation, args=("return",), use_container_width=True)
+
 
 with col2:
     st.markdown("#### ✉️ Compose Email")
     
-    if st.session_state.email_generated and 'email_data' in st.session_state:
-        email_to, email_subject, email_body = st.session_state.email_data
+    email_to, email_subject, email_body = st.session_state.get('email_data', (None, None, None))
+
+    if st.session_state.email_generated and all(st.session_state.email_data):
+        st.markdown('<div class="success-message"><strong>✅ Email Generated Successfully!</strong></div>', unsafe_allow_html=True)
         
-        # Success indicator
-        st.markdown("""
-        <div class="success-message">
-            <strong>✅ Email Generated Successfully!</strong>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Email fields with built-in copy functionality
-        st.subheader("📧 To:")
-        st.code(email_to, language=None)
-        
-        st.subheader("📝 Subject:")
-        st.code(email_subject, language=None)
-        
-        st.subheader("💬 Message:")
-        st.code(email_body, language=None)
+        st.text_input("To:", value=email_to, key="email_to")
+        st.text_input("Subject:", value=email_subject, key="email_subject")
+        st.text_area("Message:", value=email_body, height=400, key="email_body")
     
     else:
-        st.info("👆 Parse order data and select an email type to generate the email content.")
+        st.info("👆 Paste order data and select an email type to generate the content.")
         
         # Placeholder fields
         st.text_input("To:", placeholder="Recipient email will appear here", disabled=True)
