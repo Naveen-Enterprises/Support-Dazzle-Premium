@@ -276,8 +276,6 @@ with col1:
     st.markdown("#### 📋 Paste Shopify Order Data")
     
     order_data = st.text_area(
-        "The email will generate automatically below once you paste the data.",
-        height=350,
         placeholder="Paste your full Shopify order page content here...",
         key="order_input"
     )
