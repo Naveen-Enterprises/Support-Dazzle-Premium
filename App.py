@@ -6,26 +6,29 @@ from datetime import datetime
 st.set_page_config(
     page_title="Mail - DAZZLE PREMIUM",
     page_icon="📧",
-    layout="centered", # Changed to centered for a more focused, app-like feel
+    layout="centered", # Centered layout for a focused, app-like feel
     initial_sidebar_state="collapsed" # Collapsed sidebar for a cleaner look
 )
 
-# Custom CSS for a polished, minimalist look
+# Custom CSS for a polished, minimalist, and "Apple-like" aesthetic
 st.markdown("""
 <style>
     /* General body and main content styling */
     body {
         font-family: 'Inter', sans-serif;
-        background-color: #f0f2f6; /* Light gray background */
-        color: #333;
+        background-color: #f0f2f6; /* Very light gray background */
+        color: #333; /* Dark gray text */
+        -webkit-font-smoothing: antialiased; /* Smoother fonts */
+        -moz-osx-font-smoothing: grayscale;
     }
     .main > div {
-        max-width: 900px; /* Slightly narrower for a more focused view */
-        padding: 2rem;
-        margin: 2rem auto; /* Center the content with more vertical margin */
-        background-color: #ffffff; /* White background for the main card */
-        border-radius: 12px; /* More rounded corners */
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Subtle shadow for depth */
+        max-width: 900px; /* Optimal width for readability and focus */
+        padding: 2.5rem; /* Generous padding inside the main card */
+        margin: 2.5rem auto; /* Center the content with more vertical margin */
+        background-color: #ffffff; /* Pure white background for the main card */
+        border-radius: 16px; /* Significantly more rounded corners */
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Enhanced, softer shadow for depth */
+        border: 1px solid #e8e8e8; /* Very subtle border for definition */
     }
 
     /* Streamlit header and info box */
@@ -36,10 +39,11 @@ st.markdown("""
         padding-top: 0 !important;
     }
     .stAlert {
-        border-radius: 8px;
+        border-radius: 10px; /* Rounded corners for alerts */
         padding: 1rem 1.5rem;
         font-size: 0.95rem;
-        margin-bottom: 1.25rem; /* More consistent spacing */
+        margin-bottom: 1.5rem; /* Increased consistent spacing below alerts */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow for alerts */
     }
     .stAlert.info {
         background-color: #e0f7fa; /* Light cyan */
@@ -51,105 +55,120 @@ st.markdown("""
         color: #856404;
         border-left: 5px solid #ffc107;
     }
+    .stAlert.success {
+        background-color: #d4edda;
+        color: #155724;
+        border-left: 5px solid #28a745;
+    }
 
     /* Text Areas and Text Inputs */
     .stTextArea textarea, .stTextInput input {
         border: 1px solid #e0e0e0; /* Light gray border */
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
+        border-radius: 10px; /* Rounded input fields */
+        padding: 0.85rem 1.1rem; /* More generous padding */
         font-size: 1rem;
         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        margin-bottom: 1rem; /* Consistent spacing */
+        margin-bottom: 1.25rem; /* Consistent spacing */
+        background-color: #fcfcfc; /* Slightly off-white background for inputs */
     }
     .stTextArea textarea:focus, .stTextInput input:focus {
-        border-color: #007bff; /* Blue focus border */
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Subtle focus glow */
+        border-color: #007aff; /* Apple-like blue focus border */
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2); /* Soft, subtle focus glow */
         outline: none;
     }
     .stTextInput label, .stTextArea label {
-        font-weight: 500; /* Slightly bolder labels */
+        font-weight: 500; /* Medium weight labels */
         color: #555;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.6rem; /* Space between label and input */
         display: block; /* Ensure label is on its own line */
+        font-size: 0.95rem;
     }
 
     /* Buttons */
     .stButton > button {
-        background-color: #007bff; /* Primary blue */
+        background-color: #007aff; /* Primary Apple-like blue */
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 0.75rem 1.25rem;
+        border-radius: 10px; /* Rounded buttons */
+        padding: 0.8rem 1.5rem;
         font-size: 1rem;
-        font-weight: 600;
+        font-weight: 600; /* Semibold */
         cursor: pointer;
-        transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-        margin-bottom: 0.75rem; /* Consistent spacing */
-        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2); /* Subtle shadow for buttons */
+        transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+        margin-bottom: 1rem; /* Consistent spacing */
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.2); /* Soft shadow for primary buttons */
     }
     .stButton > button:hover {
-        background-color: #0056b3; /* Darker blue on hover */
-        transform: translateY(-1px); /* Slight lift effect */
+        background-color: #005bb5; /* Darker blue on hover */
+        transform: translateY(-2px); /* More noticeable lift effect */
+        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
     }
-    .stButton > button.css-1x8b0s { /* Target primary button specifically if needed */
-        background-color: #007bff;
+    .stButton > button.css-1x8b0s { /* Target primary button specifically */
+        background-color: #007aff;
     }
     .stButton > button.css-1x8b0s:hover {
-        background-color: #0056b3;
+        background-color: #005bb5;
     }
     /* Style for secondary buttons (High Risk, Return) */
     .stButton > button:not(.css-1x8b0s) { /* Target non-primary buttons */
-        background-color: #f8f9fa; /* Light background */
-        color: #333;
-        border: 1px solid #ced4da; /* Light border */
+        background-color: #f0f2f6; /* Very light background */
+        color: #555;
+        border: 1px solid #dcdcdc; /* Light border */
         box-shadow: none;
     }
     .stButton > button:not(.css-1x8b0s):hover {
-        background-color: #e2e6ea; /* Slightly darker on hover */
+        background-color: #e8e8e8; /* Slightly darker on hover */
         color: #333;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     /* Section Headers */
     h1, h3, h4, h5 {
         color: #333;
-        margin-top: 1.5rem;
+        margin-top: 2rem; /* More space above sections */
         margin-bottom: 1rem;
-        font-weight: 600;
+        font-weight: 700; /* Bolder headers */
     }
-    h1 { font-size: 2.25rem; margin-bottom: 1.5rem; }
-    h3 { font-size: 1.75rem; }
-    h4 { font-size: 1.5rem; }
-    h5 { font-size: 1.25rem; }
+    h1 { font-size: 2.5rem; margin-bottom: 1.5rem; color: #1a1a1a; } /* Larger, darker main title */
+    h3 { font-size: 2rem; }
+    h4 { font-size: 1.6rem; }
+    h5 { font-size: 1.3rem; }
 
     /* Custom Sections (Missing Info, Notes) */
-    .info-card, .notes-card {
-        background-color: #f8f9fa; /* Very light gray for internal cards */
-        border-radius: 8px;
-        padding: 1.25rem;
+    .card-section {
+        background-color: #fcfcfc; /* Very light gray for internal cards */
+        border-radius: 12px;
+        padding: 1.5rem;
         margin-top: 1.5rem;
         margin-bottom: 1.5rem;
-        border: 1px solid #e9ecef; /* Subtle border */
+        border: 1px solid #f0f0f0; /* Very subtle border */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03); /* Extremely subtle shadow */
     }
-    .info-card.warning-style {
+    .card-section.warning-style {
         background-color: #fff3cd; /* Light yellow for warnings */
         border-left: 5px solid #ffc107;
-        padding: 1rem 1.5rem;
+        border: none; /* Remove subtle border if left border is present */
+        box-shadow: none; /* Remove subtle shadow for warning style */
     }
-    .info-card h4 {
+    .card-section h4 {
         color: #856404;
         margin-top: 0;
         margin-bottom: 0.75rem;
     }
-    .info-card ul {
+    .card-section ul {
         margin: 0;
         padding-left: 1.25rem;
         list-style-type: disc;
+        color: #555;
     }
-    .notes-card {
+    .notes-card-style {
         background-color: #e6f7ff; /* Light blue */
         border-left: 5px solid #3399ff;
+        border: none;
+        box-shadow: none;
     }
-    .notes-card h5 {
+    .notes-card-style h5 {
         color: #004085;
         margin-top: 0;
         margin-bottom: 0.75rem;
@@ -158,11 +177,17 @@ st.markdown("""
     /* Footer */
     .footer {
         text-align: center;
-        margin-top: 3rem;
-        padding-top: 1.5rem;
+        margin-top: 4rem; /* More space above footer */
+        padding-top: 2rem;
         border-top: 1px solid #e0e0e0;
         color: #888;
         font-size: 0.9rem;
+    }
+    .stMarkdown p {
+        margin-bottom: 1rem; /* Ensure consistent spacing for paragraphs */
+    }
+    .stMarkdown h4 {
+        margin-bottom: 0.75rem; /* Tighter spacing for sub-headers */
     }
 </style>
 """, unsafe_allow_html=True)
@@ -394,7 +419,7 @@ with st.container():
         
         # Display missing information if parsing occurred and there are issues
         if st.session_state.parsed_data and st.session_state.parsed_data.get("missing_info"):
-            st.markdown('<div class="info-card warning-style"><h4>⚠️ Missing Information</h4><ul>', unsafe_allow_html=True)
+            st.markdown('<div class="card-section warning-style"><h4>⚠️ Missing Information</h4><ul>', unsafe_allow_html=True)
             for item in st.session_state.parsed_data["missing_info"]:
                 st.markdown(f"<li>{item}</li>", unsafe_allow_html=True)
             st.markdown("</ul></div>", unsafe_allow_html=True)
@@ -428,7 +453,7 @@ with st.container():
         if current_order_number not in st.session_state.order_notes:
             st.session_state.order_notes[current_order_number] = ""
 
-        st.markdown(f'<div class="notes-card"><h5>📝 Notes for Order: {current_order_number}</h5>', unsafe_allow_html=True)
+        st.markdown(f'<div class="card-section notes-card-style"><h5>📝 Notes for Order: {current_order_number}</h5>', unsafe_allow_html=True)
         
         # Order notes text area
         st.session_state.order_notes[current_order_number] = st.text_area(
