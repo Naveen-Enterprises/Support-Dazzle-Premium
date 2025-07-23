@@ -41,6 +41,18 @@ st.markdown("""
         border-radius: 0.5rem;
         margin: 1rem 0;
     }
+    .review-checklist {
+        background-color: #e0f7fa;
+        border-left: 4px solid #00bcd4;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    .review-checklist h5 {
+        color: #006064;
+        margin-top: 0;
+        margin-bottom: 0.8rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -51,14 +63,22 @@ if 'email_generated' not in st.session_state:
     st.session_state.email_generated = False
 if 'email_data' not in st.session_state:
     st.session_state.email_data = (None, None, None)
-if 'is_data_available' not in st.session_state: # New: Tracks if parsed data is available
+if 'is_data_available' not in st.session_state: # Tracks if parsed data is available
     st.session_state.is_data_available = False
-if 'last_order_input_value_for_parsing' not in st.session_state: # New: Stores last input for change detection
+if 'last_order_input_value_for_parsing' not in st.session_state: # Stores last input for change detection
     st.session_state.last_order_input_value_for_parsing = ''
-if 'add_additional_info' not in st.session_state: # New: Checkbox state for additional info
-    st.session_state.add_additional_info = False
-if 'additional_email_info' not in st.session_state: # New: Stores additional info text
-    st.session_state.additional_email_info = ''
+
+# New session states for the review checklist
+if 'show_review_checklist' not in st.session_state:
+    st.session_state.show_review_checklist = False
+if 'checklist_no_payment_details' not in st.session_state:
+    st.session_state.checklist_no_payment_details = False
+if 'checklist_no_sensitive_info' not in st.session_state:
+    st.session_state.checklist_no_sensitive_info = False
+if 'checklist_verified_shipping_address' not in st.session_state:
+    st.session_state.checklist_verified_shipping_address = False
+if 'checklist_no_internal_notes' not in st.session_state:
+    st.session_state.checklist_no_internal_notes = False
 
 
 def parse_shopify_data(raw_text):
@@ -149,8 +169,8 @@ def parse_shopify_data(raw_text):
 
     return data
 
-def generate_email_content(parsed_data, email_type, additional_info_text=""):
-    """Single function to generate different email types, now with optional additional info."""
+def generate_email_content(parsed_data, email_type):
+    """Single function to generate different email types."""
     message = ""
     subject = ""
 
@@ -228,10 +248,6 @@ Once we receive the returned item in its original condition with the tags intact
 
 If you have any questions, feel free to reply to this email."""
     
-    # Append additional information if provided
-    if additional_info_text:
-        message += f"\n\n--- Additional Information ---\n{additional_info_text}"
-
     return parsed_data["email_address"], subject, message
 
 # --- Main App Layout ---
@@ -286,8 +302,7 @@ with col1:
     def handle_email_generation(email_type):
         # Ensure parsed data is available before generating email
         if st.session_state.is_data_available and st.session_state.parsed_data:
-            additional_info_to_add = st.session_state.additional_email_info if st.session_state.add_additional_info else ""
-            st.session_state.email_data = generate_email_content(st.session_state.parsed_data, email_type, additional_info_to_add)
+            st.session_state.email_data = generate_email_content(st.session_state.parsed_data, email_type)
             st.session_state.email_generated = True
         else:
             st.warning("Please paste valid order data first to generate an email!")
@@ -301,21 +316,36 @@ with col1:
     with col1c:
         st.button("↩️ Return", on_click=handle_email_generation, args=("return",), use_container_width=True)
 
-    # New checkbox for additional information
-    st.session_state.add_additional_info = st.checkbox(
-        "Add Additional Information",
-        value=st.session_state.add_additional_info,
-        key="additional_info_checkbox"
+    # New checkbox for showing the review checklist
+    st.session_state.show_review_checklist = st.checkbox(
+        "Show Email Review Checklist",
+        value=st.session_state.show_review_checklist,
+        key="show_review_checklist_checkbox"
     )
 
-    if st.session_state.add_additional_info:
-        st.session_state.additional_email_info = st.text_area(
-            "Additional Information to Add:",
-            value=st.session_state.additional_email_info,
-            height=100,
-            placeholder="Type any extra details to include in the email here...",
-            key="additional_info_text_area"
+    if st.session_state.show_review_checklist:
+        st.markdown('<div class="review-checklist"><h5>✅ Review Checklist (Before Sending)</h5>', unsafe_allow_html=True)
+        st.session_state.checklist_no_payment_details = st.checkbox(
+            "Confirmed: No payment details (e.g., credit card numbers) are included.",
+            value=st.session_state.checklist_no_payment_details,
+            key="check_no_payment_details"
         )
+        st.session_state.checklist_no_sensitive_info = st.checkbox(
+            "Confirmed: No other sensitive personal financial information is included.",
+            value=st.session_state.checklist_no_sensitive_info,
+            key="check_no_sensitive_info"
+        )
+        st.session_state.checklist_verified_shipping_address = st.checkbox(
+            "Confirmed: Shipping address is NOT included unless explicitly required and safe.",
+            value=st.session_state.checklist_verified_shipping_address,
+            key="check_verified_shipping_address"
+        )
+        st.session_state.checklist_no_internal_notes = st.checkbox(
+            "Confirmed: No internal notes or confidential company information is included.",
+            value=st.session_state.checklist_no_internal_notes,
+            key="check_no_internal_notes"
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 with col2:
