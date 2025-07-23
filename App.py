@@ -46,12 +46,23 @@ st.markdown("""
         border-left: 4px solid #3399ff; /* Blue border */
         padding: 1rem;
         border-radius: 0.5rem;
-        margin: 1rem 0;
+        margin-top: 1.5rem; /* Added space above notes section */
+        margin-bottom: 1rem;
     }
     .order-notes-section h5 {
         color: #004085; /* Darker blue text */
         margin-top: 0;
         margin-bottom: 0.8rem;
+    }
+    /* Adjust spacing for buttons and text areas */
+    .stButton > button {
+        margin-bottom: 0.5rem;
+    }
+    .stTextarea {
+        margin-bottom: 1rem;
+    }
+    .stTextInput {
+        margin-bottom: 0.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -273,7 +284,7 @@ with col1:
         st.session_state.email_generated = False
         st.session_state.email_data = (None, None, None)
     elif not order_data and st.session_state.is_data_available: # If order_data is now empty, clear parsed data and reset state
-        st.session_session.parsed_data = None
+        st.session_state.parsed_data = None
         st.session_state.is_data_available = False
         st.session_state.email_generated = False
         st.session_state.email_data = (None, None, None)
