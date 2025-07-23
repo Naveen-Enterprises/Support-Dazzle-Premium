@@ -68,11 +68,13 @@ if 'is_data_available' not in st.session_state: # Tracks if parsed data is avail
 if 'last_order_input_value_for_parsing' not in st.session_state: # Stores last input for change detection
     st.session_state.last_order_input_value_for_parsing = ''
 
-# New session states for order notes
+# New session states for order notes and task tracking
 if 'enable_order_notes' not in st.session_state:
     st.session_state.enable_order_notes = False
 if 'order_notes' not in st.session_state:
     st.session_state.order_notes = {} # Dictionary to store notes, keyed by order number
+if 'order_tasks' not in st.session_state:
+    st.session_state.order_tasks = {} # Dictionary to store task completion status, keyed by order number
 
 
 def parse_shopify_data(raw_text):
@@ -320,16 +322,27 @@ with col1:
     if st.session_state.enable_order_notes:
         current_order_number = st.session_state.parsed_data["order_number"] if st.session_state.parsed_data else "No Order"
         
-        # Initialize note for current order if not exists
+        # Initialize note and task for current order if not exists
         if current_order_number not in st.session_state.order_notes:
             st.session_state.order_notes[current_order_number] = ""
+        if current_order_number not in st.session_state.order_tasks:
+            st.session_state.order_tasks[current_order_number] = {"email_sent": False} # Default task
 
-        st.markdown(f'<div class="order-notes-section"><h5>📝 Notes for Order: {current_order_number}</h5>', unsafe_allow_html=True)
+        st.markdown(f'<div class="order-notes-section"><h5>📝 Notes & Tasks for Order: {current_order_number}</h5>', unsafe_allow_html=True)
+        
+        # Task tracking checkbox
+        st.session_state.order_tasks[current_order_number]["email_sent"] = st.checkbox(
+            "Email Sent",
+            value=st.session_state.order_tasks[current_order_number]["email_sent"],
+            key=f"task_email_sent_{current_order_number}"
+        )
+
+        # Order notes text area
         st.session_state.order_notes[current_order_number] = st.text_area(
             "Add your tracking notes here:",
             value=st.session_state.order_notes.get(current_order_number, ""),
             height=150,
-            placeholder="e.g., 'Email sent', 'Follow-up needed', 'Called customer'",
+            placeholder="e.g., 'Follow-up needed', 'Called customer about size issue'",
             key=f"order_notes_text_area_{current_order_number}" # Unique key for each order
         )
         st.markdown('</div>', unsafe_allow_html=True)
