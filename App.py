@@ -41,15 +41,15 @@ st.markdown("""
         border-radius: 0.5rem;
         margin: 1rem 0;
     }
-    .review-checklist {
-        background-color: #e0f7fa;
-        border-left: 4px solid #00bcd4;
+    .order-notes-section {
+        background-color: #e6f7ff; /* Light blue background */
+        border-left: 4px solid #3399ff; /* Blue border */
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
     }
-    .review-checklist h5 {
-        color: #006064;
+    .order-notes-section h5 {
+        color: #004085; /* Darker blue text */
         margin-top: 0;
         margin-bottom: 0.8rem;
     }
@@ -68,17 +68,11 @@ if 'is_data_available' not in st.session_state: # Tracks if parsed data is avail
 if 'last_order_input_value_for_parsing' not in st.session_state: # Stores last input for change detection
     st.session_state.last_order_input_value_for_parsing = ''
 
-# New session states for the review checklist
-if 'show_review_checklist' not in st.session_state:
-    st.session_state.show_review_checklist = False
-if 'checklist_no_payment_details' not in st.session_state:
-    st.session_state.checklist_no_payment_details = False
-if 'checklist_no_sensitive_info' not in st.session_state:
-    st.session_state.checklist_no_sensitive_info = False
-if 'checklist_verified_shipping_address' not in st.session_state:
-    st.session_state.checklist_verified_shipping_address = False
-if 'checklist_no_internal_notes' not in st.session_state:
-    st.session_state.checklist_no_internal_notes = False
+# New session states for order notes
+if 'enable_order_notes' not in st.session_state:
+    st.session_state.enable_order_notes = False
+if 'order_notes' not in st.session_state:
+    st.session_state.order_notes = {} # Dictionary to store notes, keyed by order number
 
 
 def parse_shopify_data(raw_text):
@@ -316,34 +310,27 @@ with col1:
     with col1c:
         st.button("↩️ Return", on_click=handle_email_generation, args=("return",), use_container_width=True)
 
-    # New checkbox for showing the review checklist
-    st.session_state.show_review_checklist = st.checkbox(
-        "Show Email Review Checklist",
-        value=st.session_state.show_review_checklist,
-        key="show_review_checklist_checkbox"
+    # New checkbox for enabling order notes
+    st.session_state.enable_order_notes = st.checkbox(
+        "Enable Order Notes for Tracking",
+        value=st.session_state.enable_order_notes,
+        key="enable_order_notes_checkbox"
     )
 
-    if st.session_state.show_review_checklist:
-        st.markdown('<div class="review-checklist"><h5>✅ Review Checklist (Before Sending)</h5>', unsafe_allow_html=True)
-        st.session_state.checklist_no_payment_details = st.checkbox(
-            "Confirmed: No payment details (e.g., credit card numbers) are included.",
-            value=st.session_state.checklist_no_payment_details,
-            key="check_no_payment_details"
-        )
-        st.session_state.checklist_no_sensitive_info = st.checkbox(
-            "Confirmed: No other sensitive personal financial information is included.",
-            value=st.session_state.checklist_no_sensitive_info,
-            key="check_no_sensitive_info"
-        )
-        st.session_state.checklist_verified_shipping_address = st.checkbox(
-            "Confirmed: Shipping address is NOT included unless explicitly required and safe.",
-            value=st.session_state.checklist_verified_shipping_address,
-            key="check_verified_shipping_address"
-        )
-        st.session_state.checklist_no_internal_notes = st.checkbox(
-            "Confirmed: No internal notes or confidential company information is included.",
-            value=st.session_state.checklist_no_internal_notes,
-            key="check_no_internal_notes"
+    if st.session_state.enable_order_notes:
+        current_order_number = st.session_state.parsed_data["order_number"] if st.session_state.parsed_data else "No Order"
+        
+        # Initialize note for current order if not exists
+        if current_order_number not in st.session_state.order_notes:
+            st.session_state.order_notes[current_order_number] = ""
+
+        st.markdown(f'<div class="order-notes-section"><h5>📝 Notes for Order: {current_order_number}</h5>', unsafe_allow_html=True)
+        st.session_state.order_notes[current_order_number] = st.text_area(
+            "Add your tracking notes here:",
+            value=st.session_state.order_notes.get(current_order_number, ""),
+            height=150,
+            placeholder="e.g., 'Email sent', 'Follow-up needed', 'Called customer'",
+            key=f"order_notes_text_area_{current_order_number}" # Unique key for each order
         )
         st.markdown('</div>', unsafe_allow_html=True)
 
