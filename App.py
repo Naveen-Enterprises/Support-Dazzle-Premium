@@ -10,14 +10,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for a polished look
+# Custom CSS for a polished look and improved alignment
 st.markdown("""
 <style>
     .main > div {
         padding-top: 2rem;
+        /* Ensure main content is centered if possible or has consistent padding */
+        max-width: 1200px; /* Limit max width for better readability on large screens */
+        margin: auto; /* Center the main content area */
     }
     .stTextArea textarea {
         font-family: monospace;
+        margin-bottom: 0.75rem; /* Consistent spacing below text areas */
     }
     .missing-info {
         background-color: #fff3cd;
@@ -46,7 +50,7 @@ st.markdown("""
         border-left: 4px solid #3399ff; /* Blue border */
         padding: 1rem;
         border-radius: 0.5rem;
-        margin-top: 1.5rem; /* Added space above notes section */
+        margin-top: 2rem; /* Increased space above notes section for clear separation */
         margin-bottom: 1rem;
     }
     .order-notes-section h5 {
@@ -54,15 +58,21 @@ st.markdown("""
         margin-top: 0;
         margin-bottom: 0.8rem;
     }
-    /* Adjust spacing for buttons and text areas */
+    /* Adjust spacing for buttons and text inputs */
     .stButton > button {
-        margin-bottom: 0.5rem;
-    }
-    .stTextarea {
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem; /* Consistent spacing below buttons */
     }
     .stTextInput {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem; /* Consistent spacing below text inputs */
+    }
+    /* Ensure headers have consistent bottom margin */
+    h4 {
+        margin-bottom: 1rem;
+    }
+    /* Add some padding to columns for better visual separation */
+    .st-emotion-cache-1cypcdb { /* This class targets the column div, may vary slightly */
+        padding-right: 1rem;
+        padding-left: 1rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -79,7 +89,7 @@ if 'is_data_available' not in st.session_state: # Tracks if parsed data is avail
 if 'last_order_input_value_for_parsing' not in st.session_state: # Stores last input for change detection
     st.session_state.last_order_input_value_for_parsing = ''
 
-# Session state for order notes (no 'enable' checkbox needed)
+# Session state for order notes
 if 'order_notes' not in st.session_state:
     st.session_state.order_notes = {} # Dictionary to store notes, keyed by order number
 
@@ -221,7 +231,7 @@ If you would still like to proceed with your order, we'd be happy to assist you 
 
 Once the payment is received, we will immediately process your order and provide confirmation along with tracking details.
 
-If you have any questions or need assistance, feel free to reply to this email.
+If you have any questions or need assistance, feel feel to reply to this email.
 
 Thank you,
 DAZZLE PREMIUM Support"""
