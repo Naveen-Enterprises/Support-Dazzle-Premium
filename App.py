@@ -385,4 +385,3 @@ with col2:
 # Footer
 st.markdown("---")
 st.markdown("**DAZZLE PREMIUM** - Premium Email Management System")
-�
