@@ -6,73 +6,163 @@ from datetime import datetime
 st.set_page_config(
     page_title="Mail - DAZZLE PREMIUM",
     page_icon="📧",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="centered", # Changed to centered for a more focused, app-like feel
+    initial_sidebar_state="collapsed" # Collapsed sidebar for a cleaner look
 )
 
-# Custom CSS for a polished look and improved alignment
+# Custom CSS for a polished, minimalist look
 st.markdown("""
 <style>
+    /* General body and main content styling */
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f0f2f6; /* Light gray background */
+        color: #333;
+    }
     .main > div {
-        padding-top: 2rem;
-        /* Ensure main content is centered if possible or has consistent padding */
-        max-width: 1200px; /* Limit max width for better readability on large screens */
-        margin: auto; /* Center the main content area */
+        max-width: 900px; /* Slightly narrower for a more focused view */
+        padding: 2rem;
+        margin: 2rem auto; /* Center the content with more vertical margin */
+        background-color: #ffffff; /* White background for the main card */
+        border-radius: 12px; /* More rounded corners */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Subtle shadow for depth */
     }
-    .stTextArea textarea {
-        font-family: monospace;
-        margin-bottom: 0.75rem; /* Consistent spacing below text areas */
+
+    /* Streamlit header and info box */
+    .stApp > header {
+        display: none; /* Hide Streamlit's default header */
     }
-    .missing-info {
+    .stApp {
+        padding-top: 0 !important;
+    }
+    .stAlert {
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        font-size: 0.95rem;
+        margin-bottom: 1.25rem; /* More consistent spacing */
+    }
+    .stAlert.info {
+        background-color: #e0f7fa; /* Light cyan */
+        color: #006064; /* Dark cyan text */
+        border-left: 5px solid #00bcd4; /* Cyan border */
+    }
+    .stAlert.warning {
         background-color: #fff3cd;
-        border-left: 4px solid #ffc107;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
-    }
-    .missing-info h4 {
         color: #856404;
-        margin: 0 0 0.5rem 0;
+        border-left: 5px solid #ffc107;
     }
-    .missing-info ul {
-        margin: 0;
-        padding-left: 1.5rem;
+
+    /* Text Areas and Text Inputs */
+    .stTextArea textarea, .stTextInput input {
+        border: 1px solid #e0e0e0; /* Light gray border */
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        margin-bottom: 1rem; /* Consistent spacing */
     }
-    .success-message {
-        background-color: #d4edda;
-        border-left: 4px solid #28a745;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
+    .stTextArea textarea:focus, .stTextInput input:focus {
+        border-color: #007bff; /* Blue focus border */
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Subtle focus glow */
+        outline: none;
     }
-    .order-notes-section {
-        background-color: #e6f7ff; /* Light blue background */
-        border-left: 4px solid #3399ff; /* Blue border */
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-top: 2rem; /* Increased space above notes section for clear separation */
-        margin-bottom: 1rem;
+    .stTextInput label, .stTextArea label {
+        font-weight: 500; /* Slightly bolder labels */
+        color: #555;
+        margin-bottom: 0.5rem;
+        display: block; /* Ensure label is on its own line */
     }
-    .order-notes-section h5 {
-        color: #004085; /* Darker blue text */
-        margin-top: 0;
-        margin-bottom: 0.8rem;
-    }
-    /* Adjust spacing for buttons and text inputs */
+
+    /* Buttons */
     .stButton > button {
-        margin-bottom: 0.75rem; /* Consistent spacing below buttons */
+        background-color: #007bff; /* Primary blue */
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        margin-bottom: 0.75rem; /* Consistent spacing */
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2); /* Subtle shadow for buttons */
     }
-    .stTextInput {
-        margin-bottom: 0.75rem; /* Consistent spacing below text inputs */
+    .stButton > button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        transform: translateY(-1px); /* Slight lift effect */
     }
-    /* Ensure headers have consistent bottom margin */
-    h4 {
+    .stButton > button.css-1x8b0s { /* Target primary button specifically if needed */
+        background-color: #007bff;
+    }
+    .stButton > button.css-1x8b0s:hover {
+        background-color: #0056b3;
+    }
+    /* Style for secondary buttons (High Risk, Return) */
+    .stButton > button:not(.css-1x8b0s) { /* Target non-primary buttons */
+        background-color: #f8f9fa; /* Light background */
+        color: #333;
+        border: 1px solid #ced4da; /* Light border */
+        box-shadow: none;
+    }
+    .stButton > button:not(.css-1x8b0s):hover {
+        background-color: #e2e6ea; /* Slightly darker on hover */
+        color: #333;
+    }
+
+    /* Section Headers */
+    h1, h3, h4, h5 {
+        color: #333;
+        margin-top: 1.5rem;
         margin-bottom: 1rem;
+        font-weight: 600;
     }
-    /* Add some padding to columns for better visual separation */
-    .st-emotion-cache-1cypcdb { /* This class targets the column div, may vary slightly */
-        padding-right: 1rem;
-        padding-left: 1rem;
+    h1 { font-size: 2.25rem; margin-bottom: 1.5rem; }
+    h3 { font-size: 1.75rem; }
+    h4 { font-size: 1.5rem; }
+    h5 { font-size: 1.25rem; }
+
+    /* Custom Sections (Missing Info, Notes) */
+    .info-card, .notes-card {
+        background-color: #f8f9fa; /* Very light gray for internal cards */
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef; /* Subtle border */
+    }
+    .info-card.warning-style {
+        background-color: #fff3cd; /* Light yellow for warnings */
+        border-left: 5px solid #ffc107;
+        padding: 1rem 1.5rem;
+    }
+    .info-card h4 {
+        color: #856404;
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+    }
+    .info-card ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        list-style-type: disc;
+    }
+    .notes-card {
+        background-color: #e6f7ff; /* Light blue */
+        border-left: 5px solid #3399ff;
+    }
+    .notes-card h5 {
+        color: #004085;
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Footer */
+    .footer {
+        text-align: center;
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e0e0e0;
+        color: #888;
+        font-size: 0.9rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -270,105 +360,106 @@ st.markdown("### Premium Email Generator")
 current_time = datetime.now()
 st.info(f"📅 {current_time.strftime('%A, %B %d, %Y')} | 🕒 {current_time.strftime('%I:%M:%S %p')}")
 
-col1, col2 = st.columns([1, 2])
+# Use a single container for the main two-column layout
+with st.container():
+    col1, col2 = st.columns([1, 2]) # Keep the 1:2 ratio for input/output
 
-with col1:
-    st.markdown("#### 📋 Paste Shopify Order Data")
-    
-    order_data = st.text_area(
-        "The email will generate automatically below once you paste the data.",
-        height=350,
-        placeholder="Paste your full Shopify order page content here...",
-        key="order_input"
-    )
-    
-    # Seamlessly parse data on input change, but only if content actually changed
-    if order_data != st.session_state.last_order_input_value_for_parsing:
-        st.session_state.parsed_data = parse_shopify_data(order_data)
-        st.session_state.last_order_input_value_for_parsing = order_data
+    with col1:
+        st.markdown("#### 📋 Paste Shopify Order Data")
         
-        # Update data availability state based on parsing result
-        st.session_state.is_data_available = (st.session_state.parsed_data is not None)
+        order_data = st.text_area(
+            "The email will generate automatically below once you paste the data.",
+            height=350,
+            placeholder="Paste your full Shopify order page content here...",
+            key="order_input"
+        )
         
-        # Reset email generation state if input changes
-        st.session_state.email_generated = False
-        st.session_state.email_data = (None, None, None)
-    elif not order_data and st.session_state.is_data_available: # If order_data is now empty, clear parsed data and reset state
-        st.session_state.parsed_data = None
-        st.session_state.is_data_available = False
-        st.session_state.email_generated = False
-        st.session_state.email_data = (None, None, None)
-        st.session_state.last_order_input_value_for_parsing = '' # Clear last input value
-    
-    # Display missing information if parsing occurred and there are issues
-    if st.session_state.parsed_data and st.session_state.parsed_data.get("missing_info"):
-        st.markdown('<div class="missing-info"><h4>⚠️ Missing Information</h4><ul>', unsafe_allow_html=True)
-        for item in st.session_state.parsed_data["missing_info"]:
-            st.markdown(f"<li>{item}</li>", unsafe_allow_html=True)
-        st.markdown("</ul></div>", unsafe_allow_html=True)
-    
-    st.markdown("#### ✨ Generate Email")
-    
-    # Email generation buttons
-    col1a, col1b, col1c = st.columns(3)
-    
-    def handle_email_generation(email_type):
-        # Ensure parsed data is available before generating email
-        if st.session_state.is_data_available and st.session_state.parsed_data:
-            st.session_state.email_data = generate_email_content(st.session_state.parsed_data, email_type)
-            st.session_state.email_generated = True
+        # Seamlessly parse data on input change, but only if content actually changed
+        if order_data != st.session_state.last_order_input_value_for_parsing:
+            st.session_state.parsed_data = parse_shopify_data(order_data)
+            st.session_state.last_order_input_value_for_parsing = order_data
+            
+            # Update data availability state based on parsing result
+            st.session_state.is_data_available = (st.session_state.parsed_data is not None)
+            
+            # Reset email generation state if input changes
+            st.session_state.email_generated = False
+            st.session_state.email_data = (None, None, None)
+        elif not order_data and st.session_state.is_data_available: # If order_data is now empty, clear parsed data and reset state
+            st.session_state.parsed_data = None
+            st.session_state.is_data_available = False
+            st.session_state.email_generated = False
+            st.session_state.email_data = (None, None, None)
+            st.session_state.last_order_input_value_for_parsing = '' # Clear last input value
+        
+        # Display missing information if parsing occurred and there are issues
+        if st.session_state.parsed_data and st.session_state.parsed_data.get("missing_info"):
+            st.markdown('<div class="info-card warning-style"><h4>⚠️ Missing Information</h4><ul>', unsafe_allow_html=True)
+            for item in st.session_state.parsed_data["missing_info"]:
+                st.markdown(f"<li>{item}</li>", unsafe_allow_html=True)
+            st.markdown("</ul></div>", unsafe_allow_html=True)
+        
+        st.markdown("#### ✨ Generate Email")
+        
+        # Email generation buttons
+        col1a, col1b, col1c = st.columns(3)
+        
+        def handle_email_generation(email_type):
+            # Ensure parsed data is available before generating email
+            if st.session_state.is_data_available and st.session_state.parsed_data:
+                st.session_state.email_data = generate_email_content(st.session_state.parsed_data, email_type)
+                st.session_state.email_generated = True
+            else:
+                st.warning("Please paste valid order data first to generate an email!")
+
+        with col1a:
+            st.button("✨ Standard", on_click=handle_email_generation, args=("standard",), use_container_width=True, type="primary")
+        
+        with col1b:
+            st.button("🚨 High Risk", on_click=handle_email_generation, args=("high_risk",), use_container_width=True)
+        
+        with col1c:
+            st.button("↩️ Return", on_click=handle_email_generation, args=("return",), use_container_width=True)
+
+        # Order Notes section (always visible)
+        current_order_number = st.session_state.parsed_data["order_number"] if st.session_state.parsed_data else "No Order"
+        
+        # Initialize note for current order if not exists
+        if current_order_number not in st.session_state.order_notes:
+            st.session_state.order_notes[current_order_number] = ""
+
+        st.markdown(f'<div class="notes-card"><h5>📝 Notes for Order: {current_order_number}</h5>', unsafe_allow_html=True)
+        
+        # Order notes text area
+        st.session_state.order_notes[current_order_number] = st.text_area(
+            "Add your tracking notes here:",
+            value=st.session_state.order_notes.get(current_order_number, ""),
+            height=150,
+            placeholder="e.g., 'Follow-up needed', 'Called customer about size issue'",
+            key=f"order_notes_text_area_{current_order_number}" # Unique key for each order
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+    with col2:
+        st.markdown("#### ✉️ Compose Email")
+        
+        email_to, email_subject, email_body = st.session_state.get('email_data', (None, None, None))
+
+        if st.session_state.email_generated and all(st.session_state.email_data):
+            st.markdown('<div class="stAlert success"><strong>✅ Email Generated Successfully!</strong></div>', unsafe_allow_html=True)
+            
+            st.text_input("To:", value=email_to, key="email_to")
+            st.text_input("Subject:", value=email_subject, key="email_subject")
+            st.text_area("Message:", value=email_body, height=400, key="email_body")
+        
         else:
-            st.warning("Please paste valid order data first to generate an email!")
-
-    with col1a:
-        st.button("✨ Standard", on_click=handle_email_generation, args=("standard",), use_container_width=True, type="primary")
-    
-    with col1b:
-        st.button("🚨 High Risk", on_click=handle_email_generation, args=("high_risk",), use_container_width=True)
-    
-    with col1c:
-        st.button("↩️ Return", on_click=handle_email_generation, args=("return",), use_container_width=True)
-
-    # Order Notes section (always visible)
-    current_order_number = st.session_state.parsed_data["order_number"] if st.session_state.parsed_data else "No Order"
-    
-    # Initialize note for current order if not exists
-    if current_order_number not in st.session_state.order_notes:
-        st.session_state.order_notes[current_order_number] = ""
-
-    st.markdown(f'<div class="order-notes-section"><h5>📝 Notes for Order: {current_order_number}</h5>', unsafe_allow_html=True)
-    
-    # Order notes text area
-    st.session_state.order_notes[current_order_number] = st.text_area(
-        "Add your tracking notes here:",
-        value=st.session_state.order_notes.get(current_order_number, ""),
-        height=150,
-        placeholder="e.g., 'Follow-up needed', 'Called customer about size issue'",
-        key=f"order_notes_text_area_{current_order_number}" # Unique key for each order
-    )
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
-with col2:
-    st.markdown("#### ✉️ Compose Email")
-    
-    email_to, email_subject, email_body = st.session_state.get('email_data', (None, None, None))
-
-    if st.session_state.email_generated and all(st.session_state.email_data):
-        st.markdown('<div class="success-message"><strong>✅ Email Generated Successfully!</strong></div>', unsafe_allow_html=True)
-        
-        st.text_input("To:", value=email_to, key="email_to")
-        st.text_input("Subject:", value=email_subject, key="email_subject")
-        st.text_area("Message:", value=email_body, height=400, key="email_body")
-    
-    else:
-        st.info("👆 Paste order data and select an email type to generate the content.")
-        
-        # Placeholder fields
-        st.text_input("To:", placeholder="Recipient email will appear here", disabled=True)
-        st.text_input("Subject:", placeholder="Email subject will appear here", disabled=True)
-        st.text_area("Message:", placeholder="Email message will appear here...", height=400, disabled=True)
+            st.info("👆 Paste order data and select an email type to generate the content.")
+            
+            # Placeholder fields
+            st.text_input("To:", placeholder="Recipient email will appear here", disabled=True)
+            st.text_input("Subject:", placeholder="Email subject will appear here", disabled=True)
+            st.text_area("Message:", placeholder="Email message will appear here...", height=400, disabled=True)
 
 # Footer
-st.markdown("---")
-st.markdown("**DAZZLE PREMIUM** - Premium Email Management System")
+st.markdown('<div class="footer">**DAZZLE PREMIUM** - Premium Email Management System</div>', unsafe_allow_html=True)
