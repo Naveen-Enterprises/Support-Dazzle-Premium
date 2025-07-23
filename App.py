@@ -251,7 +251,7 @@ st.title("📧 Mail - DAZZLE PREMIUM")
 st.markdown("### Premium Email Generator")
 
 current_time = datetime.now()
-st.info(f"📅 {current_time.strftime('%A, %B %d, %Y')} | 🕒 {current_time.strftime('%I:%M:%S %p')}")
+st.info(f"📅 {current_time.strftime('%A, %B %d, %Y')} | � {current_time.strftime('%I:%M:%S %p')}")
 
 col1, col2 = st.columns([1, 2])
 
@@ -322,19 +322,33 @@ with col1:
     if st.session_state.enable_order_notes:
         current_order_number = st.session_state.parsed_data["order_number"] if st.session_state.parsed_data else "No Order"
         
-        # Initialize note and task for current order if not exists
+        # Initialize note and tasks for current order if not exists
         if current_order_number not in st.session_state.order_notes:
             st.session_state.order_notes[current_order_number] = ""
         if current_order_number not in st.session_state.order_tasks:
-            st.session_state.order_tasks[current_order_number] = {"email_sent": False} # Default task
+            st.session_state.order_tasks[current_order_number] = {
+                "email_sent": False,
+                "follow_up_call_made": False, # New task
+                "shipping_label_generated": False # New task
+            }
 
         st.markdown(f'<div class="order-notes-section"><h5>📝 Notes & Tasks for Order: {current_order_number}</h5>', unsafe_allow_html=True)
         
-        # Task tracking checkbox
+        # Task tracking checkboxes
         st.session_state.order_tasks[current_order_number]["email_sent"] = st.checkbox(
             "Email Sent",
             value=st.session_state.order_tasks[current_order_number]["email_sent"],
             key=f"task_email_sent_{current_order_number}"
+        )
+        st.session_state.order_tasks[current_order_number]["follow_up_call_made"] = st.checkbox(
+            "Follow-up Call Made",
+            value=st.session_state.order_tasks[current_order_number]["follow_up_call_made"],
+            key=f"task_follow_up_call_made_{current_order_number}"
+        )
+        st.session_state.order_tasks[current_order_number]["shipping_label_generated"] = st.checkbox(
+            "Shipping Label Generated",
+            value=st.session_state.order_tasks[current_order_number]["shipping_label_generated"],
+            key=f"task_shipping_label_generated_{current_order_number}"
         )
 
         # Order notes text area
@@ -342,7 +356,7 @@ with col1:
             "Add your tracking notes here:",
             value=st.session_state.order_notes.get(current_order_number, ""),
             height=150,
-            placeholder="e.g., 'Follow-up needed', 'Called customer about size issue'",
+            placeholder="e.g., 'Called customer about size issue', 'Customer requested expedited shipping'",
             key=f"order_notes_text_area_{current_order_number}" # Unique key for each order
         )
         st.markdown('</div>', unsafe_allow_html=True)
@@ -371,3 +385,4 @@ with col2:
 # Footer
 st.markdown("---")
 st.markdown("**DAZZLE PREMIUM** - Premium Email Management System")
+�
