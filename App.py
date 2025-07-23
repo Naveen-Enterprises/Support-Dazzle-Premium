@@ -55,6 +55,11 @@ if 'is_data_available' not in st.session_state: # New: Tracks if parsed data is 
     st.session_state.is_data_available = False
 if 'last_order_input_value_for_parsing' not in st.session_state: # New: Stores last input for change detection
     st.session_state.last_order_input_value_for_parsing = ''
+if 'add_additional_info' not in st.session_state: # New: Checkbox state for additional info
+    st.session_state.add_additional_info = False
+if 'additional_email_info' not in st.session_state: # New: Stores additional info text
+    st.session_state.additional_email_info = ''
+
 
 def parse_shopify_data(raw_text):
     """
@@ -144,8 +149,11 @@ def parse_shopify_data(raw_text):
 
     return data
 
-def generate_email_content(parsed_data, email_type):
-    """Single function to generate different email types."""
+def generate_email_content(parsed_data, email_type, additional_info_text=""):
+    """Single function to generate different email types, now with optional additional info."""
+    message = ""
+    subject = ""
+
     if email_type == "standard":
         subject = f"Final Order Confirmation of dazzlepremium#{parsed_data['order_number']}"
         order_details = ""
@@ -177,7 +185,6 @@ Note: Any order confirmed after 3:00 pm will be scheduled for the next business 
 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
-        return parsed_data["email_address"], subject, message
 
     elif email_type == "high_risk":
         subject = "Important: Your DAZZLE PREMIUM Order - Action Required"
@@ -195,7 +202,6 @@ If you have any questions or need assistance, feel free to reply to this email.
 
 Thank you,
 DAZZLE PREMIUM Support"""
-        return parsed_data["email_address"], subject, message
 
     elif email_type == "return":
         subject = "DAZZLE PREMIUM: Your Return Request Instructions"
@@ -221,7 +227,12 @@ Hyattsville, MD 20782
 Once we receive the returned item in its original condition with the tags intact and complete our inspection, we will process your refund.
 
 If you have any questions, feel free to reply to this email."""
-        return parsed_data["email_address"], subject, message
+    
+    # Append additional information if provided
+    if additional_info_text:
+        message += f"\n\n--- Additional Information ---\n{additional_info_text}"
+
+    return parsed_data["email_address"], subject, message
 
 # --- Main App Layout ---
 st.title("📧 Mail - DAZZLE PREMIUM")
@@ -275,7 +286,8 @@ with col1:
     def handle_email_generation(email_type):
         # Ensure parsed data is available before generating email
         if st.session_state.is_data_available and st.session_state.parsed_data:
-            st.session_state.email_data = generate_email_content(st.session_state.parsed_data, email_type)
+            additional_info_to_add = st.session_state.additional_email_info if st.session_state.add_additional_info else ""
+            st.session_state.email_data = generate_email_content(st.session_state.parsed_data, email_type, additional_info_to_add)
             st.session_state.email_generated = True
         else:
             st.warning("Please paste valid order data first to generate an email!")
@@ -288,6 +300,22 @@ with col1:
     
     with col1c:
         st.button("↩️ Return", on_click=handle_email_generation, args=("return",), use_container_width=True)
+
+    # New checkbox for additional information
+    st.session_state.add_additional_info = st.checkbox(
+        "Add Additional Information",
+        value=st.session_state.add_additional_info,
+        key="additional_info_checkbox"
+    )
+
+    if st.session_state.add_additional_info:
+        st.session_state.additional_email_info = st.text_area(
+            "Additional Information to Add:",
+            value=st.session_state.additional_email_info,
+            height=100,
+            placeholder="Type any extra details to include in the email here...",
+            key="additional_info_text_area"
+        )
 
 
 with col2:
