@@ -51,6 +51,10 @@ if 'email_generated' not in st.session_state:
     st.session_state.email_generated = False
 if 'email_data' not in st.session_state:
     st.session_state.email_data = (None, None, None)
+if 'is_data_available' not in st.session_state: # New: Tracks if parsed data is available
+    st.session_state.is_data_available = False
+if 'last_order_input_value_for_parsing' not in st.session_state: # New: Stores last input for change detection
+    st.session_state.last_order_input_value_for_parsing = ''
 
 def parse_shopify_data(raw_text):
     """
@@ -238,17 +242,24 @@ with col1:
         key="order_input"
     )
     
-    # Seamlessly parse data on input change
-    if order_data:
+    # Seamlessly parse data on input change, but only if content actually changed
+    if order_data != st.session_state.last_order_input_value_for_parsing:
         st.session_state.parsed_data = parse_shopify_data(order_data)
+        st.session_state.last_order_input_value_for_parsing = order_data
+        
+        # Update data availability state based on parsing result
+        st.session_state.is_data_available = (st.session_state.parsed_data is not None)
+        
         # Reset email generation state if input changes
-        if 'email_data' in st.session_state:
-            st.session_state.email_generated = False
-            del st.session_state['email_data']
-    else:
+        st.session_state.email_generated = False
+        st.session_state.email_data = (None, None, None)
+    elif not order_data and st.session_state.is_data_available: # If order_data is now empty, clear parsed data and reset state
         st.session_state.parsed_data = None
-
-
+        st.session_state.is_data_available = False
+        st.session_state.email_generated = False
+        st.session_state.email_data = (None, None, None)
+        st.session_state.last_order_input_value_for_parsing = '' # Clear last input value
+    
     # Display missing information if parsing occurred and there are issues
     if st.session_state.parsed_data and st.session_state.parsed_data.get("missing_info"):
         st.markdown('<div class="missing-info"><h4>⚠️ Missing Information</h4><ul>', unsafe_allow_html=True)
@@ -262,11 +273,12 @@ with col1:
     col1a, col1b, col1c = st.columns(3)
     
     def handle_email_generation(email_type):
-        if st.session_state.parsed_data:
+        # Ensure parsed data is available before generating email
+        if st.session_state.is_data_available and st.session_state.parsed_data:
             st.session_state.email_data = generate_email_content(st.session_state.parsed_data, email_type)
             st.session_state.email_generated = True
         else:
-            st.warning("Please paste order data first!")
+            st.warning("Please paste valid order data first to generate an email!")
 
     with col1a:
         st.button("✨ Standard", on_click=handle_email_generation, args=("standard",), use_container_width=True, type="primary")
