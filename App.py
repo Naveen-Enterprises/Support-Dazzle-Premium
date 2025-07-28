@@ -706,7 +706,39 @@ with col_right:
     
     # Conditionally display content based on whether an email has been generated
     if st.session_state.generated_email_body:
-        # Display recipient email (moved to top)
+        # Display info/warning/success cards (MOVED TO TOP)
+        if st.session_state.missing_info_flags and st.session_state.current_step == "generate_standard":
+            missing_text = ", ".join(st.session_state.missing_info_flags)
+            st.markdown(f"""
+                <div class="warning-card">
+                    <span style="font-size: 1.2rem;">⚠️</span>
+                    <strong>Missing Information:</strong> Could not automatically extract: {missing_text}.
+                    Please verify the generated email and manually add/correct these details.
+                </div>
+            """, unsafe_allow_html=True)
+        elif st.session_state.current_step == "generate_high_risk":
+            st.markdown("""
+                <div class="warning-card">
+                    <span style="font-size: 1.2rem;">🚨</span>
+                    This is the email for high-risk order cancellations. Please review carefully before sending.
+                </div>
+            """, unsafe_allow_html=True)
+        elif st.session_state.current_step == "generate_return":
+            st.markdown("""
+                <div class="info-card">
+                    <span style="font-size: 1.2rem;">↩️</span>
+                    This is the return mail template. Ensure the customer name is correct.
+                </div>
+            """, unsafe_allow_html=True)
+        else: # For standard with no missing info
+            st.markdown("""
+                <div class="success-card">
+                    <span style="font-size: 1.2rem;">✅</span>
+                    Email generated successfully! Ready to copy and send.
+                </div>
+            """, unsafe_allow_html=True)
+
+        # Display recipient email
         st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
         st.markdown(f"""
             <div class="data-display-box">
@@ -740,38 +772,6 @@ with col_right:
                 )">Copy Email Body</button>
             </div>
         """, unsafe_allow_html=True)
-
-        # Display info/warning/success cards (kept after email content for context)
-        if st.session_state.missing_info_flags and st.session_state.current_step == "generate_standard":
-            missing_text = ", ".join(st.session_state.missing_info_flags)
-            st.markdown(f"""
-                <div class="warning-card">
-                    <span style="font-size: 1.2rem;">⚠️</span>
-                    <strong>Missing Information:</strong> Could not automatically extract: {missing_text}.
-                    Please verify the generated email and manually add/correct these details.
-                </div>
-            """, unsafe_allow_html=True)
-        elif st.session_state.current_step == "generate_high_risk":
-            st.markdown("""
-                <div class="warning-card">
-                    <span style="font-size: 1.2rem;">🚨</span>
-                    This is the email for high-risk order cancellations. Please review carefully before sending.
-                </div>
-            """, unsafe_allow_html=True)
-        elif st.session_state.current_step == "generate_return":
-            st.markdown("""
-                <div class="info-card">
-                    <span style="font-size: 1.2rem;">↩️</span>
-                    This is the return mail template. Ensure the customer name is correct.
-                </div>
-            """, unsafe_allow_html=True)
-        else: # For standard with no missing info
-            st.markdown("""
-                <div class="success-card">
-                    <span style="font-size: 1.2rem;">✅</span>
-                    Email generated successfully! Ready to copy and send.
-                </div>
-            """, unsafe_allow_html=True)
 
         # Display extracted information card (only for standard email, or if user wants to see it for others)
         if st.session_state.current_step == "generate_standard":
