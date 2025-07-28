@@ -44,9 +44,9 @@ st.markdown("""
         background-color: var(--bg-light);
     }
     .main .block-container {
-        padding-top: 1rem; /* Significantly reduced padding */
-        padding-bottom: 1rem; /* Significantly reduced padding */
-        max-width: 800px; /* Further reduced max width for content */
+        padding-top: 0.8rem; /* Further reduced padding */
+        padding-bottom: 0.8rem; /* Further reduced padding */
+        max-width: 750px; /* Further reduced max width for content */
         margin: 0 auto; /* Center content */
     }
 
@@ -55,28 +55,28 @@ st.markdown("""
         font-family: 'Montserrat', sans-serif;
         color: var(--text-dark);
         font-weight: 700;
-        margin-top: 1.2rem; /* Reduced margin */
-        margin-bottom: 0.5rem; /* Reduced margin */
+        margin-top: 1rem; /* Reduced margin */
+        margin-bottom: 0.4rem; /* Reduced margin */
     }
-    h1 { font-size: 2rem; text-align: center; margin-bottom: 1.2rem; color: var(--primary-blue); } /* Reduced size */
-    h2 { font-size: 1.6rem; }
-    h3 { font-size: 1.1rem; }
-    h4 { font-size: 0.95rem; color: var(--text-medium); margin-top: 0.6rem; } /* Reduced size, softer color */
+    h1 { font-size: 1.8rem; text-align: center; margin-bottom: 1rem; color: var(--primary-blue); } /* Reduced size */
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1rem; }
+    h4 { font-size: 0.9rem; color: var(--text-medium); margin-top: 0.5rem; } /* Reduced size, softer color */
 
     /* Input Fields (Text, Text Area) */
     .stTextInput > div > div > input,
     .stTextArea > div > textarea {
         border: 1px solid var(--border-color);
-        border-radius: 8px; /* Reduced roundedness */
-        padding: 0.6rem 0.8rem; /* Reduced padding */
-        font-size: 0.85rem; /* Reduced font size */
+        border-radius: 6px; /* Reduced roundedness */
+        padding: 0.5rem 0.7rem; /* Reduced padding */
+        font-size: 0.8rem; /* Reduced font size */
         box-shadow: var(--shadow-sm);
         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         background-color: var(--card-bg);
     }
     .stTextArea > div > textarea { /* Specific distinct styling for the text area */
         border: 1px solid var(--primary-blue); /* Distinct blue border */
-        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1), var(--shadow-md); /* Subtle blue glow + distinct shadow */
+        box-shadow: 0 0 0 1.5px rgba(0, 122, 255, 0.1), var(--shadow-md); /* Subtle blue glow + distinct shadow */
         background-color: #FFFFFF; /* Ensure white background */
     }
     .stTextInput > div > div > input:focus,
@@ -91,9 +91,9 @@ st.markdown("""
         background-color: var(--primary-blue);
         color: white;
         font-weight: 600;
-        padding: 0.6rem 1rem; /* Reduced padding */
-        font-size: 0.9rem; /* Reduced font size */
-        border-radius: 8px; /* Reduced roundedness */
+        padding: 0.5rem 0.9rem; /* Reduced padding */
+        font-size: 0.85rem; /* Reduced font size */
+        border-radius: 6px; /* Reduced roundedness */
         border: none;
         box-shadow: var(--shadow-md);
         transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
@@ -111,11 +111,11 @@ st.markdown("""
 
     /* Custom Card Styles for Data Display */
     .info-card, .success-card, .warning-card, .error-card {
-        padding: 0.8rem 1rem; /* Reduced padding */
-        border-radius: 10px; /* Reduced roundedness */
-        margin-bottom: 1rem; /* Reduced margin */
-        gap: 0.6rem; /* Reduced gap */
-        font-size: 0.85rem; /* Reduced font size */
+        padding: 0.7rem 0.9rem; /* Reduced padding */
+        border-radius: 8px; /* Reduced roundedness */
+        margin-bottom: 0.8rem; /* Reduced margin */
+        gap: 0.5rem; /* Reduced gap */
+        font-size: 0.8rem; /* Reduced font size */
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-color);
         background-color: var(--card-bg);
@@ -124,24 +124,24 @@ st.markdown("""
         box-shadow: var(--shadow-md);
         transform: translateY(-0.5px);
     }
-    .info-card { color: var(--primary-blue); background-color: var(--light-blue-bg); border-color: rgba(0, 122, 255, 0.08); }
-    .success-card { color: var(--success-text); background-color: var(--success-bg); border-color: rgba(40, 167, 69, 0.08); }
-    .warning-card { color: var(--warning-text); background-color: var(--warning-bg); border-color: rgba(255, 193, 7, 0.08); }
-    .error-card { color: var(--error-text); background-color: var(--error-bg); border-color: rgba(220, 53, 69, 0.08); }
+    .info-card { color: var(--primary-blue); background-color: var(--light-blue-bg); border-color: rgba(0, 122, 255, 0.06); }
+    .success-card { color: var(--success-text); background-color: var(--success-bg); border-color: rgba(40, 167, 69, 0.06); }
+    .warning-card { color: var(--warning-text); background-color: var(--warning-bg); border-color: rgba(255, 193, 7, 0.06); }
+    .error-card { color: var(--error-text); background-color: var(--error-bg); border-color: rgba(220, 53, 69, 0.06); }
     .info-card span, .success-card span, .warning-card span, .error-card span {
-        font-size: 1rem; /* Adjusted icon size */
+        font-size: 0.9rem; /* Adjusted icon size */
     }
 
     /* Specific Data Display Boxes (Email, Subject, Phone) */
     .data-display-box {
         background-color: var(--light-blue-bg);
-        padding: 0.7rem 0.9rem; /* Reduced padding */
-        border-radius: 8px; /* Reduced roundedness */
-        margin-bottom: 0.7rem; /* Reduced margin */
-        font-size: 0.85rem; /* Reduced font size */
-        gap: 6px; /* Reduced gap */
+        padding: 0.6rem 0.8rem; /* Reduced padding */
+        border-radius: 6px; /* Reduced roundedness */
+        margin-bottom: 0.6rem; /* Reduced margin */
+        font-size: 0.8rem; /* Reduced font size */
+        gap: 5px; /* Reduced gap */
         box-shadow: var(--shadow-sm);
-        border: 1px solid rgba(0,0,0,0.04);
+        border: 1px solid rgba(0,0,0,0.03);
     }
     .data-display-box:hover {
         box-shadow: var(--shadow-md);
@@ -152,9 +152,9 @@ st.markdown("""
     .copy-button {
         background-color: var(--primary-blue);
         color: white;
-        border-radius: 6px; /* Reduced roundedness */
-        padding: 0.4rem 0.7rem; /* Reduced padding */
-        font-size: 0.75rem; /* Reduced font size */
+        border-radius: 5px; /* Reduced roundedness */
+        padding: 0.3rem 0.6rem; /* Reduced padding */
+        font-size: 0.7rem; /* Reduced font size */
         box-shadow: var(--shadow-sm);
     }
     .copy-button:hover {
@@ -165,9 +165,9 @@ st.markdown("""
     /* Extracted Data Review Cards */
     .extracted-data-card {
         background-color: var(--card-bg);
-        border-radius: 10px; /* Reduced roundedness */
-        padding: 1rem; /* Reduced padding */
-        margin-bottom: 1rem; /* Reduced margin */
+        border-radius: 8px; /* Reduced roundedness */
+        padding: 0.9rem; /* Reduced padding */
+        margin-bottom: 0.9rem; /* Reduced margin */
         box-shadow: var(--shadow-md);
         border: 1px solid var(--border-color);
     }
@@ -176,34 +176,34 @@ st.markdown("""
         transform: translateY(-1px);
     }
     .extracted-data-card h3 {
-        margin-bottom: 0.7rem;
-        font-size: 1.1rem;
-        gap: 0.4rem;
+        margin-bottom: 0.6rem;
+        font-size: 1rem;
+        gap: 0.3rem;
     }
     .extracted-data-card .field-row {
-        gap: 0.7rem;
-        margin-bottom: 0.5rem;
+        gap: 0.6rem;
+        margin-bottom: 0.4rem;
     }
     .extracted-data-card .field-label {
-        min-width: 90px; /* Adjusted min-width */
-        font-size: 0.85rem;
+        min-width: 80px; /* Adjusted min-width */
+        font-size: 0.8rem;
     }
     .extracted-data-card .field-value-display {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.7rem;
-        border-radius: 6px;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 5px;
     }
     .extracted-data-card .edit-icon {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
     }
 
     /* Order Items List */
     .order-item {
         background-color: var(--card-bg);
-        border-radius: 8px; /* Reduced roundedness */
-        padding: 0.7rem; /* Reduced padding */
-        margin-bottom: 0.4rem; /* Reduced margin */
-        gap: 0.3rem; /* Reduced gap */
+        border-radius: 6px; /* Reduced roundedness */
+        padding: 0.6rem; /* Reduced padding */
+        margin-bottom: 0.3rem; /* Reduced margin */
+        gap: 0.2rem; /* Reduced gap */
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-color);
     }
@@ -212,39 +212,39 @@ st.markdown("""
         transform: translateY(-0.5px);
     }
     .order-item .item-detail {
-        gap: 0.4rem;
+        gap: 0.3rem;
     }
     .order-item .item-detail .label {
-        min-width: 60px; /* Adjusted min-width */
-        font-size: 0.8rem;
+        min-width: 50px; /* Adjusted min-width */
+        font-size: 0.75rem;
     }
     .order-item .item-detail .value {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
     }
 
     /* Code Block Styling (for email body) */
     .stCode {
         background-color: var(--bg-light);
         border-radius: 8px; /* Reduced roundedness */
-        padding: 1rem; /* Reduced padding */
-        font-size: 0.85rem; /* Reduced font size */
-        line-height: 1.5; /* Reduced line height */
+        padding: 0.9rem; /* Reduced padding */
+        font-size: 0.8rem; /* Reduced font size */
+        line-height: 1.4; /* Reduced line height */
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-color);
     }
 
     /* Responsive Adjustments */
     @media (max-width: 768px) {
-        h1 { font-size: 1.8rem; margin-bottom: 1rem; }
-        h2 { font-size: 1.4rem; }
-        .main .block-container { padding: 0.8rem 0.5rem; }
-        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.15rem; }
-        .copy-button { width: 100%; margin-top: 0.4rem; }
-        .info-card, .success-card, .warning-card, .error-card { padding: 0.6rem 0.8rem; font-size: 0.8rem; }
-        .stButton button { padding: 0.5rem 0.8rem; font-size: 0.85rem; }
-        .extracted-data-card { padding: 0.8rem; }
-        .extracted-data-card h3 { font-size: 1rem; }
-        .order-item { padding: 0.5rem; }
+        h1 { font-size: 1.6rem; margin-bottom: 0.8rem; }
+        h2 { font-size: 1.2rem; }
+        .main .block-container { padding: 0.6rem 0.4rem; }
+        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.1rem; }
+        .copy-button { width: 100%; margin-top: 0.3rem; }
+        .info-card, .success-card, .warning-card, .error-card { padding: 0.5rem 0.7rem; font-size: 0.75rem; }
+        .stButton button { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+        .extracted-data-card { padding: 0.7rem; }
+        .extracted-data-card h3 { font-size: 0.9rem; }
+        .order-item { padding: 0.4rem; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -734,7 +734,7 @@ with col_right:
         
         js_safe_email_body = json.dumps(st.session_state.generated_email_body)
         st.markdown(f"""
-            <div style="text-align: right; margin-top: -1rem; margin-bottom: 1rem;">
+            <div style="text-align: right; margin-top: -0.8rem; margin-bottom: 0.8rem;">
                 <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
                     {js_safe_email_body}, 'copyBodyBtn'
                 )">Copy Email Body</button>
