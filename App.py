@@ -1,12 +1,300 @@
 import streamlit as st
-from datetime import datetime
 import re
+import json # Import the json module
+# Removed asyncio and httpx imports as LLM is no longer used
 
-# --- Helper Functions (Python equivalents of your JavaScript logic) ---
+# --- Page Configuration ---
+st.set_page_config(page_title="DAZZLE PREMIUM Order Email Generator", layout="wide", initial_sidebar_state="collapsed")
 
-def parse_shopify_data(raw_text):
+# --- Custom CSS Styling (Inspired by Material Design & Apple Aesthetics) ---
+# Using Google Fonts (Inter for body, Montserrat for headings)
+st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+<style>
+    /* CSS Variables for consistent theming */
+    :root {
+        --primary-blue: #007AFF; /* Apple-like blue */
+        --primary-blue-dark: #0056B3; /* Darker shade for hover */
+        --light-blue-bg: #F0F8FF; /* Very light blue for soft backgrounds */
+        --text-dark: #1C1C1E; /* Darker, more Apple-like text */
+        --text-medium: #636366;
+        --text-light: #AEAEB2;
+        --border-color: #E0E0E0; /* Lighter, subtle border */
+        --bg-light: #F2F2F7; /* Apple-like light gray background */
+        --card-bg: #FFFFFF;
+
+        /* Feedback colors - slightly adjusted for consistency */
+        --success-bg: #E6F7EA; /* Lighter green */
+        --success-text: #28A745;
+        --warning-bg: #FFF8E6; /* Lighter yellow */
+        --warning-text: #FFC107;
+        --error-bg: #FFEBEB; /* Lighter red */
+        --error-text: #DC3545;
+
+        /* Shadows - refined for more depth on hover/active, very subtle */
+        --shadow-sm: rgba(0, 0, 0, 0.02) 0px 1px 1px; /* Even lighter shadow */
+        --shadow-md: rgba(0, 0, 0, 0.04) 0px 2px 4px; /* Lighter md shadow */
+        --shadow-lg: rgba(0, 0, 0, 0.06) 0px 4px 8px; /* Lighter lg shadow */
+    }
+
+    /* General Body and App Styling */
+    html, body, .stApp {
+        font-family: 'Inter', sans-serif;
+        color: var(--text-dark);
+        background-color: var(--bg-light);
+    }
+    .main .block-container {
+        padding-top: 1rem; /* Significantly reduced padding */
+        padding-bottom: 1rem; /* Significantly reduced padding */
+        max-width: 800px; /* Further reduced max width for content */
+        margin: 0 auto; /* Center content */
+    }
+
+    /* Headings */
+    h1, h2, h3, h4 {
+        font-family: 'Montserrat', sans-serif;
+        color: var(--text-dark);
+        font-weight: 700;
+        margin-top: 1.2rem; /* Reduced margin */
+        margin-bottom: 0.5rem; /* Reduced margin */
+    }
+    h1 { font-size: 2rem; text-align: center; margin-bottom: 1.2rem; color: var(--primary-blue); } /* Reduced size */
+    h2 { font-size: 1.6rem; }
+    h3 { font-size: 1.1rem; }
+    h4 { font-size: 0.95rem; color: var(--text-medium); margin-top: 0.6rem; } /* Reduced size, softer color */
+
+    /* Input Fields (Text, Text Area) */
+    .stTextInput > div > div > input,
+    .stTextArea > div > textarea {
+        border: 1px solid var(--border-color);
+        border-radius: 8px; /* Reduced roundedness */
+        padding: 0.6rem 0.8rem; /* Reduced padding */
+        font-size: 0.85rem; /* Reduced font size */
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        background-color: var(--card-bg);
+    }
+    .stTextArea > div > textarea { /* Specific distinct styling for the text area */
+        border: 1px solid var(--primary-blue); /* Distinct blue border */
+        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1), var(--shadow-md); /* Subtle blue glow + distinct shadow */
+        background-color: #FFFFFF; /* Ensure white background */
+    }
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > textarea:focus {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2), var(--shadow-md); /* Softer, blue focus ring + deeper shadow */
+        outline: none;
+    }
+
+    /* Buttons */
+    .stButton button {
+        background-color: var(--primary-blue);
+        color: white;
+        font-weight: 600;
+        padding: 0.6rem 1rem; /* Reduced padding */
+        font-size: 0.9rem; /* Reduced font size */
+        border-radius: 8px; /* Reduced roundedness */
+        border: none;
+        box-shadow: var(--shadow-md);
+        transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+        cursor: pointer;
+    }
+    .stButton button:hover {
+        background-color: var(--primary-blue-dark);
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-0.5px); /* Subtle lift */
+    }
+    .stButton button:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Custom Card Styles for Data Display */
+    .info-card, .success-card, .warning-card, .error-card {
+        padding: 0.8rem 1rem; /* Reduced padding */
+        border-radius: 10px; /* Reduced roundedness */
+        margin-bottom: 1rem; /* Reduced margin */
+        gap: 0.6rem; /* Reduced gap */
+        font-size: 0.85rem; /* Reduced font size */
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        background-color: var(--card-bg);
+    }
+    .info-card:hover, .success-card:hover, .warning-card:hover, .error-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-0.5px);
+    }
+    .info-card { color: var(--primary-blue); background-color: var(--light-blue-bg); border-color: rgba(0, 122, 255, 0.08); }
+    .success-card { color: var(--success-text); background-color: var(--success-bg); border-color: rgba(40, 167, 69, 0.08); }
+    .warning-card { color: var(--warning-text); background-color: var(--warning-bg); border-color: rgba(255, 193, 7, 0.08); }
+    .error-card { color: var(--error-text); background-color: var(--error-bg); border-color: rgba(220, 53, 69, 0.08); }
+    .info-card span, .success-card span, .warning-card span, .error-card span {
+        font-size: 1rem; /* Adjusted icon size */
+    }
+
+    /* Specific Data Display Boxes (Email, Subject, Phone) */
+    .data-display-box {
+        background-color: var(--light-blue-bg);
+        padding: 0.7rem 0.9rem; /* Reduced padding */
+        border-radius: 8px; /* Reduced roundedness */
+        margin-bottom: 0.7rem; /* Reduced margin */
+        font-size: 0.85rem; /* Reduced font size */
+        gap: 6px; /* Reduced gap */
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+    .data-display-box:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-0.5px);
+    }
+
+    /* Copy Button within Data Display */
+    .copy-button {
+        background-color: var(--primary-blue);
+        color: white;
+        border-radius: 6px; /* Reduced roundedness */
+        padding: 0.4rem 0.7rem; /* Reduced padding */
+        font-size: 0.75rem; /* Reduced font size */
+        box-shadow: var(--shadow-sm);
+    }
+    .copy-button:hover {
+        background-color: var(--primary-blue-dark);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Extracted Data Review Cards */
+    .extracted-data-card {
+        background-color: var(--card-bg);
+        border-radius: 10px; /* Reduced roundedness */
+        padding: 1rem; /* Reduced padding */
+        margin-bottom: 1rem; /* Reduced margin */
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+    }
+    .extracted-data-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-1px);
+    }
+    .extracted-data-card h3 {
+        margin-bottom: 0.7rem;
+        font-size: 1.1rem;
+        gap: 0.4rem;
+    }
+    .extracted-data-card .field-row {
+        gap: 0.7rem;
+        margin-bottom: 0.5rem;
+    }
+    .extracted-data-card .field-label {
+        min-width: 90px; /* Adjusted min-width */
+        font-size: 0.85rem;
+    }
+    .extracted-data-card .field-value-display {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.7rem;
+        border-radius: 6px;
+    }
+    .extracted-data-card .edit-icon {
+        font-size: 0.9rem;
+    }
+
+    /* Order Items List */
+    .order-item {
+        background-color: var(--card-bg);
+        border-radius: 8px; /* Reduced roundedness */
+        padding: 0.7rem; /* Reduced padding */
+        margin-bottom: 0.4rem; /* Reduced margin */
+        gap: 0.3rem; /* Reduced gap */
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+    .order-item:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-0.5px);
+    }
+    .order-item .item-detail {
+        gap: 0.4rem;
+    }
+    .order-item .item-detail .label {
+        min-width: 60px; /* Adjusted min-width */
+        font-size: 0.8rem;
+    }
+    .order-item .item-detail .value {
+        font-size: 0.8rem;
+    }
+
+    /* Code Block Styling (for email body) */
+    .stCode {
+        background-color: var(--bg-light);
+        border-radius: 8px; /* Reduced roundedness */
+        padding: 1rem; /* Reduced padding */
+        font-size: 0.85rem; /* Reduced font size */
+        line-height: 1.5; /* Reduced line height */
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        h1 { font-size: 1.8rem; margin-bottom: 1rem; }
+        h2 { font-size: 1.4rem; }
+        .main .block-container { padding: 0.8rem 0.5rem; }
+        .extracted-data-card .field-label { min-width: auto; margin-bottom: 0.15rem; }
+        .copy-button { width: 100%; margin-top: 0.4rem; }
+        .info-card, .success-card, .warning-card, .error-card { padding: 0.6rem 0.8rem; font-size: 0.8rem; }
+        .stButton button { padding: 0.5rem 0.8rem; font-size: 0.85rem; }
+        .extracted-data-card { padding: 0.8rem; }
+        .extracted-data-card h3 { font-size: 1rem; }
+        .order-item { padding: 0.5rem; }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# --- JavaScript for Copy to Clipboard Functionality ---
+# This script is injected once and provides a JS function to copy text.
+st.markdown("""
+<script>
+function copyToClipboard(text, elementId) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.innerText = 'Copied!';
+            setTimeout(() => { element.innerText = 'Copy'; }, 1500); // Reset text after 1.5s
+        }
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+    }
+    document.body.removeChild(textarea);
+}
+</script>
+""", unsafe_allow_html=True)
+
+# --- Initialize Session State ---
+if "current_step" not in st.session_state:
+    st.session_state.current_step = "input"  # input, generate_standard, generate_high_risk, generate_return
+if "raw_text" not in st.session_state:
+    st.session_state.raw_text = ""
+if "parsed_data" not in st.session_state:
+    st.session_state.parsed_data = {}
+if "generated_email_body" not in st.session_state:
+    st.session_state.generated_email_body = ""
+if "generated_subject" not in st.session_state:
+    st.session_state.generated_subject = ""
+if "missing_info_flags" not in st.session_state: # Re-added for regex parser
+    st.session_state.missing_info_flags = []
+
+
+# --- Helper Functions ---
+
+def parse_shopify_export(raw_text_input):
     """
-    Parses raw Shopify order data to extract customer information and order details.
+    Parses the raw Shopify order export text to extract key information.
+    This function uses multiple, redundant regex patterns and fallback strategies
+    to maximize extraction success without human intervention.
     """
     data = {
         "customer_name": "[Customer Name Not Found]",
@@ -17,478 +305,251 @@ def parse_shopify_data(raw_text):
         "missing_info": []
     }
 
-    if not raw_text.strip():
-        return data
+    # Normalize input: remove extra spaces, ensure consistent line breaks
+    normalized_text = re.sub(r'\s+', ' ', raw_text_input).strip() # Replace multiple spaces with single
+    lines = [line.strip() for line in raw_text_input.split('\n') if line.strip()]
 
-    lines = [line.strip() for line in raw_text.split('\n') if line.strip()]
-
-    # Extract customer name
-    email_sent_match = re.search(r"Order confirmation email was sent to (.*?) \([\w\.-]+@[\w\.-]+\.[\w\.-]+\)", raw_text, re.IGNORECASE)
+    # --- Extract Customer Name (Redundancy Level 1: Multiple Patterns) ---
+    name_found = False
+    
+    # Attempt 1: From "Order confirmation email was sent to [Name] ([email])"
+    email_sent_match = re.search(r"Order confirmation email was sent to (.*?) \([\w\.-]+@[\w\.-]+\.[\w\.-]+\)", raw_text_input, re.IGNORECASE)
     if email_sent_match:
         data["customer_name"] = email_sent_match.group(1).strip()
-    else:
+        name_found = True
+
+    # Attempt 2: From "Customer" or "Contact information" sections
+    if not name_found:
+        for i, line in enumerate(lines):
+            # Look for "Customer" or "Contact information" labels
+            if re.search(r"Customer\s*$", line, re.IGNORECASE) or re.search(r"Contact information\s*$", line, re.IGNORECASE):
+                # Try to find the name on the next line
+                if i + 1 < len(lines):
+                    potential_name = lines[i+1].split('\n')[0].strip()
+                    # Ensure it doesn't look like an email or phone number
+                    if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
+                        data["customer_name"] = potential_name
+                        name_found = True
+                        break
+            # Attempt 3: From "Shipping address" or "Billing address" sections
+            elif (re.search(r"Shipping address\s*$", line, re.IGNORECASE) or \
+                  re.search(r"Billing address\s*$", line, re.IGNORECASE)):
+                # Try to find the name on the next line
+                if i + 1 < len(lines):
+                    potential_name = lines[i+1].split('\n')[0].strip()
+                    if "@" not in potential_name and not re.search(r"^\+?\d", potential_name):
+                        data["customer_name"] = potential_name
+                        name_found = True
+                        break
+    
+    if not name_found or data["customer_name"] == "[Customer Name Not Found]":
         data["missing_info"].append("Customer Name")
 
-    # Extract email
-    email_match = re.search(r"[\w\.-]+@[\w\.-]+\.[\w\.-]+", raw_text)
+
+    # --- Extract Email Address (Redundancy Level 1: Multiple Patterns) ---
+    # Attempt 1: General email pattern
+    email_match = re.search(r"[\w\.-]+@[\w\.-]+\.[\w\.-]+", raw_text_input)
     if email_match:
         data["email_address"] = email_match.group(0).strip()
     else:
-        data["missing_info"].append("Email Address")
+        # Attempt 2: Look for "Email:" label explicitly
+        email_label_match = re.search(r"Email:\s*([\w\.-]+@[\w\.-]+\.[\w\.-]+)", raw_text_input, re.IGNORECASE)
+        if email_label_match:
+            data["email_address"] = email_label_match.group(1).strip()
+        else:
+            data["missing_info"].append("Email Address")
 
-    # Extract phone
-    phone_match = re.search(r"(\+1[\s\-()]?\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4}|\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4})", raw_text)
+    # --- Extract Phone Number (Redundancy Level 1: Multiple Patterns) ---
+    # Attempt 1: Flexible US phone number regex (common formats)
+    phone_match = re.search(r"(\+1[\s\-()]?\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4}|\d{3}[\s\-()]?\d{3}[\s\-()]?\d{4})", raw_text_input)
     if phone_match:
         data["phone_number"] = phone_match.group(0).strip()
     else:
-        data["missing_info"].append("Phone Number")
+        # Attempt 2: Look for "Phone:" label explicitly
+        phone_label_match = re.search(r"(?:Phone|Tel|Contact):\s*(\+?\d[\d\s\-\(\).]{7,})", raw_text_input, re.IGNORECASE)
+        if phone_label_match:
+            data["phone_number"] = phone_label_match.group(1).strip()
+        else:
+            data["missing_info"].append("Phone Number")
 
-    # Extract order number
-    order_match = re.search(r"dazzlepremium#(\d+)", raw_text, re.IGNORECASE)
-    if order_match:
-        data["order_number"] = order_match.group(1).strip()
+    # --- Extract Order Number (Redundancy Level 1: Multiple Patterns) ---
+    # Attempt 1: dazzlepremium# followed by digits
+    order_number_match = re.search(r"dazzlepremium#(\d+)", raw_text_input, re.IGNORECASE)
+    if order_number_match:
+        data["order_number"] = order_number_match.group(1).strip()
     else:
-        data["missing_info"].append("Order Number")
+        # Attempt 2: General "Order #" or "Order Number" followed by digits
+        order_number_match_general = re.search(r"(?:Order #|Order Number|Invoice #)\s*(\d+)", raw_text_input, re.IGNORECASE)
+        if order_number_match_general:
+            data["order_number"] = order_number_match_general.group(1).strip()
+        else:
+            data["missing_info"].append("Order Number")
 
-    # Extract items (simplified)
-    for line in lines:
-        if ' - ' in line and 'discount' not in line.lower() and 'total' not in line.lower():
-            parts = line.split(' - ')
-            if len(parts) >= 2:
-                data["items"].append({
-                    "product_name": parts[0].strip(),
-                    "style_code": parts[1].strip(),
-                    "size": "One Size",  # Default as per JS
-                    "quantity": 1        # Default as per JS
-                })
+    # --- Extract Items (Redundancy Level 2: Layered Heuristics) ---
+    # Strategy: Find lines that look like product names, then parse details from surrounding lines.
+    
+    product_lines_info = []
+    # Heuristic 1: Lines containing " - " and ending with a style code (e.g., "Product Name - STYLECODE")
+    for i, line in enumerate(lines):
+        # This regex looks for product names followed by " - " and a style code,
+        # ensuring it's not a line containing keywords like SKU, discount, etc.
+        if re.search(r" - [A-Z0-9\-]+$", line) and \
+           not any(kw in line.lower() for kw in ["sku", "discount", "subtotal", "shipping", "tax", "total", "paid", "balance"]):
+            product_lines_info.append({"line": line, "index": i})
+    
+    # Heuristic 2: Lines containing a price and a quantity (e.g., "$57.00 x 1")
+    # This helps identify product lines that might not have a style code in their main name
+    # This is a fallback if Heuristic 1 didn't find anything, or to capture additional items.
+    if not product_lines_info: # If no products found by Heuristic 1, try this
+        for i, line in enumerate(lines):
+            if re.search(r"\$\d+\.\d{2}\s*x\s*\d+", line) and \
+               not any(kw in line.lower() for kw in ["sku", "discount", "subtotal", "shipping", "tax", "total", "paid", "balance"]):
+                # Try to infer product name from the line above if it looks like a product description
+                if i > 0 and " - " in lines[i-1] and not any(kw in lines[i-1].lower() for kw in ["sku", "discount", "subtotal"]):
+                    product_lines_info.append({"line": lines[i-1], "index": i-1})
+                else: # Fallback: use the line itself as product name, but this is less reliable
+                    # This might pick up non-product lines, so it's a last resort
+                    product_lines_info.append({"line": line.split('$')[0].strip(), "index": i})
+
+
+    processed_indices = set() # To avoid processing the same product line multiple times
+
+    for prod_info in product_lines_info:
+        line_idx = prod_info["index"]
+        if line_idx in processed_indices:
+            continue # Skip if already processed
+
+        product_name = "Unknown Product"
+        style_code = "N/A"
+        size = "Size Not Found" # Default to "Size Not Found"
+        quantity = 1
+
+        # Extract product name and style code from the identified product line
+        if " - " in prod_info["line"]:
+            parts = prod_info["line"].rsplit(" - ", 1)
+            product_name = parts[0].strip()
+            style_code = parts[1].strip()
+        else:
+            product_name = prod_info["line"] # Use full line as product name if no " - "
+
+        # Look for size and quantity in the next few lines (Redundancy Level 3: Iterative Scan)
+        found_size_for_item = False
+        found_quantity_for_item = False
+
+        for offset in range(1, 6): # Scan up to 5 lines after the product line
+            if line_idx + offset >= len(lines):
+                break # Reached end of document
+
+            potential_detail_line = lines[line_idx + offset].strip()
+            
+            # Attempt to extract Quantity
+            if not found_quantity_for_item:
+                qty_match = re.search(r"x\s*(\d+)", potential_detail_line, re.IGNORECASE)
+                if qty_match:
+                    quantity = int(qty_match.group(1))
+                    found_quantity_for_item = True
+            
+            # Attempt to extract Size (more flexible patterns)
+            if not found_size_for_item:
+                # Pattern 1: Common letter sizes (S, M, L, XL, etc.) or "One Size"
+                size_match = re.search(r"\b(XS|S|M|L|XL|XXL|XXXL|One Size|OS)\b", potential_detail_line, re.IGNORECASE)
+                
+                # Pattern 2: Sizes like "M / YLW" or "16 / BS" (size is the first part before /)
+                if not size_match:
+                    match_slash_size = re.search(r"(\b\d{1,2}\b|\b[A-Z]{1,3}\b)\s*/\s*[A-Z0-9]+", potential_detail_line, re.IGNORECASE)
+                    if match_slash_size:
+                        size = match_slash_size.group(1).strip() # Capture the first group (the actual size part)
+                        found_size_for_item = True
+                        
+                # Pattern 3: Standalone numeric sizes, but ONLY if the line doesn't contain "SKU" or "$"
+                if not size_match: # Only attempt if size not found by previous patterns
+                    if "SKU" not in potential_detail_line.upper() and "$" not in potential_detail_line:
+                        # Very strict: must be just the number or number/number on the line
+                        # Ensures it's a standalone size, not part of a larger number or price.
+                        numeric_size_match = re.search(r"^\s*(?:US|EU)?\s*(\d{1,3}(?:/\d{1,2})?)\s*$", potential_detail_line, re.IGNORECASE)
+                        if numeric_size_match:
+                            size = numeric_size_match.group(1).strip()
+                            found_size_for_item = True
+                        # No need for the broader search here, the strict one is safer given the context.
+                        # If it's not a standalone size line, it's probably not a size.
+
+                if size_match and not found_size_for_item: # Only assign if size hasn't been found yet
+                    size = size_match.group(0).strip()
+                    found_size_for_item = True
+            
+            # If both size and quantity are found, we can stop scanning for this item's details.
+            if found_size_for_item and found_quantity_for_item:
+                break 
+
+            # If we hit a line that signifies end of product details (e.g., another product, subtotal, discount)
+            # This is a strong signal to stop.
+            if any(kw in potential_detail_line.lower() for kw in ["subtotal", "discount", "shipping", "tax", "total", "paid", "balance"]) or \
+               (re.search(r" - [A-Z0-9\-]+$", potential_detail_line) and potential_detail_line != prod_info["line"]):
+                break # Stop scanning for details for this item
+
+        # Special handling for "Sock" products: assign "One Size" if no explicit size was found
+        # and the product name contains "sock".
+        if size == "Size Not Found" and "sock" in product_name.lower():
+            size = "One Size"
+
+        data["items"].append({
+            "product_name": product_name,
+            "style_code": style_code,
+            "size": size,
+            "quantity": quantity
+        })
+        processed_indices.add(line_idx) # Mark the main product line as processed
 
     if not data["items"]:
         data["missing_info"].append("Order Items")
+    
+    # Add "Item Sizes" to missing_info if any item still has "Size Not Found" after all attempts
+    for item in data["items"]:
+        if item["size"] == "Size Not Found" and "Item Sizes" not in data["missing_info"]:
+            data["missing_info"].append("Item Sizes")
+
 
     return data
 
-def get_order_details_string(items):
-    """Formats the order items into a readable string."""
+
+def generate_standard_email(parsed_data):
+    """Generates the standard order confirmation email."""
+    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]")
+    order_number = parsed_data.get("order_number", "[Order # Not Found]")
+    items = parsed_data.get("items", [])
+
+    order_details_list = []
+    # Check if there's more than one item to decide on item numbering
     if len(items) > 1:
-        details = []
         for idx, item in enumerate(items):
-            item_detail = f"- Item {idx + 1}:\n"
-            item_detail += f"•  Product: {item['product_name']}\n"
-            item_detail += f"•  Style Code: {item['style_code']}\n"
-            item_detail += f"•  Size: {item['size']}"
-            if item['quantity'] > 1:
-                item_detail += f"\n•  Quantity: {item['quantity']}"
-            details.append(item_detail)
-        return "\n\n".join(details)
-    elif len(items) == 1:
+            item_detail = (
+                f"- Item {idx+1}:\n" # Display item count only if multiple items
+                f"•\u2060  \u2060Product: {item.get('product_name', 'N/A')}\n"
+                f"•\u2060  \u2060Style Code: {item.get('style_code', 'N/A')}\n"
+                f"•\u2060  \u2060Size: {item.get('size', 'Size Not Found')}" # Use 'Size Not Found' default
+            )
+            # Only add quantity if it's greater than 1
+            if item.get('quantity', 1) > 1:
+                item_detail += f"\n•\u2060  \u2060Quantity: {item.get('quantity', 1)}"
+            order_details_list.append(item_detail)
+    elif len(items) == 1: # Only one item, no "Item 1:" prefix
         item = items[0]
-        details = f"•  Product: {item['product_name']}\n•  Style Code: {item['style_code']}\n•  Size: {item['size']}"
-        if item['quantity'] > 1:
-            details += f"\n•  Quantity: {item['quantity']}"
-        return details
-    else:
-        return "No items found."
+        item_detail = (
+            f"•\u2060  \u2060Product: {item.get('product_name', 'N/A')}\n"
+            f"•\u2060  \u2060Style Code: {item.get('style_code', 'N/A')}\n"
+            f"•\u2060  \u2060Size: {item.get('size', 'Size Not Found')}" # Use 'Size Not Found' default
+        )
+        # Only add quantity if it's greater than 1
+        if item.get('quantity', 1) > 1:
+            item_detail += f"\n•\u2060  \u2060Quantity: {item.get('quantity', 1)}"
+        order_details_list.append(item_detail)
+    
+    order_details = "\n\n".join(order_details_list) if order_details_list else "No items found."
 
-# --- Streamlit UI ---
+    subject = f"Final Order Confirmation of dazzlepremium#{order_number}"
+    message = f"""Hello {customer_name},
 
-st.set_page_config(layout="wide", page_title="Mail - DAZZLE PREMIUM")
-
-# Custom CSS for styling (adapted from your HTML/CSS)
-st.markdown("""
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
-            color: #1d1d1f;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            background: linear-gradient(135deg, #e0eafc, #cfdef3); /* Light blue gradient background */
-        }
-        
-        .stApp {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            gap: 20px;
-            display: flex; /* For responsive layout in columns */
-            flex-direction: column; /* Default for small screens */
-            align-items: stretch;
-            min-height: 100vh;
-        }
-
-        .stApp > header {
-            display: none; /* Hide Streamlit's default header */
-        }
-
-        .stApp > div:first-child {
-            padding-top: 0px;
-        }
-
-        .stApp > div:nth-child(2) { /* This targets the main content area */
-            display: flex;
-            flex-direction: column; /* Default to column for smaller screens */
-            gap: 20px;
-        }
-
-        .sidebar-panel {
-            flex: 1;
-            max-width: 320px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            flex-direction: column;
-            min-height: calc(100vh - 40px); /* Adjust for padding */
-        }
-
-        .main-content-panel {
-            flex: 2;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            flex-direction: column;
-            min-height: calc(100vh - 40px); /* Adjust for padding */
-        }
-
-        .app-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #007AFF, #5856D6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .app-subtitle {
-            color: #86868b;
-            font-size: 1.1rem;
-            font-weight: 500;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .section-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #1d1d1f;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-icon {
-            width: 24px;
-            height: 24px;
-            background: linear-gradient(135deg, #007AFF, #5856D6);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 0.9rem;
-        }
-
-        .date-display {
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .current-date {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #1d1d1f;
-            margin-bottom: 5px;
-        }
-
-        .current-time {
-            font-size: 1rem;
-            color: #86868b;
-            font-weight: 500;
-        }
-
-        .missing-info {
-            background: linear-gradient(135deg, #FFE4B5, #FFEAA7);
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            border-left: 4px solid #FF6B35;
-        }
-
-        .missing-info h3 {
-            color: #D63031;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .missing-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .missing-list li {
-            color: #2D3436;
-            font-size: 0.95rem;
-            margin-bottom: 5px;
-            padding-left: 20px;
-            position: relative;
-        }
-
-        .missing-list li:before {
-            content: "•";
-            color: #FF6B35;
-            font-weight: bold;
-            position: absolute;
-            left: 0;
-        }
-
-        .compose-header {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1d1d1f;
-            margin-bottom: 8px;
-        }
-
-        .stTextInput > div > div > input, .stTextArea > div > div > textarea {
-            width: 100%;
-            padding: 15px 18px;
-            border: 2px solid #e5e5e7;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-family: inherit;
-            background: white;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            line-height: 1.6; /* For textarea */
-        }
-        
-        .stTextInput > div > div > input:focus, .stTextArea > div > div > textarea:focus {
-            outline: none;
-            border-color: #007AFF;
-            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .stTextInput > label, .stTextArea > label {
-            display: none; /* Hide default Streamlit labels, we use custom ones */
-        }
-
-        div.stButton > button {
-            flex: 1;
-            padding: 16px 24px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-            width: 100%; /* Make buttons full width */
-            margin-bottom: 15px; /* Spacing between buttons */
-        }
-
-        div.stButton > button:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        div.stButton > button:hover:before {
-            left: 100%;
-        }
-
-        div.stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        div.stButton > button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Button specific colors */
-        div.stButton > button:nth-of-type(1) { /* Standard button */
-            background: linear-gradient(135deg, #007AFF, #5856D6);
-            color: white;
-        }
-        div.stButton > button:nth-of-type(2) { /* High Risk button */
-            background: linear-gradient(135deg, #FF6B35, #FF8E53);
-            color: white;
-        }
-        div.stButton > button:nth-of-type(3) { /* Return button */
-            background: linear-gradient(135deg, #00D2FF, #3A7BD5);
-            color: white;
-        }
-        
-        .paste-area {
-            background: #f5f5f7;
-            border: 2px dashed #d1d1d6;
-            border-radius: 16px;
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .paste-instruction {
-            color: #86868b;
-            font-size: 1.1rem;
-            font-weight: 500;
-            margin-bottom: 15px;
-        }
-
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(52, 199, 89, 0.1);
-            color: #34C759;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 20px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #34C759;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        /* Responsive adjustments */
-        @media (min-width: 1024px) {
-            .stApp > div:nth-child(2) {
-                flex-direction: row; /* Row layout for larger screens */
-            }
-            .sidebar-panel {
-                min-height: calc(100vh - 40px);
-            }
-            .main-content-panel {
-                min-height: calc(100vh - 40px);
-            }
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- Session State for managing data ---
-if 'parsed_data' not in st.session_state:
-    st.session_state.parsed_data = parse_shopify_data("")
-if 'recipient_email' not in st.session_state:
-    st.session_state.recipient_email = ""
-if 'email_subject' not in st.session_state:
-    st.session_state.email_subject = ""
-if 'email_body' not in st.session_state:
-    st.session_state.email_body = ""
-if 'show_status' not in st.session_state:
-    st.session_state.show_status = False
-
-# --- Layout the application ---
-col1, col2 = st.columns([1, 2], gap="20px")
-
-with col1: # Left Sidebar
-    st.markdown('<div class="sidebar-panel">', unsafe_allow_html=True)
-    st.markdown('<h1 class="app-title">Mail</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="app-subtitle">DAZZLE PREMIUM</p>', unsafe_allow_html=True)
-
-    # Date and Time Display
-    now = datetime.now()
-    current_date = now.strftime('%A, %B %d, %Y')
-    current_time = now.strftime('%I:%M:%S %p')
-    st.markdown(f"""
-        <div class="date-display">
-            <div class="current-date">{current_date}</div>
-            <div class="current-time">{current_time}</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div class="section-title"><div class="section-icon">📧</div> Mail Information</div>', unsafe_allow_html=True)
-
-    # Missing Information Section
-    if st.session_state.parsed_data["missing_info"]:
-        st.markdown('<div class="missing-info">', unsafe_allow_html=True)
-        st.markdown('<h3>⚠️ Missing Information</h3>', unsafe_allow_html=True)
-        st.markdown('<ul class="missing-list">', unsafe_allow_html=True)
-        for item in st.session_state.parsed_data["missing_info"]:
-            st.markdown(f'<li>{item}</li>', unsafe_allow_html=True)
-        st.markdown('</ul>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="paste-area">', unsafe_allow_html=True)
-    st.markdown('<div class="paste-instruction">📋 Paste Order Data</div>', unsafe_allow_html=True)
-    order_data_input = st.text_area(
-        label="Paste your Shopify order export here...",
-        value="",
-        height=200,
-        placeholder="Paste your Shopify order export here...",
-        key="order_data_input_key" # Assign a key to manage state
-    )
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # Update parsed data whenever the input changes
-    if order_data_input != st.session_state.parsed_data.get('raw_text_input', ''): # Check if input actually changed
-        st.session_state.parsed_data = parse_shopify_data(order_data_input)
-        st.session_state.parsed_data['raw_text_input'] = order_data_input # Store current input for comparison
-        # Reset email fields if input changes, as they might be outdated
-        st.session_state.recipient_email = ""
-        st.session_state.email_subject = ""
-        st.session_state.email_body = ""
-        st.session_state.show_status = False
-
-
-    # Action Buttons
-    if st.button("✨ Standard", help="Generate standard confirmation email"):
-        data = st.session_state.parsed_data
-        subject = f"Final Order Confirmation of dazzlepremium#{data['order_number']}"
-        order_details = get_order_details_string(data['items'])
-        message = f"""Hello {data['customer_name']},
-
-This is DAZZLE PREMIUM Support confirming Order {data['order_number']}
+This is DAZZLE PREMIUM Support confirming Order {order_number}
 
 - Please reply YES to confirm just this order only.
 - Kindly also reply YES to the SMS sent automatically to your inbox.
@@ -496,48 +557,45 @@ This is DAZZLE PREMIUM Support confirming Order {data['order_number']}
 Order Details:
 {order_details}
 
-For your security, we use two-factor authentication. If this order wasn't placed by you, text us immediately at 410-381-0000 to cancel.
+For your security, we use two-factor authentication. If this order wasn’t placed by you, text us immediately at 410-381-0000 to cancel.
 
 Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.
 
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
-        
-        st.session_state.recipient_email = data['email_address']
-        st.session_state.email_subject = subject
-        st.session_state.email_body = message
-        st.session_state.show_status = True
 
-    if st.button("🚨 High Risk", help="Generate high-risk cancellation email"):
-        data = st.session_state.parsed_data
-        subject = "Important: Your DAZZLE PREMIUM Order - Action Required"
-        message = f"""Hello {data['customer_name']},
+    return subject, message
+
+def generate_high_risk_email(parsed_data):
+    """Generates the high-risk order cancellation email."""
+    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]")
+
+    subject = f"Important: Your DAZZLE PREMIUM Order - Action Required"
+    message = f"""Hello {customer_name},
 
 We hope this message finds you well.
 
 We regret to inform you that your recent order has been automatically cancelled as it was flagged as a high-risk transaction by our system. This is a standard security measure to help prevent unauthorized or fraudulent activity.
 
-If you would still like to proceed with your order, we'd be happy to assist you in placing it manually. To do so, we kindly ask that you transfer the payment via Cash App.
+If you would still like to proceed with your order, we’d be happy to assist you in placing it manually. To do so, we kindly ask that you transfer the payment via Cash App.
 
-Once the payment is received, we will immediately process your order and provide confirmation along with tracking details.
+Once the payment is received, we will immediately process your order and provide confirmation along along with tracking details.
 
 If you have any questions or need assistance, feel free to reply to this email.
 
 Thank you,
 DAZZLE PREMIUM Support"""
-        
-        st.session_state.recipient_email = data['email_address']
-        st.session_state.email_subject = subject
-        st.session_state.email_body = message
-        st.session_state.show_status = True
+    return subject, message
 
-    if st.button("↩️ Return", help="Generate return instructions email"):
-        data = st.session_state.parsed_data
-        subject = "DAZZLE PREMIUM: Your Return Request Instructions"
-        message = f"""Dear {data['customer_name']},
+def generate_return_email(parsed_data):
+    """Generates the return mail template."""
+    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]") # Get the customer name
 
-Thank you for reaching out to us regarding your return request. To ensure a smooth and successful return process, please carefully follow the steps below:
-
+    subject = f"DAZZLE PREMIUM: Your Return Request Instructions"
+    message = f"""Dear {customer_name},
+Thank you for reaching out to us regarding your return request. To 
+ensure a smooth and successful return process, please carefully follow 
+the steps below:
 1. Go to your local post office or any shipping carrier (USPS, FedEx, UPS, DHL).
 
 2. Create and pay for the return shipping label.
@@ -553,65 +611,211 @@ Hyattsville, MD 20782
 
 4. Email us the tracking number after you ship the package by replying to this email.
 
-Once we receive the returned item in its original condition with the tags intact and complete our inspection, we will process your refund.
+Once we receive the returned item in its original condition with the 
+tags intact and complete our inspection, we will process your refund.
+If you have any questions, feel free to reply to this email.
+"""
+    return subject, message
 
-If you have any questions, feel free to reply to this email."""
-        
-        st.session_state.recipient_email = data['email_address']
-        st.session_state.email_subject = subject
-        st.session_state.email_body = message
-        st.session_state.show_status = True
-    
-    st.markdown('</div>', unsafe_allow_html=True) # Close sidebar-panel div
 
-with col2: # Main Mail Panel
-    st.markdown('<div class="main-content-panel">', unsafe_allow_html=True)
-    
-    st.markdown(f"""
-        <div class="section-title">
-            <div class="section-icon">✉️</div>
-            Compose Email
-            {
-                '<div class="status-indicator" style="margin-left: auto;"><div class="status-dot"></div> Ready to Send</div>' 
-                if st.session_state.show_status else ''
-            }
+def reset_app_state():
+    """Resets all session state variables to their initial values."""
+    st.session_state.current_step = "input"
+    st.session_state.raw_text = ""
+    st.session_state.parsed_data = {}
+    st.session_state.generated_email_body = ""
+    st.session_state.generated_subject = ""
+    st.session_state.missing_info_flags = [] # Reset this too
+    st.rerun() # Rerun to clear the UI immediately
+
+# --- Main Application Logic ---
+
+st.markdown("""<h1 style='text-align: center;'>📦 DAZZLE PREMIUM Order Email Generator</h1>""", unsafe_allow_html=True)
+
+# Create two columns for the main layout
+col_left, col_right = st.columns(2)
+
+with col_left:
+    st.subheader("1. Paste Shopify Order Export")
+    st.markdown("""
+        <div class="info-card">
+            <span style="font-size: 1.2rem;">📄</span>
+            Paste the full text from your Shopify order export summary below.
+            We'll automatically extract all the necessary details.
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="mail-compose">', unsafe_allow_html=True)
-    st.markdown('<div class="compose-header">', unsafe_allow_html=True)
-    
-    # Recipient Email
-    st.markdown('<label class="form-label" for="recipientEmail">To:</label>', unsafe_allow_html=True)
-    st.text_input(
-        label="To:",
-        value=st.session_state.recipient_email,
-        key="recipient_email_input",
-        placeholder="Recipient email address",
-        disabled=True
-    )
-    
-    # Email Subject
-    st.markdown('<label class="form-label" for="emailSubject">Subject:</label>', unsafe_allow_html=True)
-    st.text_input(
-        label="Subject:",
-        value=st.session_state.email_subject,
-        key="email_subject_input",
-        placeholder="Email subject line",
-        disabled=True
-    )
-    st.markdown('</div>', unsafe_allow_html=True) # Close compose-header div
-
-    st.markdown('<div class="compose-body">', unsafe_allow_html=True)
-    st.markdown('<label class="form-label" for="emailBody">Message:</label>', unsafe_allow_html=True)
-    st.text_area(
-        label="Message:",
-        value=st.session_state.email_body,
+    raw_text_input = st.text_area(
+        "Full Order Export Text",
         height=400,
-        key="email_body_input",
-        placeholder="Email message will appear here...",
-        disabled=True
+        value=st.session_state.raw_text,
+        placeholder="Paste your Shopify order details here...",
+        key="raw_text_input_main" # Add a key to avoid potential conflicts
     )
-    st.markdown('</div>', unsafe_allow_html=True) # Close compose-body div
-    st.markdown('</div>', unsafe_allow_html=True) # Close mail-compose div
-    st.markdown('</div>', unsafe_allow_html=True) # Close main-content-panel div
+
+    col_buttons_input = st.columns(3) # Changed to 3 columns for 3 buttons
+    with col_buttons_input[0]:
+        if st.button("✨ Generate Order Email", use_container_width=True):
+            if raw_text_input:
+                st.session_state.raw_text = raw_text_input
+                st.session_state.parsed_data = parse_shopify_export(raw_text_input)
+                st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"] # Re-assign missing flags
+                
+                subject, message = generate_standard_email(st.session_state.parsed_data)
+                st.session_state.generated_subject = subject
+                st.session_state.generated_email_body = message
+                st.session_state.current_step = "generate_standard" # Keep track of which email type was generated
+                st.rerun()
+            else:
+                st.warning("Please paste the order export text to generate an email.")
+    with col_buttons_input[1]:
+        if st.button("🚨 High-Risk Email", use_container_width=True): # Shorter button text
+            if raw_text_input:
+                st.session_state.raw_text = raw_text_input
+                st.session_state.parsed_data = parse_shopify_export(raw_text_input)
+                st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"] # Re-assign missing flags
+                
+                subject, message = generate_high_risk_email(st.session_state.parsed_data)
+                st.session_state.generated_subject = subject
+                st.session_state.generated_email_body = message
+                st.session_state.current_step = "generate_high_risk" # Keep track of which email type was generated
+                st.rerun()
+            else:
+                st.warning("Please paste the order export text to generate a high-risk email.")
+    with col_buttons_input[2]: # New button for return email
+        if st.button("↩️ Return Email Template", use_container_width=True):
+            if raw_text_input:
+                st.session_state.raw_text = raw_text_input
+                st.session_state.parsed_data = parse_shopify_export(raw_text_input) # Parse to get customer name
+                st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"] # Re-assign missing flags
+                
+                subject, message = generate_return_email(st.session_state.parsed_data)
+                st.session_state.generated_subject = subject
+                st.session_state.generated_email_body = message
+                st.session_state.current_step = "generate_return"
+                st.rerun()
+            else:
+                st.warning("Please paste the order export text to generate a return email.")
+    
+    # Placed Reset All button below the main generation buttons for clarity
+    st.button("🔄 Reset All", on_click=reset_app_state, use_container_width=True)
+
+
+with col_right:
+    st.subheader("2. Your Generated Email")
+    
+    # Conditionally display content based on whether an email has been generated
+    if st.session_state.generated_email_body:
+        # Display recipient email (moved to top)
+        st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class="data-display-box">
+                <span>{st.session_state.parsed_data.get('email_address', 'N/A')}</span>
+                <button class="copy-button" id="copyEmailBtn" onclick="copyToClipboard(
+                    '{st.session_state.parsed_data.get('email_address', 'N/A').replace("'", "\\'")}', 'copyEmailBtn'
+                )">Copy</button>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # Display email subject
+        st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class="data-display-box">
+                <span>{st.session_state.generated_subject}</span>
+                <button class="copy-button" id="copySubjectBtn" onclick="copyToClipboard(
+                    '{st.session_state.generated_subject.replace("'", "\\'")}', 'copySubjectBtn'
+                )">Copy</button>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # Display email body
+        st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
+        st.code(st.session_state.generated_email_body, language="text")
+        
+        js_safe_email_body = json.dumps(st.session_state.generated_email_body)
+        st.markdown(f"""
+            <div style="text-align: right; margin-top: -1rem; margin-bottom: 1rem;">
+                <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
+                    {js_safe_email_body}, 'copyBodyBtn'
+                )">Copy Email Body</button>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # Display info/warning/success cards (kept after email content for context)
+        if st.session_state.missing_info_flags and st.session_state.current_step == "generate_standard":
+            missing_text = ", ".join(st.session_state.missing_info_flags)
+            st.markdown(f"""
+                <div class="warning-card">
+                    <span style="font-size: 1.2rem;">⚠️</span>
+                    <strong>Missing Information:</strong> Could not automatically extract: {missing_text}.
+                    Please verify the generated email and manually add/correct these details.
+                </div>
+            """, unsafe_allow_html=True)
+        elif st.session_state.current_step == "generate_high_risk":
+            st.markdown("""
+                <div class="warning-card">
+                    <span style="font-size: 1.2rem;">🚨</span>
+                    This is the email for high-risk order cancellations. Please review carefully before sending.
+                </div>
+            """, unsafe_allow_html=True)
+        elif st.session_state.current_step == "generate_return":
+            st.markdown("""
+                <div class="info-card">
+                    <span style="font-size: 1.2rem;">↩️</span>
+                    This is the return mail template. Ensure the customer name is correct.
+                </div>
+            """, unsafe_allow_html=True)
+        else: # For standard with no missing info
+            st.markdown("""
+                <div class="success-card">
+                    <span style="font-size: 1.2rem;">✅</span>
+                    Email generated successfully! Ready to copy and send.
+                </div>
+            """, unsafe_allow_html=True)
+
+        # Display extracted information card (only for standard email, or if user wants to see it for others)
+        if st.session_state.current_step == "generate_standard":
+            st.markdown(f"""
+                <div class="extracted-data-card">
+                    <h3><span style="font-size: 1.2rem;">🔍</span> Additional Order Details</h3>
+                    <div class="field-row">
+                        <span class="field-label">Customer Name:</span>
+                        <span class="field-value-display">{st.session_state.parsed_data.get('customer_name', '[Not Found]')}</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-label">Order Number:</span>
+                        <span class="field-value-display">{st.session_state.parsed_data.get('order_number', '[Not Found]')}</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-label">Phone:</span>
+                        <span class="field-value-display">{st.session_state.parsed_data.get('phone_number', '[Not Found]')}</span>
+                    </div>
+                    <h4>Order Items:</h4>
+            """, unsafe_allow_html=True)
+
+            if st.session_state.parsed_data.get("items"):
+                for item in st.session_state.parsed_data["items"]:
+                    st.markdown(f"""
+                        <div class="order-item">
+                            <div class="item-detail"><span class="label">Product:</span> <span class="value">{item.get('product_name', 'N/A')}</span></div>
+                            <div class="item-detail"><span class="label">Style Code:</span> <span class="value">{item.get('style_code', 'N/A')}</span></div>
+                            <div class="item-detail"><span class="label">Size:</span> <span class="value">{item.get('size', 'Size Not Found')}</span></div>
+                            <div class="item-detail"><span class="label">Quantity:</span> <span class="value">{item.get('quantity', 1)}</span></div>
+                        </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.markdown("""<div class="info-card">No items extracted.</div>""", unsafe_allow_html=True)
+
+            st.markdown("</div>", unsafe_allow_html=True) # Close extracted-data-card
+
+        # Always show "Start New Order" button on the right side if an email has been generated
+        st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True)
+    else:
+        # Placeholder message when no email has been generated yet, now using custom card style
+        st.markdown("""
+            <div class="info-card" style="min-height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                <span style="font-size: 2.2rem; margin-bottom: 0.7rem;">✨</span>
+                <p style="font-size: 1rem; font-weight: 600;">Your generated email will appear here.</p>
+                <p style="color: var(--text-medium); font-size: 0.85rem;">Paste your order details on the left and click 'Generate Email' to see the magic!</p>
+            </div>
+        """, unsafe_allow_html=True)
