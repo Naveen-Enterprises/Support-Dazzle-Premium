@@ -6,7 +6,8 @@ import json # Import the json module
 # --- Page Configuration ---
 st.set_page_config(page_title="DAZZLE PREMIUM Order Email Generator", layout="wide", initial_sidebar_state="collapsed")
 
-# --- Custom CSS Styling (Reimagined Apple-like UI: glass, subtle gradients, refined typography) ---
+# --- Custom CSS Styling (Inspired by Material Design & Apple Aesthetics) ---
+# Using Google Fonts (Inter for body, Montserrat for headings)
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
 <style>
@@ -108,25 +109,6 @@ st.markdown("""
         box-shadow: var(--shadow-sm);
     }
 
-    /* Make copy-button visually identical to main buttons */
-    .copy-button {
-        background-color: var(--primary-blue);
-        color: white;
-        font-weight: 600;
-        padding: 0.5rem 0.9rem;
-        font-size: 0.85rem;
-        border-radius: 6px;
-        border: none;
-        box-shadow: var(--shadow-md);
-        transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
-        cursor: pointer;
-    }
-    .copy-button:hover {
-        background-color: var(--primary-blue-dark);
-        box-shadow: var(--shadow-lg);
-        transform: translateY(-0.5px);
-    }
-
     /* Custom Card Styles for Data Display */
     .info-card, .success-card, .warning-card, .error-card {
         padding: 0.7rem 0.9rem; /* Reduced padding */
@@ -164,6 +146,20 @@ st.markdown("""
     .data-display-box:hover {
         box-shadow: var(--shadow-md);
         transform: translateY(-0.5px);
+    }
+
+    /* Copy Button within Data Display */
+    .copy-button {
+        background-color: var(--primary-blue);
+        color: white;
+        border-radius: 5px; /* Reduced roundedness */
+        padding: 0.3rem 0.6rem; /* Reduced padding */
+        font-size: 0.7rem; /* Reduced font size */
+        box-shadow: var(--shadow-sm);
+    }
+    .copy-button:hover {
+        background-color: var(--primary-blue-dark);
+        box-shadow: var(--shadow-md);
     }
 
     /* Extracted Data Review Cards */
@@ -806,26 +802,38 @@ with col_right:
                 </div>
             """, unsafe_allow_html=True)
 
-        # Display recipient email and subject & body using polished email-card
-        js_safe_email_body = json.dumps(st.session_state.generated_email_body)
-        recipient_email = st.session_state.parsed_data.get('email_address', 'N/A').replace("'", "\\'")
-        safe_subject = st.session_state.generated_subject.replace("'", "\\'")
-
+        # Display recipient email
+        st.markdown("<h4>📧 Recipient Email:</h4>", unsafe_allow_html=True)
         st.markdown(f"""
-            <div class="email-card">
-                <div class="email-meta">
-                    <div style="display:flex; flex-direction:column;">
-                        <div class="recipient">To: <strong>{st.session_state.parsed_data.get('email_address', 'N/A')}</strong></div>
-                        <div class="subject">{st.session_state.generated_subject}</div>
-                    </div>
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <button class="copy-button" id="copyEmailBtn" onclick="copyToClipboard('{recipient_email}', 'copyEmailBtn')">Copy Recipient</button>
-                        <button class="copy-button" id="copySubjectBtn" onclick="copyToClipboard('{safe_subject}', 'copySubjectBtn')">Copy Subject</button>
-                        <button class="copy-button" id="copyBodyBtn" onclick='copyToClipboard({js_safe_email_body}, "copyBodyBtn")'>Copy Body</button>
-                    </div>
-                </div>
+            <div class="data-display-box">
+                <span>{st.session_state.parsed_data.get('email_address', 'N/A')}</span>
+                <button class="copy-button" id="copyEmailBtn" onclick="copyToClipboard(
+                    '{st.session_state.parsed_data.get('email_address', 'N/A').replace("'", "\\'")}', 'copyEmailBtn'
+                )">Copy</button>
+            </div>
+        """, unsafe_allow_html=True)
 
-                <div class="email-body">{st.session_state.generated_email_body}</div>
+        # Display email subject
+        st.markdown("<h4>📨 Subject:</h4>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class="data-display-box">
+                <span>{st.session_state.generated_subject}</span>
+                <button class="copy-button" id="copySubjectBtn" onclick="copyToClipboard(
+                    '{st.session_state.generated_subject.replace("'", "\\'")}', 'copySubjectBtn'
+                )">Copy</button>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # Display email body
+        st.markdown("<h4>📝 Email Body:</h4>", unsafe_allow_html=True)
+        st.code(st.session_state.generated_email_body, language="text")
+        
+        js_safe_email_body = json.dumps(st.session_state.generated_email_body)
+        st.markdown(f"""
+            <div style="text-align: right; margin-top: -0.8rem; margin-bottom: 0.8rem;">
+                <button class="copy-button" id="copyBodyBtn" onclick="copyToClipboard(
+                    {js_safe_email_body}, 'copyBodyBtn'
+                )">Copy Email Body</button>
             </div>
         """, unsafe_allow_html=True)
 
@@ -867,13 +875,11 @@ with col_right:
         # Always show "Start New Order" button on the right side if an email has been generated
         st.button("🔁 Start New Order", on_click=reset_app_state, use_container_width=True)
     else:
-        # Polished placeholder card
+        # Placeholder message when no email has been generated yet, now using custom card style
         st.markdown("""
-            <div class="info-card" style="min-height: 520px; align-items:center; justify-content:center; text-align:center; display:flex; flex-direction:column;">
-                <div style="font-size: 44px; color: #0b1220; margin-bottom: 8px;">✨</div>
-                <div style="font-size:18px; font-weight:700; margin-bottom:6px;">Beautiful emails — instantly.</div>
-                <div style="color: #6b6b6f; max-width: 420px;">
-                    Paste your Shopify order export on the left and choose a template. We'll extract the details and craft a clean, secure verification or confirmation email for you.
-                </div>
+            <div class="info-card" style="min-height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                <span style="font-size: 2.2rem; margin-bottom: 0.7rem;">✨</span>
+                <p style="font-size: 1rem; font-weight: 600;">Your generated email will appear here.</p>
+                <p style="color: var(--text-medium); font-size: 0.85rem;">Paste your order details on the left and click 'Generate Email' to see the magic!</p>
             </div>
         """, unsafe_allow_html=True)
