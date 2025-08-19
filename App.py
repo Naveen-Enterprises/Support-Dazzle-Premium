@@ -713,7 +713,7 @@ with col_left:
             else:
                 st.warning("Please paste the order export text to generate an email.")
     with col_buttons_input[1]:
-        if st.button("🚨 High-Risk Email", use_container_width=True): # Shorter button text
+        if st.button("High-Risk", use_container_width=True): # Shorter button text
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input)
@@ -727,7 +727,7 @@ with col_left:
             else:
                 st.warning("Please paste the order export text to generate a high-risk email.")
     with col_buttons_input[2]: # Return email (unchanged)
-        if st.button("↩️ Return Email Template", use_container_width=True):
+        if st.button("Return Email", use_container_width=True):
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input) # Parse to get customer name
@@ -741,7 +741,7 @@ with col_left:
             else:
                 st.warning("Please paste the order export text to generate a return email.")
     with col_buttons_input[3]: # New Medium-Risk button
-        if st.button("🟡 Medium-Risk Email", use_container_width=True):
+        if st.button("Medium-Risk", use_container_width=True):
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input)
