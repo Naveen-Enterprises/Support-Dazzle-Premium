@@ -2,7 +2,6 @@ import streamlit as st
 import re
 from datetime import datetime
 
-
 # Page configuration
 st.set_page_config(
     page_title="Mail - DAZZLE PREMIUM",
@@ -10,7 +9,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
 
 # Custom CSS for a polished look and improved alignment
 st.markdown("""
@@ -79,7 +77,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
 # Initialize session state variables
 if 'parsed_data' not in st.session_state:
     st.session_state.parsed_data = None
@@ -92,11 +89,9 @@ if 'is_data_available' not in st.session_state: # Tracks if parsed data is avail
 if 'last_order_input_value_for_parsing' not in st.session_state: # Stores last input for change detection
     st.session_state.last_order_input_value_for_parsing = ''
 
-
 # Session state for order notes
 if 'order_notes' not in st.session_state:
     st.session_state.order_notes = {} # Dictionary to store notes, keyed by order number
-
 
 
 def parse_shopify_data(raw_text):
@@ -113,10 +108,8 @@ def parse_shopify_data(raw_text):
         "missing_info": []
     }
 
-
     if not raw_text or not raw_text.strip():
         return None # Return None if input is empty
-
 
     # Extract customer name
     name_match = re.search(r'Order confirmation email was sent to (.*?)\s*\(', raw_text, re.IGNORECASE)
@@ -131,14 +124,12 @@ def parse_shopify_data(raw_text):
             data["missing_info"].append("Customer Name")
 
 
-
     # Extract email
     email_match = re.search(r'[\w\.-]+@[\w\.-]+\.[\w\.-]+', raw_text)
     if email_match:
         data["email_address"] = email_match.group(0).strip()
     else:
         data["missing_info"].append("Email Address")
-
 
     # Extract phone
     phone_match = re.search(r'\+1[ \d\-()]{10,}', raw_text)
@@ -147,14 +138,12 @@ def parse_shopify_data(raw_text):
     else:
         data["missing_info"].append("Phone Number")
 
-
     # Extract order number
     order_match = re.search(r'dazzlepremium#(\d+)', raw_text, re.IGNORECASE)
     if order_match:
         data["order_number"] = order_match.group(1).strip()
     else:
         data["missing_info"].append("Order Number")
-
 
     # Extract items using a more reliable, line-by-line method
     lines = [line.strip() for line in raw_text.split('\n')]
@@ -166,16 +155,13 @@ def parse_shopify_data(raw_text):
                 size_line = lines[i-1]
                 quantity_line = lines[i+1]
 
-
                 # Product Name and Style Code
                 product_match = re.match(r'(.*) - (.*)', product_line)
                 product_name = product_match.group(1).strip() if product_match else product_line
                 style_code = product_match.group(2).strip() if product_match else "[Style Code Not Found]"
 
-
                 # Size
                 size = size_line.split('/')[0].strip() if '/' in size_line else size_line
-
 
                 # Quantity
                 quantity_match = re.search(r'×\s*(\d+)', quantity_line)
@@ -194,15 +180,12 @@ def parse_shopify_data(raw_text):
     if not data["items"]:
         data["missing_info"].append("Order Items")
 
-
     return data
-
 
 def generate_email_content(parsed_data, email_type):
     """Single function to generate different email types."""
     message = ""
     subject = ""
-
 
     if email_type == "standard":
         subject = f"Final Order Confirmation of dazzlepremium#{parsed_data['order_number']}"
@@ -219,148 +202,75 @@ def generate_email_content(parsed_data, email_type):
         else:
             order_details = "No items found."
 
-
         message = f"""Hello {parsed_data['customer_name']},
 
-
 This is DAZZLE PREMIUM Support confirming Order {parsed_data['order_number']}
-
 
 - Please reply YES to confirm just this order only.
 - Kindly also reply YES to the SMS sent automatically to your inbox.
 
-
 Order Details:
 {order_details.strip()}
 
-
 For your security, we use two-factor authentication. If this order wasn't placed by you, text us immediately at 410-381-0000 to cancel.
-
 
 Note: Any order confirmed after 3:00 pm will be scheduled for the next business day.
 
-
 If you have any questions our US-based team is here Monday–Saturday, 10 AM–6 PM.
 Thank you for choosing DAZZLE PREMIUM!"""
-
 
     elif email_type == "high_risk":
         subject = "Important: Your DAZZLE PREMIUM Order - Action Required"
         message = f"""Hello {parsed_data['customer_name']},
 
-
 We hope this message finds you well.
-
 
 We regret to inform you that your recent order has been automatically cancelled as it was flagged as a high-risk transaction by our system. This is a standard security measure to help prevent unauthorized or fraudulent activity.
 
-
 If you would still like to proceed with your order, we'd be happy to assist you in placing it manually. To do so, we kindly ask that you transfer the payment via Cash App.
-
 
 Once the payment is received, we will immediately process your order and provide confirmation along with tracking details.
 
-
 If you have any questions or need assistance, feel feel to reply to this email.
-
 
 Thank you,
 DAZZLE PREMIUM Support"""
-
-    elif email_type == "medium_risk":
-        subject = f"Action Required: Confirm Your DAZZLE PREMIUM Order #{parsed_data['order_number']}"
-        order_details = ""
-        if parsed_data["items"]:
-            for item in parsed_data["items"]:
-                order_details += f"• Product: {item['product_name']}\n"
-                order_details += f"• Style Code: {item['style_code']}\n"
-                order_details += f"• Size: {item['size']}"
-                if item["quantity"] > 1:
-                    order_details += f"\n• Quantity: {item['quantity']}"
-                order_details += "\n\n"
-        else:
-            order_details = "No items found."
-        
-        message = f"""Hello {parsed_data['customer_name']},
-
-
-Thank you for shopping with DAZZLE PREMIUM.
-
-
-Our system has flagged your recent order (#{parsed_data['order_number']}) for additional verification. For your security and to prevent fraudulent activity, we are unable to ship this order until it has been manually reviewed and confirmed.
-
-
-Order Details:
-{order_details.strip()}
-
-
-To complete verification, please reply to this email with:
-- Your Order Number
-- A valid photo ID (you may cover sensitive information, but your name must be visible)
-- A picture of the payment card used (you may cover all digits except the last 4)
-
-
-Once we receive this information, our fraud prevention team will promptly review it and proceed with shipping.
-
-
-For your security: If you did not place this order, please text us immediately at 410-381-0000 so we can cancel and secure your account.
-
-
-Note: Any order confirmed after 3:00 PM will be scheduled for the next business day.
-
-
-If you have any questions, our US-based team is available Monday–Saturday, 10 AM–6 PM.
-We truly value your safety and appreciate your cooperation.
-Thank you for choosing DAZZLE PREMIUM!"""
-
 
     elif email_type == "return":
         subject = "DAZZLE PREMIUM: Your Return Request Instructions"
         message = f"""Dear {parsed_data['customer_name']},
 
-
 Thank you for reaching out to us regarding your return request. To ensure a smooth and successful return process, please carefully follow the steps below:
 
-
 1. Go to your local post office or any shipping carrier (USPS, FedEx, UPS, DHL).
-
 
 2. Create and pay for the return shipping label.
 (Please note: You are responsible for the return shipping cost.)
 
-
 3. Ship the item to the following address:
 
-
-Dazzle Premium
-3500 East-West Highway
-Suite 1032
-Hyattsville, MD 20782
-+1 (301) 942-0000
-
+Dazzle Premium 
+3500 East-West Highway 
+Suite 1032 
+Hyattsville, MD 20782 
++1 (301) 942-0000 
 
 4. Email us the tracking number after you ship the package by replying to this email.
 
-
 Once we receive the returned item in its original condition with the tags intact and complete our inspection, we will process your refund.
-
 
 If you have any questions, feel free to reply to this email."""
     
     return parsed_data["email_address"], subject, message
 
-
 # --- Main App Layout ---
 st.title("📧 Mail - DAZZLE PREMIUM")
 st.markdown("### Premium Email Generator")
 
-
 current_time = datetime.now()
 st.info(f"📅 {current_time.strftime('%A, %B %d, %Y')} | 🕒 {current_time.strftime('%I:%M:%S %p')}")
 
-
 col1, col2 = st.columns([1, 2])
-
 
 with col1:
     st.markdown("#### 📋 Paste Shopify Order Data")
@@ -400,7 +310,7 @@ with col1:
     st.markdown("#### ✨ Generate Email")
     
     # Email generation buttons
-    col1a, col1b, col1c, col1d = st.columns(4)
+    col1a, col1b, col1c = st.columns(3)
     
     def handle_email_generation(email_type):
         # Ensure parsed data is available before generating email
@@ -410,19 +320,14 @@ with col1:
         else:
             st.warning("Please paste valid order data first to generate an email!")
 
-
     with col1a:
         st.button("✨ Standard", on_click=handle_email_generation, args=("standard",), use_container_width=True, type="primary")
     
     with col1b:
         st.button("🚨 High Risk", on_click=handle_email_generation, args=("high_risk",), use_container_width=True)
-        
-    with col1c:
-        st.button("⚠️ Medium Risk", on_click=handle_email_generation, args=("medium_risk",), use_container_width=True)
     
-    with col1d:
+    with col1c:
         st.button("↩️ Return", on_click=handle_email_generation, args=("return",), use_container_width=True)
-
 
     # Order Notes section (always visible)
     current_order_number = st.session_state.parsed_data["order_number"] if st.session_state.parsed_data else "No Order"
@@ -430,7 +335,6 @@ with col1:
     # Initialize note for current order if not exists
     if current_order_number not in st.session_state.order_notes:
         st.session_state.order_notes[current_order_number] = ""
-
 
     st.markdown(f'<div class="order-notes-section"><h5>📝 Notes for Order: {current_order_number}</h5>', unsafe_allow_html=True)
     
@@ -445,12 +349,10 @@ with col1:
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-
 with col2:
     st.markdown("#### ✉️ Compose Email")
     
     email_to, email_subject, email_body = st.session_state.get('email_data', (None, None, None))
-
 
     if st.session_state.email_generated and all(st.session_state.email_data):
         st.markdown('<div class="success-message"><strong>✅ Email Generated Successfully!</strong></div>', unsafe_allow_html=True)
@@ -466,7 +368,6 @@ with col2:
         st.text_input("To:", placeholder="Recipient email will appear here", disabled=True)
         st.text_input("Subject:", placeholder="Email subject will appear here", disabled=True)
         st.text_area("Message:", placeholder="Email message will appear here...", height=400, disabled=True)
-
 
 # Footer
 st.markdown("---")
