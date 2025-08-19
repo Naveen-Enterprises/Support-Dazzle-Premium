@@ -695,7 +695,7 @@ with col_left:
         value=st.session_state.raw_text,
         placeholder="Paste your Shopify order details here...",
         key="raw_text_input_main" # Add a key to avoid potential conflicts
-        style="/*! color: aqua; */background-color: #f8f9fb;"
+    
     )
 
     col_buttons_input = st.columns(4) # Changed to 4 columns to add Medium-Risk button
