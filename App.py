@@ -10,8 +10,7 @@ from datetime import datetime
 st.set_page_config(
 
 page_title="Mail DAZZLE PREMIUM",
-
-    page_icon="DP",
+page_icon="DP",
 
     layout="wide",
 
