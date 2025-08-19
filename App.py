@@ -449,8 +449,23 @@ with col3:
     st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
     # Recipient / subject display
     recipient = st.session_state.parsed_data.get("email_address","[Email Not Found]")
-    st.markdown(f"<div style='display:flex; gap:8px; align-items:center;'><div style='flex:1'><div class='tag'>To</div><div style='font-weight:700'>{recipient}</div></div><div><button class='copy-button' id='copyToBtn' onclick=\"copyToClipboard('{recipient.replace(\"'\",\"\\'\")}','copyToBtn')\">Copy</button></div></div>", unsafe_allow_html=True)
-    st.markdown(f"<div style='margin-top:8px; display:flex; gap:8px; align-items:center;'><div style='flex:1'><div class='tag'>Subject</div><div style='font-weight:700'>{st.session_state.generated_subject}</div></div><div><button class='copy-button' id='copySubBtn' onclick=\"copyToClipboard('{st.session_state.generated_subject.replace(\"'\",\"\\'\")}','copySubBtn')\">Copy</button></div></div>", unsafe_allow_html=True)
+    recipient_js = json.dumps(recipient)
+    st.markdown(
+        f"<div style='display:flex; gap:8px; align-items:center;'>"
+        f"<div style='flex:1'><div class='tag'>To</div><div style='font-weight:700'>{recipient}</div></div>"
+        f"<div><button class='copy-button' id='copyToBtn' onclick=\"copyToClipboard({recipient_js}, 'copyToBtn')\">Copy</button></div>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    subject_js = json.dumps(st.session_state.generated_subject)
+    st.markdown(
+        f"<div style='margin-top:8px; display:flex; gap:8px; align-items:center;'>"
+        f"<div style='flex:1'><div class='tag'>Subject</div><div style='font-weight:700'>{st.session_state.generated_subject}</div></div>"
+        f"<div><button class='copy-button' id='copySubBtn' onclick=\"copyToClipboard({subject_js}, 'copySubBtn')\">Copy</button></div>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
