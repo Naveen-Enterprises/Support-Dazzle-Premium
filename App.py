@@ -699,7 +699,7 @@ with col_left:
 
     col_buttons_input = st.columns(4) # Changed to 4 columns to add Medium-Risk button
     with col_buttons_input[0]:
-        if st.button("✨ Generate Order Email", use_container_width=True):
+        if st.button("Confirmation Email", use_container_width=True):
             if raw_text_input:
                 st.session_state.raw_text = raw_text_input
                 st.session_state.parsed_data = parse_shopify_export(raw_text_input)
