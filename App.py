@@ -618,6 +618,50 @@ If you have any questions, feel free to reply to this email.
     return subject, message
 
 
+def generate_medium_risk_email(parsed_data):
+    """Generates the medium-risk order verification email."""
+    customer_name = parsed_data.get("customer_name", "[Customer Name Not Found]")
+    order_number = parsed_data.get("order_number", "[Order # Not Found]")
+    items = parsed_data.get("items", [])
+
+    # Build order details (similar to standard)
+    order_details_list = []
+    for item in items:
+        item_detail = (
+            f"• Product: {item.get('product_name', 'N/A')}\n"
+            f"• Style Code: {item.get('style_code', 'N/A')}\n"
+            f"• Size: {item.get('size', 'Size Not Found')}"
+        )
+        order_details_list.append(item_detail)
+    order_details = "\n".join(order_details_list) if order_details_list else "No items found."
+
+    subject = f"Verification Required for dazzlepremium#{order_number}"
+    message = f"""Hello {customer_name},
+
+Thank you for shopping with DAZZLE PREMIUM. Our system has flagged your recent order (#{order_number}) for additional verification. For your security and to prevent fraudulent activity, we are unable to ship this order until it has been manually reviewed and confirmed.
+
+Order Details:
+{order_details}
+
+To complete verification, please reply to this email with:
+- Your Order Number
+- A valid photo ID (you may cover sensitive information, but your name must be visible)
+- A picture of the payment card used (you may cover all digits except the last 4)
+
+Once we receive this information, our fraud prevention team will promptly review it and proceed with shipping.
+
+For your security: If you did not place this order, please text us immediately at 410-381-0000 so we can cancel and secure your account.
+
+Note: Any order confirmed after 3:00 PM will be scheduled for the next business day.
+
+If you have any questions, our US-based team is available Monday–Saturday, 10 AM–6 PM.
+
+We truly value your safety and appreciate your cooperation.
+
+Thank you for choosing DAZZLE PREMIUM!
+"""
+    return subject, message
+
 def reset_app_state():
     """Resets all session state variables to their initial values."""
     st.session_state.current_step = "input"
@@ -730,6 +774,13 @@ with col_right:
                     This is the return mail template. Ensure the customer name is correct.
                 </div>
             """, unsafe_allow_html=True)
+        elif st.session_state.current_step == "generate_medium_risk":
+            st.markdown("""
+                <div class="warning-card">
+                    <span style="font-size: 1.2rem;">🟡</span>
+                    This is the email for medium-risk order verification. Please review before sending.
+                </div>
+            """, unsafe_allow_html=True)
         else: # For standard with no missing info
             st.markdown("""
                 <div class="success-card">
@@ -818,4 +869,20 @@ with col_right:
                 <p style="font-size: 1rem; font-weight: 600;">Your generated email will appear here.</p>
                 <p style="color: var(--text-medium); font-size: 0.85rem;">Paste your order details on the left and click 'Generate Email' to see the magic!</p>
             </div>
-        """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)        col_buttons_input = st.columns(4) # Now 4 columns
+        
+        # ...existing buttons...
+        
+        with col_buttons_input[3]:
+            if st.button("🟡 Medium-Risk Email", use_container_width=True):
+                if raw_text_input:
+                    st.session_state.raw_text = raw_text_input
+                    st.session_state.parsed_data = parse_shopify_export(raw_text_input)
+                    st.session_state.missing_info_flags = st.session_state.parsed_data["missing_info"]
+                    subject, message = generate_medium_risk_email(st.session_state.parsed_data)
+                    st.session_state.generated_subject = subject
+                    st.session_state.generated_email_body = message
+                    st.session_state.current_step = "generate_medium_risk"
+                    st.rerun()
+                else:
+                    st.warning("Please paste the order export text to generate a medium-risk email.")
