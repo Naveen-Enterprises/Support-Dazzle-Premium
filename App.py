@@ -348,7 +348,7 @@ with col1:
         # populate editable json for items
         st.session_state.edited_parsed_json = json.dumps(parsed, indent=2)
         st.session_state.generated_subject, st.session_state.generated_email_body = generate_email(parsed, tone=st.session_state.tone, mode="standard")
-        st.experimental_rerun()
+        # removed experimental_rerun() - Streamlit will rerun automatically after button press
     st.markdown("<button class='small-btn' id='clearBtn'>Clear</button>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
     # Clear button JS hook
@@ -400,7 +400,8 @@ with col2:
                     st.session_state.generated_subject = tpl["subject"]
                     st.session_state.generated_email_body = tpl["body"]
                     st.session_state.tone = tpl.get("tone","Friendly")
-                    st.experimental_rerun()
+                    # removed experimental_rerun() - UI will update on state change
+
         else:
             st.markdown("<div class='tag'>No saved templates yet.</div>", unsafe_allow_html=True)
 
@@ -434,17 +435,19 @@ with col3:
         if st.button("Generate Standard", key="gen_std"):
             subj, body = generate_email(st.session_state.parsed_data or {}, tone=st.session_state.tone, mode="standard")
             st.session_state.generated_subject, st.session_state.generated_email_body = subj, body
-            st.experimental_rerun()
+            # removed experimental_rerun()
+
     with bcol2:
         if st.button("Generate Medium-Risk", key="gen_med"):
             subj, body = generate_email(st.session_state.parsed_data or {}, tone=st.session_state.tone, mode="medium_risk")
             st.session_state.generated_subject, st.session_state.generated_email_body = subj, body
-            st.experimental_rerun()
+            # removed experimental_rerun()
+
     with bcol3:
         if st.button("Generate High-Risk", key="gen_high"):
             subj, body = generate_email(st.session_state.parsed_data or {}, tone=st.session_state.tone, mode="high_risk")
             st.session_state.generated_subject, st.session_state.generated_email_body = subj, body
-            st.experimental_rerun()
+            # removed experimental_rerun()
 
     st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
     # Recipient / subject display
@@ -509,7 +512,3 @@ if st.button("Reset All", key="reset_all"):
     reset_app_state()
 st.markdown("<div style='margin-left:auto; color:var(--muted)'>DAZZLE PREMIUM — Email Studio • Demo mode</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
-
-# Lightweight persistence of edited JSON when changed (so UI stays in sync)
-if st.session_state.edited_parsed_json != st.session_state.get("edited_parsed_json", ""):
-    st.session_state.edited_parsed_json = st.session_state.get("edited_json_area", st.session_state.edited_parsed_json)
