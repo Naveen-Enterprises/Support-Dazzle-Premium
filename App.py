@@ -72,7 +72,7 @@ st.markdown("""
         font-size: 0.8rem; /* Reduced font size */
         box-shadow: var(--shadow-sm);
         transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        background-color: var(--card-bg);
+        background-color: #f0f8ff;
     }
     .stTextArea > div > textarea { /* Specific distinct styling for the text area */
         border: 1px solid var(--primary-blue); /* Distinct blue border */
