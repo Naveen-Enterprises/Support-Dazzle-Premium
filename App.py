@@ -77,7 +77,7 @@ st.markdown("""
     .stTextArea > div > textarea { /* Specific distinct styling for the text area */
         border: 1px solid var(--primary-blue); /* Distinct blue border */
         box-shadow: 0 0 0 1.5px rgba(0, 122, 255, 0.1), var(--shadow-md); /* Subtle blue glow + distinct shadow */
-        background-color: #FFFFFF; /* Ensure white background */
+        background-color: #f0f8ff; /* Ensure white background */
     }
     .stTextInput > div > div > input:focus,
     .stTextArea > div > textarea:focus {
